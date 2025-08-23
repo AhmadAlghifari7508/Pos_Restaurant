@@ -1,0 +1,402 @@
+﻿<div class="payment-modal-content">
+    <!-- Modal Header -->
+    <div class="flex justify-between items-center mb-6 border-b pb-4">
+        <div>
+            <h3 class="text-xl font-bold text-gray-800">Pembayaran</h3>
+            <p class="text-sm text-gray-600">Konfirmasi pembayaran order</p>
+        </div>
+        <button onclick="hidePaymentModal()"
+                class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors">
+            <i class="fas fa-times text-xl"></i>
+        </button>
+    </div>
+
+    <form id="paymentForm">
+        <!-- Order Summary in Payment -->
+        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5 mb-6 shadow-sm">
+            <h4 class="font-bold text-gray-800 mb-4 flex items-center text-lg">
+                <i class="fas fa-receipt text-blue-600 mr-3"></i>
+                Ringkasan Order
+            </h4>
+
+            <!-- Order Details -->
+            <div class="space-y-3 mb-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-700 font-medium">Order Number:</span>
+                    <span id="paymentOrderNumber" class="font-bold text-gray-800">-</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-700">Total Item:</span>
+                    <span id="paymentTotalItems" class="font-medium text-gray-800">-</span>
+                </div>
+            </div>
+
+            <!-- Financial Breakdown -->
+            <div class="space-y-2 text-sm border-t border-blue-200 pt-4">
+                <div class="flex justify-between">
+                    <span class="text-gray-700">Subtotal</span>
+                    <span id="paymentSubtotal" class="font-semibold text-gray-800">Rp 0</span>
+                </div>
+                <div class="flex justify-between" id="discountRow">
+                    <span class="text-gray-700" id="paymentDiscountLabel">Diskon</span>
+                    <span id="paymentDiscount" class="font-semibold text-green-600">- Rp 0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-700">PPN (11%)</span>
+                    <span id="paymentPPN" class="font-semibold text-gray-800">Rp 0</span>
+                </div>
+                <div class="flex justify-between font-bold text-lg border-t border-blue-300 pt-3 text-gray-900">
+                    <span>Total Bayar</span>
+                    <span id="paymentTotal" class="text-blue-600 text-xl">Rp 0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Information -->
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Nama Customer (Opsional)</label>
+            <div class="relative">
+                <input type="text"
+                       name="CustomerName"
+                       class="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                       placeholder="Masukkan nama customer">
+                <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
+        </div>
+
+        <!-- Order Type Section -->
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-3">Tipe Order</label>
+            <div class="grid grid-cols-2 gap-3">
+                <label class="flex items-center p-4 border-2 border-gray-300 rounded-xl hover:border-blue-500 cursor-pointer transition-all transform hover:scale-105 bg-white hover:shadow-md">
+                    <input type="radio" name="OrderType" value="Dine In" checked onchange="toggleTableNo()" class="mr-3 text-blue-600">
+                    <div class="flex items-center">
+                        <i class="fas fa-utensils text-orange-500 mr-3 text-lg"></i>
+                        <div>
+                            <span class="font-semibold text-gray-800">Dine In</span>
+                            <p class="text-xs text-gray-500">Makan di tempat</p>
+                        </div>
+                    </div>
+                </label>
+                <label class="flex items-center p-4 border-2 border-gray-300 rounded-xl hover:border-blue-500 cursor-pointer transition-all transform hover:scale-105 bg-white hover:shadow-md">
+                    <input type="radio" name="OrderType" value="Take Away" onchange="toggleTableNo()" class="mr-3 text-blue-600">
+                    <div class="flex items-center">
+                        <i class="fas fa-shopping-bag text-green-500 mr-3 text-lg"></i>
+                        <div>
+                            <span class="font-semibold text-gray-800">Take Away</span>
+                            <p class="text-xs text-gray-500">Bawa pulang</p>
+                        </div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Table Number (for Dine In) -->
+        <div class="mb-6" id="tableNoContainer">
+            <label class="block text-gray-700 text-sm font-bold mb-2">No Meja</label>
+            <div class="relative">
+                <input type="number"
+                       name="TableNo"
+                       min="1"
+                       max="100"
+                       class="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                       placeholder="Contoh: 5">
+                <i class="fas fa-table absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
+        </div>
+
+        <!-- Payment Method Section -->
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-3">Metode Pembayaran</label>
+            <div class="grid grid-cols-1 gap-3">
+                <label class="flex items-center p-4 border-2 border-gray-300 rounded-xl hover:border-blue-500 cursor-pointer transition-all bg-white hover:shadow-md">
+                    <input type="radio" name="PaymentMethod" value="Cash" checked class="mr-3 text-blue-600">
+                    <div class="flex items-center">
+                        <i class="fas fa-money-bill-wave text-green-500 mr-3 text-lg"></i>
+                        <div>
+                            <span class="font-semibold text-gray-800">Cash</span>
+                            <p class="text-xs text-gray-500">Pembayaran tunai</p>
+                        </div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Cash Payment Section -->
+        <div class="mb-6" id="cashSection">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Jumlah Cash</label>
+            <div class="relative mb-4">
+                <input type="number"
+                       name="Cash"
+                       id="cashInput"
+                       step="1000"
+                       min="0"
+                       class="w-full px-4 py-3 pl-12 text-lg font-semibold border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                       placeholder="0"
+                       onkeyup="calculateChange()"
+                       oninput="calculateChange()">
+                <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">Rp</span>
+            </div>
+
+            <!-- Quick Cash Buttons -->
+            <div class="grid grid-cols-3 gap-2 mb-4">
+                <button type="button" onclick="setCashAmount(50000)" class="bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 px-3 rounded-lg text-sm font-medium transition-all transform hover:scale-105">50K</button>
+                <button type="button" onclick="setCashAmount(100000)" class="bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 px-3 rounded-lg text-sm font-medium transition-all transform hover:scale-105">100K</button>
+                <button type="button" onclick="setCashAmount(200000)" class="bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 px-3 rounded-lg text-sm font-medium transition-all transform hover:scale-105">200K</button>
+            </div>
+
+            <!-- Payment Summary -->
+            <div class="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
+                <h5 class="font-bold text-green-800 mb-3 flex items-center">
+                    <i class="fas fa-calculator mr-2"></i>
+                    Perhitungan Pembayaran
+                </h5>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-700">Cash Diterima</span>
+                        <span id="paymentCash" class="font-bold text-green-700">Rp 0</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-700">Total Bayar</span>
+                        <span id="paymentTotalCopy" class="font-bold text-gray-800">Rp 0</span>
+                    </div>
+                    <div class="flex justify-between items-center font-bold text-lg border-t border-green-300 pt-2">
+                        <span class="text-gray-800">Kembalian</span>
+                        <span id="paymentChange" class="text-green-600 text-xl">Rp 0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex space-x-3 pt-4 border-t">
+            <button type="button"
+                    onclick="hidePaymentModal()"
+                    class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg transition-all flex items-center justify-center space-x-2 transform hover:scale-105">
+                <i class="fas fa-times"></i>
+                <span>Batal</span>
+            </button>
+            <button type="submit"
+                    id="submitPaymentBtn"
+                    class="flex-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105 flex items-center justify-center space-x-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                <i class="fas fa-check-circle"></i>
+                <span>Konfirmasi Pembayaran</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Set cash amount from quick buttons
+    function setCashAmount(amount) {
+        document.getElementById('cashInput').value = amount;
+        calculateChange();
+    }
+
+    // Enhanced calculate change function
+    function calculateChange() {
+        const cashInput = document.getElementById('cashInput');
+        const cash = parseFloat(cashInput.value) || 0;
+
+        // Get total from payment summary
+        const totalText = document.getElementById('paymentTotal').textContent;
+        const total = parseFloat(totalText.replace(/[Rp.,\s]/g, '')) || 0;
+
+        const change = Math.max(0, cash - total);
+
+        // Update displays
+        document.getElementById('paymentCash').textContent = `Rp ${cash.toLocaleString('id-ID')}`;
+        document.getElementById('paymentTotalCopy').textContent = `Rp ${total.toLocaleString('id-ID')}`;
+        document.getElementById('paymentChange').textContent = `Rp ${change.toLocaleString('id-ID')}`;
+
+        // Update colors and validation
+        const changeElement = document.getElementById('paymentChange');
+        const submitButton = document.getElementById('submitPaymentBtn');
+
+        if (cash >= total && total > 0) {
+            changeElement.classList.remove('text-red-600');
+            changeElement.classList.add('text-green-600');
+            submitButton.disabled = false;
+            submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            cashInput.classList.remove('border-red-500', 'ring-red-200');
+            cashInput.classList.add('border-green-500', 'ring-green-200');
+        } else {
+            changeElement.classList.remove('text-green-600');
+            changeElement.classList.add('text-red-600');
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+            cashInput.classList.remove('border-green-500', 'ring-green-200');
+            if (cash > 0 && cash < total) {
+                cashInput.classList.add('border-red-500', 'ring-red-200');
+            }
+        }
+    }
+
+    // Enhanced toggle table number function
+    function toggleTableNo() {
+        const orderType = document.querySelector('input[name="OrderType"]:checked')?.value;
+        const tableNoContainer = document.getElementById('tableNoContainer');
+        const tableNoInput = document.querySelector('input[name="TableNo"]');
+
+        if (orderType === 'Dine In') {
+            tableNoContainer.style.display = 'block';
+            tableNoInput.required = true;
+        } else {
+            tableNoContainer.style.display = 'none';
+            tableNoInput.required = false;
+            tableNoInput.value = '';
+        }
+    }
+
+    // Update payment summary with current order data - Updated to handle dynamic discount
+    function updatePaymentSummary() {
+        fetch('/Home/GetOrderSummaryData')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && !data.data.isEmpty) {
+                    const orderData = data.data;
+
+                    document.getElementById('paymentOrderNumber').textContent = orderData.orderNumber || '-';
+                    document.getElementById('paymentTotalItems').textContent = `${orderData.totalItems} items`;
+                    document.getElementById('paymentSubtotal').textContent = `Rp ${orderData.subtotal.toLocaleString('id-ID')}`;
+
+                    // Handle discount display with dynamic percentage
+                    const discountRow = document.getElementById('discountRow');
+                    const discountElement = document.getElementById('paymentDiscount');
+                    const discountLabelElement = document.getElementById('paymentDiscountLabel');
+
+                    if (orderData.discount && orderData.discount > 0) {
+                        discountRow.style.display = 'flex';
+                        discountElement.textContent = `- Rp ${orderData.discount.toLocaleString('id-ID')}`;
+                        discountElement.classList.add('text-green-600');
+
+                        // Update discount label with percentage
+                        if (orderData.discountPercentage) {
+                            discountLabelElement.textContent = `Diskon (${orderData.discountPercentage}%)`;
+                        }
+                    } else {
+                        discountRow.style.display = 'none';
+                        discountLabelElement.textContent = 'Diskon';
+                    }
+
+                    document.getElementById('paymentPPN').textContent = `Rp ${orderData.ppn.toLocaleString('id-ID')}`;
+                    document.getElementById('paymentTotal').textContent = `Rp ${orderData.total.toLocaleString('id-ID')}`;
+
+                    calculateChange();
+                }
+            })
+            .catch(error => {
+                console.error('Error updating payment summary:', error);
+            });
+    }
+
+    // Initialize payment modal when opened
+    function initializePaymentModal() {
+        updatePaymentSummary();
+        toggleTableNo();
+        calculateChange();
+
+        // Focus on cash input
+        setTimeout(() => {
+            document.getElementById('cashInput').focus();
+        }, 100);
+    }
+
+    // Form submission handler
+    document.addEventListener('DOMContentLoaded', function() {
+        const paymentForm = document.getElementById('paymentForm');
+        if (paymentForm) {
+            paymentForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+
+                // Add anti-forgery token
+                const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (token) {
+                    formData.append('__RequestVerificationToken', token.value);
+                }
+
+                // Show loading
+                showLoading();
+
+                fetch('/Home/ProcessPayment', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+
+                    if (data.success) {
+                        hidePaymentModal();
+                        showNotification('Pembayaran berhasil diproses!', 'success');
+
+                        // Refresh the page after a short delay
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        showNotification(data.message || 'Terjadi kesalahan dalam pembayaran', 'error');
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('Payment error:', error);
+                    showNotification('Terjadi kesalahan sistem', 'error');
+                });
+            });
+        }
+
+        // Listen for modal show events
+        const paymentModal = document.getElementById('paymentModal');
+        if (paymentModal) {
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        if (!paymentModal.classList.contains('hidden')) {
+                            initializePaymentModal();
+                        }
+                    }
+                });
+            });
+            observer.observe(paymentModal, { attributes: true });
+        }
+    });
+</script>
+
+<style>
+    .flex-2 {
+        flex: 2;
+    }
+
+    .payment-modal-content input:focus {
+        transform: scale(1.02);
+    }
+
+    .payment-modal-content button:not(:disabled):hover {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Custom number input */
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type="number"] {
+        -moz-appearance: textfield;
+    }
+
+    /* Radio button styling */
+    input[type="radio"]:checked {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+    }
+
+    /* Smooth animations */
+    .payment-modal-content * {
+        transition: all 0.2s ease;
+    }
+</style>

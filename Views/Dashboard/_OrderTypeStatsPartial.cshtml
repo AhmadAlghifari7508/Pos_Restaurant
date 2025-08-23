@@ -1,0 +1,27 @@
+﻿@model List<POSRestoran01.Models.ViewModels.DashboardViewModels.OrderTypeStatsViewModel>
+
+@if (Model.Any())
+{
+    @for (int i = 0; i < Model.Count; i++)
+    {
+        var stat = Model[i];
+        var color = stat.OrderType == "Dine In" ? "bg-blue-500" : "bg-green-500";
+        <div class="flex items-center justify-between py-3 @(i < Model.Count - 1 ? "border-b border-gray-100" : "")">
+            <div class="flex items-center space-x-3">
+                <div class="w-3 h-3 rounded-full @color"></div>
+                <span class="font-medium">@stat.OrderType</span>
+            </div>
+            <div class="text-right">
+                <p class="font-semibold">@stat.Count (@stat.Percentage.ToString("F1")%)</p>
+                <p class="text-sm text-gray-500">@stat.Revenue.ToString("C", new System.Globalization.CultureInfo("id-ID"))</p>
+            </div>
+        </div>
+    }
+}
+else
+{
+    <div class="text-center py-8 text-gray-500">
+        <i class="fas fa-pie-chart text-2xl mb-2"></i>
+        <p class="text-sm">Tidak ada data tipe order</p>
+    </div>
+}

@@ -1,0 +1,438 @@
+﻿@model POSRestoran01.Models.ViewModels.HomeViewModels.OrderViewModel
+
+<div class="h-full flex flex-col p-6">
+    <!-- Order Info -->
+    <div class="mb-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-600">Order No:</p>
+                <p class="font-semibold text-gray-800">@Model.OrderNumber</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Items -->
+    <div class="flex-1 overflow-y-auto mb-4">
+        @if (Model.Items.Any())
+        {
+            <div class="space-y-4">
+                @foreach (var item in Model.Items)
+                {
+                    <div class="order-item bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <!-- Item Header -->
+                        <div class="flex items-start justify-between mb-3">
+                            <!-- Item Info -->
+                            <div class="flex items-start space-x-3 flex-1">
+                                <!-- Item Image -->
+                                <div class="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                                    @if (!string.IsNullOrEmpty(item.ImagePath))
+                                    {
+                                        <img src="@item.ImagePath" alt="@item.ItemName" class="w-full h-full object-cover">
+                                    }
+                                    else
+                                    {
+                                        <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                            <i class="fas fa-utensils text-sm"></i>
+                                        </div>
+                                    }
+                                </div>
+
+                                <!-- Item Details -->
+                                <div class="flex-1 min-w-0">
+                                    <h5 class="font-semibold text-gray-800 text-sm leading-tight mb-1" title="@item.ItemName">
+                                        @item.ItemName
+                                    </h5>
+                                    <p class="text-gray-600 text-xs">@item.UnitPrice.ToString("C0", new System.Globalization.CultureInfo("id-ID"))</p>
+                                </div>
+                            </div>
+
+                            <!-- Remove Button -->
+                            <button onclick="removeFromOrder(@item.MenuItemId)"
+                                    class="text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded transition-colors ml-2"
+                                    title="Hapus item">
+                                <i class="fas fa-trash text-xs"></i>
+                            </button>
+                        </div>
+
+                        <!-- Quantity Controls -->
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-2">
+                                <button onclick="updateQuantity(@item.MenuItemId, @(item.Quantity - 1))"
+                                        class="w-7 h-7 bg-gray-300 hover:bg-gray-400 rounded-full flex items-center justify-center text-xs transition-colors @(item.Quantity <= 1 ? "opacity-50 cursor-not-allowed" : "")"
+                                        @(item.Quantity <= 1 ? "disabled" : "")>
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <span class="w-8 text-center text-sm font-semibold">@item.Quantity</span>
+                                <button onclick="updateQuantity(@item.MenuItemId, @(item.Quantity + 1))"
+                                        class="w-7 h-7 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center text-xs transition-colors">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+
+                            <!-- Subtotal -->
+                            <div class="text-right">
+                                <span class="text-sm font-bold text-gray-800">
+                                    @item.Subtotal.ToString("C0", new System.Globalization.CultureInfo("id-ID"))
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Individual Order Note Section -->
+                        <div class="border-t pt-3 mt-3">
+                            <div class="flex items-start space-x-2">
+                                <i class="fas fa-sticky-note text-gray-400 text-xs mt-1"></i>
+                                <div class="flex-1">
+                                    @if (!string.IsNullOrEmpty(item.OrderNote))
+                                    {
+                                        <div class="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
+                                            <p class="text-blue-800 text-xs italic">"@item.OrderNote"</p>
+                                        </div>
+                                        <button onclick="editItemNote(@item.MenuItemId, '@Html.Raw(item.OrderNote?.Replace("'", "\\'"))')"
+                                                class="text-blue-600 hover:text-blue-800 text-xs">
+                                            <i class="fas fa-edit mr-1"></i>Edit Note
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button onclick="addItemNote(@item.MenuItemId)"
+                                                class="text-gray-500 hover:text-blue-600 text-xs">
+                                            <i class="fas fa-plus mr-1"></i>Tambah Catatan
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <!-- Empty State -->
+            <div class="text-center text-gray-500 py-12">
+                <div class="mb-4">
+                    <i class="fas fa-shopping-cart text-4xl text-gray-300"></i>
+                </div>
+                <h4 class="text-lg font-medium text-gray-600 mb-2">Order Kosong</h4>
+                <p class="text-sm text-gray-500">Pilih menu untuk memulai order</p>
+            </div>
+        }
+    </div>
+
+    <!-- Order Summary & Actions -->
+    @if (Model.Items.Any())
+    {
+        <!-- Order Totals -->
+        <div class="border-t border-gray-200 pt-4 space-y-3">
+            <!-- Item Count -->
+            <div class="flex justify-between text-sm text-gray-600">
+                <span>Total Item</span>
+                <span>@Model.Items.Sum(i => i.Quantity) pcs</span>
+            </div>
+
+            <!-- Financial Summary -->
+            <div class="space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span>Subtotal</span>
+                    <span>@Model.Subtotal.ToString("C0", new System.Globalization.CultureInfo("id-ID"))</span>
+                </div>
+
+                <!-- Discount Section - Updated to use dynamic percentage -->
+                <div class="flex justify-between text-sm">
+                    <div class="flex items-center space-x-2">
+                        <span id="discountLabel">Diskon</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox"
+                                   id="discountToggle"
+                                   class="sr-only peer"
+                                   @(Model.Discount > 0 ? "checked" : "")
+                                   onchange="toggleDiscount(this.checked)">
+                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
+                        </label>
+                    </div>
+                    <span class="@(Model.Discount > 0 ? "text-green-600 font-medium" : "text-gray-400")">
+                        @(Model.Discount > 0 ? "-" : "")@Model.Discount.ToString("C0", new System.Globalization.CultureInfo("id-ID"))
+                    </span>
+                </div>
+
+                <div class="flex justify-between text-sm">
+                    <span>PPN (11%)</span>
+                    <span>@Model.PPN.ToString("C0", new System.Globalization.CultureInfo("id-ID"))</span>
+                </div>
+
+                <div class="flex justify-between font-bold text-lg border-t pt-2 text-gray-800">
+                    <span>Total</span>
+                    <span class="text-blue-600">@Model.Total.ToString("C0", new System.Globalization.CultureInfo("id-ID"))</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mt-6 space-y-3">
+            <!-- Payment Button -->
+            <button onclick="showPaymentModal()"
+                    class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2">
+                <i class="fas fa-credit-card"></i>
+                <span>Proses Pembayaran</span>
+            </button>
+        </div>
+    }
+    else
+    {
+        <!-- Empty State Action -->
+        <div class="text-center">
+            <p class="text-gray-500 text-sm mb-4">Mulai dengan memilih menu favorit Anda</p>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="bg-blue-50 p-2 rounded text-blue-600">
+                    <i class="fas fa-mouse-pointer mb-1"></i>
+                    <p>Klik menu</p>
+                </div>
+                <div class="bg-green-50 p-2 rounded text-green-600">
+                    <i class="fas fa-search mb-1"></i>
+                    <p>Cari menu</p>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Item Note Modal -->
+<div id="itemNoteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 w-80 mx-4">
+        <h3 class="text-lg font-bold mb-4">Catatan Item</h3>
+        <textarea id="itemNoteInput"
+                  class="w-full h-24 p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                  placeholder="Tulis catatan untuk item ini..."></textarea>
+        <div class="flex space-x-3 mt-4">
+            <button onclick="hideItemNoteModal()"
+                    class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                Batal
+            </button>
+            <button onclick="saveItemNote()"
+                    class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                Simpan
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Global variable to track which item note is being edited
+    let currentEditingMenuItemId = null;
+
+    // Update quantity function - Fixed to properly handle add/reduce
+    function updateQuantity(menuItemId, newQuantity) {
+        if (newQuantity <= 0) {
+            removeFromOrder(menuItemId);
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('menuItemId', menuItemId);
+        formData.append('quantity', newQuantity);
+        formData.append('__RequestVerificationToken', getAntiForgeryToken());
+
+        fetch('/Home/UpdateOrderItemQuantity', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                refreshOrderSummary();
+                showNotification('Quantity berhasil diperbarui', 'success');
+            } else {
+                showNotification(data.message || 'Terjadi kesalahan', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating quantity:', error);
+            showNotification('Terjadi kesalahan saat mengupdate quantity', 'error');
+        });
+    }
+
+    // Toggle discount function - Updated to show dynamic percentage
+    function toggleDiscount(isApplied) {
+        const formData = new FormData();
+        formData.append('applyDiscount', isApplied);
+        formData.append('__RequestVerificationToken', getAntiForgeryToken());
+
+        fetch('/Home/ApplyDiscount', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                refreshOrderSummary();
+                showNotification(data.message, 'success');
+
+                // Update discount label with current percentage
+                if (data.discountPercentage) {
+                    const discountLabel = document.getElementById('discountLabel');
+                    if (discountLabel) {
+                        discountLabel.textContent = `Diskon ${data.discountPercentage}%`;
+                    }
+                }
+            } else {
+                // Reset toggle if failed
+                const discountToggle = document.getElementById('discountToggle');
+                if (discountToggle) {
+                    discountToggle.checked = !isApplied;
+                }
+                showNotification(data.message || 'Terjadi kesalahan', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error applying discount:', error);
+            const discountToggle = document.getElementById('discountToggle');
+            if (discountToggle) {
+                discountToggle.checked = !isApplied;
+            }
+            showNotification('Terjadi kesalahan saat menerapkan diskon', 'error');
+        });
+    }
+
+    // Initialize discount label when partial loads
+    document.addEventListener('DOMContentLoaded', function() {
+        updateDiscountLabel();
+    });
+
+    function updateDiscountLabel() {
+        if (typeof fetch !== 'undefined') {
+            fetch('/Home/GetOrderSummaryData')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data.discountPercentage) {
+                        const discountLabel = document.getElementById('discountLabel');
+                        if (discountLabel) {
+                            discountLabel.textContent = `Diskon ${data.data.discountPercentage}%`;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating discount label:', error);
+                });
+        }
+    }
+
+    // Item note functions
+    function addItemNote(menuItemId) {
+        currentEditingMenuItemId = menuItemId;
+        const noteInput = document.getElementById('itemNoteInput');
+        const modal = document.getElementById('itemNoteModal');
+
+        if (noteInput) noteInput.value = '';
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => noteInput && noteInput.focus(), 100);
+        }
+    }
+
+    function editItemNote(menuItemId, currentNote) {
+        currentEditingMenuItemId = menuItemId;
+        const noteInput = document.getElementById('itemNoteInput');
+        const modal = document.getElementById('itemNoteModal');
+
+        if (noteInput) noteInput.value = currentNote || '';
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => noteInput && noteInput.focus(), 100);
+        }
+    }
+
+    function hideItemNoteModal() {
+        const modal = document.getElementById('itemNoteModal');
+        const noteInput = document.getElementById('itemNoteInput');
+
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        if (noteInput) noteInput.value = '';
+        currentEditingMenuItemId = null;
+    }
+
+    function saveItemNote() {
+        if (!currentEditingMenuItemId) return;
+
+        const noteInput = document.getElementById('itemNoteInput');
+        const note = noteInput ? noteInput.value.trim() : '';
+
+        const formData = new FormData();
+        formData.append('menuItemId', currentEditingMenuItemId);
+        formData.append('note', note);
+        formData.append('__RequestVerificationToken', getAntiForgeryToken());
+
+        fetch('/Home/UpdateItemNote', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                refreshOrderSummary();
+                hideItemNoteModal();
+                showNotification(data.message, 'success');
+            } else {
+                showNotification(data.message || 'Terjadi kesalahan', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error saving note:', error);
+            showNotification('Terjadi kesalahan saat menyimpan catatan', 'error');
+        });
+    }
+
+    // Helper function to get anti-forgery token
+    function getAntiForgeryToken() {
+        const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+        return tokenElement ? tokenElement.value : '';
+    }
+
+    // Make sure functions are available globally
+    if (typeof window !== 'undefined') {
+        window.updateQuantity = updateQuantity;
+        window.toggleDiscount = toggleDiscount;
+        window.addItemNote = addItemNote;
+        window.editItemNote = editItemNote;
+        window.hideItemNoteModal = hideItemNoteModal;
+        window.saveItemNote = saveItemNote;
+    }
+
+    // Initialize discount label when this partial is loaded
+    setTimeout(updateDiscountLabel, 100);
+</script>
+
+<style>
+    .order-item {
+        transition: all 0.2s ease;
+    }
+
+        .order-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+    /* Custom scrollbar for order items */
+    .overflow-y-auto::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .overflow-y-auto::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 2px;
+    }
+
+    .overflow-y-auto::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 2px;
+    }
+
+        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+    /* Toggle switch styling is handled by Tailwind classes */
+</style>

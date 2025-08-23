@@ -1,0 +1,227 @@
+﻿@model List<POSRestoran01.Models.MenuItem>
+
+@foreach (var menuItem in Model)
+{
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+        <!-- Image -->
+        <div class="relative h-56 bg-gradient-to-br from-gray-100 to-gray-200">
+            @if (!string.IsNullOrEmpty(menuItem.ImagePath))
+            {
+                <img src="@menuItem.ImagePath" alt="@menuItem.ItemName" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-300"></div>
+            }
+            else
+            {
+                <div class="w-full h-full flex items-center justify-center">
+                    <div class="text-center">
+                        <i class="fas fa-utensils text-5xl text-gray-400 mb-2"></i>
+                        <p class="text-gray-500 text-sm">No Image</p>
+                    </div>
+                </div>
+            }
+
+            <!-- Status Badge -->
+            <div class="absolute top-3 right-3">
+                @if (menuItem.IsActive)
+                {
+                    <span class="bg-gradient-to-r from-green-500 to-green-600 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
+                        <i class="fas fa-check-circle mr-1"></i>Active
+                    </span>
+                }
+                else
+                {
+                    <span class="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
+                        <i class="fas fa-times-circle mr-1"></i>Inactive
+                    </span>
+                }
+            </div>
+
+            <!-- Low Stock Warning -->
+            @if (menuItem.Stock <= 5 && menuItem.IsActive)
+            {
+                <div class="absolute top-3 left-3">
+                    <span class="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg animate-pulse">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>Low Stock
+                    </span>
+                </div>
+            }
+
+            <!-- Category Badge -->
+            <div class="absolute bottom-3 left-3">
+                <span class="bg-black bg-opacity-70 text-white text-xs px-3 py-1 rounded-full backdrop-blur-sm">
+                    @menuItem.Category?.CategoryName
+                </span>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="p-6">
+            <div class="mb-4">
+                <h3 class="font-bold text-xl text-gray-800 mb-2 line-clamp-1">@menuItem.ItemName</h3>
+                @if (!string.IsNullOrEmpty(menuItem.Description))
+                {
+                    <p class="text-gray-600 text-sm line-clamp-2 leading-relaxed">@menuItem.Description</p>
+                }
+                else
+                {
+                    <p class="text-gray-400 text-sm italic">Tidak ada deskripsi</p>
+                }
+            </div>
+
+            <!-- Price and Stock Info -->
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide font-medium">Harga</p>
+                    <span class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        @menuItem.Price.ToString("C", new System.Globalization.CultureInfo("id-ID"))
+                    </span>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-gray-500 uppercase tracking-wide font-medium">Stok</p>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xl font-bold @(menuItem.Stock <= 5 ? "text-red-600" : menuItem.Stock <= 10 ? "text-yellow-600" : "text-green-600")">
+                            @menuItem.Stock
+                        </span>
+                        @if (menuItem.Stock <= 5)
+                        {
+                            <i class="fas fa-exclamation-triangle text-red-500 text-sm"></i>
+                        }
+                        else if (menuItem.Stock <= 10)
+                        {
+                            <i class="fas fa-exclamation-circle text-yellow-500 text-sm"></i>
+                        }
+                        else
+                        {
+                            <i class="fas fa-check-circle text-green-500 text-sm"></i>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex space-x-3">
+                <button onclick="showEditMenuModal(@menuItem.MenuItemId)"
+                        class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-sm py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                    <i class="fas fa-edit"></i>
+                    <span class="font-medium">Edit Menu</span>
+                </button>
+                <button onclick="deleteMenuItem(@menuItem.MenuItemId, '@Html.Raw(Html.Encode(menuItem.ItemName))')"
+                        class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-sm py-3 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+
+            <!-- Additional Info -->
+            <div class="mt-4 pt-4 border-t border-gray-100">
+                <div class="flex justify-between text-xs text-gray-500">
+                    <span>ID: #@menuItem.MenuItemId</span>
+                    <span>Updated: @menuItem.UpdatedAt.ToString("dd/MM/yyyy")</span>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <div class="col-span-full">
+        <div class="bg-white rounded-2xl shadow-lg p-12 text-center">
+            <div class="mb-6">
+                <div class="w-24 h-24 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-utensils text-4xl text-gray-400"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-600 mb-2">Tidak ada menu item</h3>
+                <p class="text-gray-500">Belum ada menu item dalam kategori ini. Klik tombol "Tambah Menu Baru" untuk menambahkan menu pertama Anda.</p>
+            </div>
+            <button onclick="showAddMenuModal()" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                <i class="fas fa-plus mr-2"></i>Tambah Menu Baru
+            </button>
+        </div>
+    </div>
+}
+
+<script>
+    function deleteMenuItem(menuItemId, itemName) {
+        // Create custom confirmation dialog
+        const confirmDialog = document.createElement('div');
+        confirmDialog.className = 'fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50';
+        confirmDialog.innerHTML = `
+            <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-trash text-2xl text-red-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Hapus Menu Item</h3>
+                    <p class="text-gray-600 mb-6">Apakah Anda yakin ingin menghapus menu "<strong>${itemName}</strong>"? Tindakan ini tidak dapat dibatalkan.</p>
+                    <div class="flex space-x-3">
+                        <button onclick="this.closest('.fixed').remove()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-3 px-4 rounded-xl transition-all duration-300 font-medium">
+                            Batal
+                        </button>
+                        <button onclick="confirmDeleteMenuItem(${menuItemId}); this.closest('.fixed').remove();" class="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-3 px-4 rounded-xl transition-all duration-300 font-medium shadow-lg">
+                            Hapus Menu
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(confirmDialog);
+    }
+
+    function confirmDeleteMenuItem(menuItemId) {
+        const formData = new FormData();
+        formData.append('menuItemId', menuItemId);
+        formData.append('__RequestVerificationToken', getAntiForgeryToken());
+
+        showLoading();
+
+        fetch('/Product/DeleteMenuItem', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            hideLoading();
+            if (data.success) {
+                showNotification(data.message, 'success');
+                // Reload current category
+                const activeTab = document.querySelector('.category-tab.bg-gradient-to-r');
+                if (activeTab) {
+                    const categoryId = parseInt(activeTab.getAttribute('data-category-id'));
+                    loadProductCategory(categoryId);
+                } else {
+                    // Fallback: reload the page
+                    setTimeout(() => location.reload(), 1000);
+                }
+            } else {
+                showNotification(data.message || 'Terjadi kesalahan', 'error');
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            console.error('Error deleting menu item:', error);
+            showNotification('Terjadi kesalahan saat menghapus menu item', 'error');
+        });
+    }
+</script>
+
+<style>
+    .line-clamp-1 {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>

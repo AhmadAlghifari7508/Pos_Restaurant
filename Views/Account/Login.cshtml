@@ -1,0 +1,32 @@
+﻿@model POSRestoran01.Models.ViewModels.AuthViewModels.LoginViewModel
+@{
+    Layout = "_LoginLayout";
+    ViewData["Title"] = "Login";
+}
+
+<div class="bg-white p-8 rounded-lg shadow-lg w-96">
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">POS Restoran</h1>
+        <p class="text-gray-600">Silakan login untuk melanjutkan</p>
+    </div>
+
+    <form asp-action="Login" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-red-500 mb-4"></div>
+
+        <div class="mb-4">
+            <label asp-for="Username" class="block text-gray-700 text-sm font-bold mb-2"></label>
+            <input asp-for="Username" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" placeholder="Masukkan username">
+            <span asp-validation-for="Username" class="text-red-500 text-sm"></span>
+        </div>
+
+        <div class="mb-6">
+            <label asp-for="Password" class="block text-gray-700 text-sm font-bold mb-2"></label>
+            <input asp-for="Password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" placeholder="Masukkan password">
+            <span asp-validation-for="Password" class="text-red-500 text-sm"></span>
+        </div>
+
+        <button type="submit" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+            Login
+        </button>
+    </form>
+</div>

@@ -1,0 +1,595 @@
+﻿@model POSRestoran01.Models.ViewModels.HomeViewModels.POSViewModel
+@{
+    ViewData["Title"] = "POS Kasir";
+}
+
+<div class="flex h-screen bg-gray-100">
+    <!-- Left Panel - Menu Selection -->
+    <div class="w-2/3 p-6 overflow-y-auto">
+        <!-- Header -->
+        <div class="mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-1">@Model.RestaurantName</h1>
+                    <p class="text-gray-600">@Model.CurrentDate.ToString("dddd, dd MMMM yyyy HH:mm")</p>
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div class="mb-4 relative">
+                <div class="relative">
+                    <input type="text"
+                           id="searchInput"
+                           placeholder="Cari menu atau makanan..."
+                           value="@Model.SearchTerm"
+                           class="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                    <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <button onclick="clearSearch()" id="clearSearchBtn"
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 @(string.IsNullOrEmpty(Model.SearchTerm) ? "hidden" : "")">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                {
+                    <div class="mt-2 flex items-center text-sm text-gray-600">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        <span>Menampilkan hasil pencarian untuk: "<strong>@Model.SearchTerm</strong>"</span>
+                        <button onclick="clearSearch()" class="ml-3 text-blue-500 hover:text-blue-700">
+                            <i class="fas fa-times mr-1"></i>Hapus filter
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="mb-6">
+            <div class="flex space-x-2 border-b border-gray-200 overflow-x-auto">
+                <!-- All Categories Tab -->
+                <button onclick="loadAllCategories()"
+                        class="px-4 py-2 font-medium transition-colors category-tab whitespace-nowrap @(Model.SelectedCategoryId == 0 && string.IsNullOrEmpty(Model.SearchTerm) ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-600 hover:text-blue-600")"
+                        data-category-id="0">
+                    <i class="fas fa-th-large mr-2"></i>Semua Kategori
+                </button>
+
+                @foreach (var category in Model.Categories)
+                {
+                    <button onclick="loadCategory(@category.CategoryId)"
+                            class="px-4 py-2 font-medium transition-colors category-tab whitespace-nowrap @(category.CategoryId == Model.SelectedCategoryId && string.IsNullOrEmpty(Model.SearchTerm) ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-600 hover:text-blue-600")"
+                            data-category-id="@category.CategoryId">
+                        @category.CategoryName
+                    </button>
+                }
+            </div>
+        </div>
+
+        <!-- Menu Items Section -->
+
+        <div class="mb-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-800">
+                    @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                    {
+                        <span>Hasil Pencarian</span>
+                    }
+                    else if (Model.SelectedCategoryId > 0)
+                    {
+                        var selectedCategory = Model.Categories.FirstOrDefault(c => c.CategoryId == Model.SelectedCategoryId);
+                        <span>@(selectedCategory?.CategoryName ?? "Menu")</span>
+                    }
+                    else
+                    {
+                        <span>Semua Menu</span>
+                    }
+                </h3>
+                <span class="text-sm text-gray-500">
+                    @Model.MenuItems.Count item(s)
+                </span>
+            </div>
+        </div>
+
+        <!-- Menu Items Grid -->
+        <div id="menuItemsContainer" class="min-h-[200px]">
+            @await Html.PartialAsync("_MenuItemsPartial", Model.MenuItems)
+        </div>
+    </div>
+
+    <!-- Right Panel - Order Summary -->
+    <div class="w-1/3 bg-white shadow-xl border-l border-gray-200">
+        <div class="h-full flex flex-col">
+            <!-- Order Header -->
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-gray-800">Order Saat Ini</h2>
+                    <div class="text-sm text-gray-500">
+                        <i class="fas fa-clock mr-1"></i>
+                        <span id="currentTime">@DateTime.Now.ToString("HH:mm")</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Content -->
+            <div class="flex-1 overflow-hidden">
+                <div id="orderSummaryContainer" class="h-full">
+                    @await Html.PartialAsync("_OrderSummaryPartial", Model.CurrentOrder)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div id="paymentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-2xl w-96 max-w-full max-h-screen overflow-y-auto m-4">
+        @await Html.PartialAsync("_PaymentModalPartial")
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-30 hidden items-center justify-center z-40">
+    <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+        <span class="text-gray-700">Memproses...</span>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pos.js"></script>
+    <script>
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePOS();
+
+            // Add CSRF token to all AJAX requests
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (!token) {
+                const newToken = document.createElement('input');
+                newToken.type = 'hidden';
+                newToken.name = '__RequestVerificationToken';
+                newToken.value = '@Html.AntiForgeryToken()'.match(/value="([^"]*)"/) ? '@Html.AntiForgeryToken()'.match(/value="([^"]*)"/)[1] : '';
+                document.body.appendChild(newToken);
+            }
+
+            // Setup search functionality
+            setupSearch();
+        });
+
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', performSearch);
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        clearSearch();
+                    }
+                });
+            }
+        }
+
+        function initializePOS() {
+            // Initialize order summary refresh
+            refreshOrderSummary();
+            console.log('POS System initialized successfully');
+        }
+
+        // Search functionality
+        let searchTimeout;
+
+        function performSearch() {
+            clearTimeout(searchTimeout);
+            const searchTerm = document.getElementById('searchInput').value.trim();
+
+            searchTimeout = setTimeout(() => {
+                if (searchTerm.length >= 2 || searchTerm.length === 0) {
+                    if (searchTerm.length > 0) {
+                        searchMenuItems(searchTerm);
+                    } else {
+                        loadAllCategories();
+                    }
+                }
+
+                // Show/hide clear button
+                const clearBtn = document.getElementById('clearSearchBtn');
+                if (clearBtn) {
+                    if (searchTerm.length > 0) {
+                        clearBtn.classList.remove('hidden');
+                    } else {
+                        clearBtn.classList.add('hidden');
+                    }
+                }
+            }, 500);
+        }
+
+        function searchMenuItems(searchTerm) {
+            showLoading();
+
+            fetch(`/Home/SearchMenuItems?searchTerm=${encodeURIComponent(searchTerm)}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.text();
+                })
+                .then(html => {
+                    document.getElementById('menuItemsContainer').innerHTML = html;
+                    hideLoading();
+
+                    // Update category tabs to show search state
+                    updateCategoryTabsForSearch(searchTerm);
+                })
+                .catch(error => {
+                    console.error('Error searching menu items:', error);
+                    hideLoading();
+                    showNotification('Terjadi kesalahan saat mencari menu', 'error');
+                });
+        }
+
+        function clearSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearSearchBtn');
+
+            if (searchInput) searchInput.value = '';
+            if (clearBtn) clearBtn.classList.add('hidden');
+
+            // Load all categories when clearing search
+            loadAllCategories();
+        }
+
+        function updateCategoryTabsForSearch(searchTerm) {
+            const categoryTabs = document.querySelectorAll('.category-tab');
+            categoryTabs.forEach(tab => {
+                if (searchTerm) {
+                    tab.classList.remove('border-b-2', 'border-blue-500', 'text-blue-600');
+                    tab.classList.add('text-gray-600');
+                }
+            });
+        }
+
+        // Load all categories (show all menu items)
+        function loadAllCategories() {
+            showLoading();
+
+            // Clear search when switching to all categories
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearSearchBtn');
+
+            if (searchInput && searchInput.value) {
+                searchInput.value = '';
+            }
+            if (clearBtn) clearBtn.classList.add('hidden');
+
+            // Get all menu items
+            fetch('/Home/GetMenuByCategory?categoryId=0')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.text();
+                })
+                .then(html => {
+                    document.getElementById('menuItemsContainer').innerHTML = html;
+                    hideLoading();
+
+                    // Update active category tab
+                    updateActiveCategoryTab(0);
+                })
+                .catch(error => {
+                    console.error('Error loading all categories:', error);
+                    hideLoading();
+                    showNotification('Terjadi kesalahan saat memuat semua menu', 'error');
+                });
+        }
+
+        // Load specific category
+        function loadCategory(categoryId) {
+            showLoading();
+
+            // Clear search when switching categories
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearSearchBtn');
+
+            if (searchInput) searchInput.value = '';
+            if (clearBtn) clearBtn.classList.add('hidden');
+
+            fetch(`/Home/GetMenuByCategory?categoryId=${categoryId}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.text();
+                })
+                .then(html => {
+                    document.getElementById('menuItemsContainer').innerHTML = html;
+                    hideLoading();
+
+                    // Update active category tab
+                    updateActiveCategoryTab(categoryId);
+                })
+                .catch(error => {
+                    console.error('Error loading category:', error);
+                    hideLoading();
+                    showNotification('Terjadi kesalahan saat memuat kategori', 'error');
+                });
+        }
+
+        function updateActiveCategoryTab(categoryId) {
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                const tabCategoryId = parseInt(tab.getAttribute('data-category-id'));
+                if (tabCategoryId === categoryId) {
+                    tab.classList.add('border-b-2', 'border-blue-500', 'text-blue-600');
+                    tab.classList.remove('text-gray-600');
+                } else {
+                    tab.classList.remove('border-b-2', 'border-blue-500', 'text-blue-600');
+                    tab.classList.add('text-gray-600');
+                }
+            });
+        }
+
+        // Add to order function
+        function addToOrder(menuItemId, itemName, price, note = '') {
+            const formData = new FormData();
+            formData.append('menuItemId', menuItemId);
+            formData.append('quantity', 1);
+            formData.append('note', note);
+            formData.append('__RequestVerificationToken', getAntiForgeryToken());
+
+            fetch('/Home/AddToOrder', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    refreshOrderSummary();
+                    showNotification(data.message, 'success');
+
+                    // Add visual feedback to the menu item
+                    addVisualFeedback(menuItemId);
+                } else {
+                    showNotification(data.message || 'Terjadi kesalahan', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error adding to order:', error);
+                showNotification('Terjadi kesalahan saat menambahkan item', 'error');
+            });
+        }
+
+        // Remove from order function
+        function removeFromOrder(menuItemId) {
+            if (!confirm('Apakah Anda yakin ingin menghapus item ini dari order?')) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('menuItemId', menuItemId);
+            formData.append('__RequestVerificationToken', getAntiForgeryToken());
+
+            fetch('/Home/RemoveFromOrder', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    refreshOrderSummary();
+                    showNotification(data.message, 'success');
+                } else {
+                    showNotification(data.message || 'Terjadi kesalahan', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error removing from order:', error);
+                showNotification('Terjadi kesalahan saat menghapus item', 'error');
+            });
+        }
+
+        // Clear order function
+        function clearOrder() {
+            if (!confirm('Apakah Anda yakin ingin menghapus semua item dari order?')) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('__RequestVerificationToken', getAntiForgeryToken());
+
+            fetch('/Home/ClearOrder', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    refreshOrderSummary();
+                    showNotification('Order berhasil dihapus', 'success');
+                } else {
+                    showNotification(data.message || 'Terjadi kesalahan', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error clearing order:', error);
+                showNotification('Terjadi kesalahan saat menghapus order', 'error');
+            });
+        }
+
+        // Refresh order summary
+        function refreshOrderSummary() {
+            fetch('/Home/GetCurrentOrder')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.text();
+                })
+                .then(html => {
+                    const container = document.getElementById('orderSummaryContainer');
+                    if (container) {
+                        container.innerHTML = html;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error refreshing order summary:', error);
+                    showNotification('Terjadi kesalahan saat memuat order', 'error');
+                });
+        }
+
+        // Show payment modal
+        function showPaymentModal() {
+            // First check if there's any order
+            fetch('/Home/GetOrderSummaryData')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success || data.data.isEmpty) {
+                        showNotification('Tidak ada item dalam order', 'warning');
+                        return;
+                    }
+
+                    const modal = document.getElementById('paymentModal');
+                    if (modal) {
+                        modal.classList.remove('hidden');
+                        modal.classList.add('flex');
+                        document.body.style.overflow = 'hidden';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking order:', error);
+                    showNotification('Terjadi kesalahan saat membuka pembayaran', 'error');
+                });
+        }
+
+        // Hide payment modal
+        function hidePaymentModal() {
+            const modal = document.getElementById('paymentModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // Visual feedback
+        function addVisualFeedback(menuItemId) {
+            const menuItem = document.querySelector(`[data-menu-id="${menuItemId}"]`);
+            if (menuItem) {
+                menuItem.classList.add('animate-pulse');
+                setTimeout(() => {
+                    menuItem.classList.remove('animate-pulse');
+                }, 500);
+            }
+        }
+
+        // Loading functions
+        function showLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+            }
+        }
+
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+            }
+        }
+
+        // Notification system
+        function showNotification(message, type = 'info', duration = 3000) {
+            // Remove existing notifications
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(notification => notification.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `notification fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full`;
+
+            let bgColor, textColor, icon;
+            switch (type) {
+                case 'success':
+                    bgColor = 'bg-green-500';
+                    textColor = 'text-white';
+                    icon = 'fas fa-check-circle';
+                    break;
+                case 'error':
+                    bgColor = 'bg-red-500';
+                    textColor = 'text-white';
+                    icon = 'fas fa-exclamation-circle';
+                    break;
+                case 'warning':
+                    bgColor = 'bg-yellow-500';
+                    textColor = 'text-white';
+                    icon = 'fas fa-exclamation-triangle';
+                    break;
+                default:
+                    bgColor = 'bg-blue-500';
+                    textColor = 'text-white';
+                    icon = 'fas fa-info-circle';
+            }
+
+            notification.className += ` ${bgColor} ${textColor}`;
+            notification.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <i class="${icon}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 10);
+
+            // Auto remove
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, duration);
+        }
+
+        // Utility function
+        function getAntiForgeryToken() {
+            const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+            return tokenElement ? tokenElement.value : '';
+        }
+
+        // Update current time every minute
+        setInterval(function() {
+            const now = new Date();
+            const timeElement = document.getElementById('currentTime');
+            if (timeElement) {
+                timeElement.textContent = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            }
+        }, 60000);
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Only process shortcuts if not typing in input fields
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                return;
+            }
+
+            switch (e.key) {
+                case 'F1':
+                    e.preventDefault();
+                    // Focus on search
+                    const searchInput = document.getElementById('searchInput');
+                    if (searchInput) searchInput.focus();
+                    break;
+                case 'F2':
+                    e.preventDefault();
+                    showPaymentModal();
+                    break;
+                case 'F3':
+                    e.preventDefault();
+                    clearOrder();
+                    break;
+                case 'Escape':
+                    e.preventDefault();
+                    hidePaymentModal();
+                    break;
+            }
+        });
+    </script>
+}
+
+@{
+    // Add anti-forgery token
+    @Html.AntiForgeryToken()
+}

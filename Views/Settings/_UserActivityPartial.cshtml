@@ -1,0 +1,82 @@
+﻿@model List<POSRestoran01.Models.UserActivity>
+
+@if (Model.Any())
+{
+    <div class="overflow-x-auto">
+        <table class="min-w-full">
+            <thead>
+                <tr class="border-b border-gray-200">
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">ID</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Kasir</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Aktivitas</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Order</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Tanggal & Waktu</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var activity in Model)
+                {
+                    <tr class="border-b border-gray-100 hover:bg-gray-50">
+                        <td class="py-3 px-4">@activity.ActivityId</td>
+                        <td class="py-3 px-4">
+                            <div>
+                                <div class="font-medium">@activity.User?.FullName</div>
+                                <div class="text-sm text-gray-500">@activity.User?.Username</div>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4">
+                            @{
+                                var activityClass = activity.ActivityType switch
+                                {
+                                    "Login" => "bg-green-100 text-green-800",
+                                    "Logout" => "bg-red-100 text-red-800",
+                                    "Create Order" => "bg-blue-100 text-blue-800",
+                                    "Update Stock" => "bg-yellow-100 text-yellow-800",
+                                    "Process Payment" => "bg-purple-100 text-purple-800",
+                                    _ => "bg-gray-100 text-gray-800"
+                                };
+
+                                var activityIcon = activity.ActivityType switch
+                                {
+                                    "Login" => "fas fa-sign-in-alt",
+                                    "Logout" => "fas fa-sign-out-alt",
+                                    "Create Order" => "fas fa-shopping-cart",
+                                    "Update Stock" => "fas fa-boxes",
+                                    "Process Payment" => "fas fa-credit-card",
+                                    _ => "fas fa-circle"
+                                };
+                            }
+                            <span class="px-2 py-1 text-xs rounded-full @activityClass flex items-center w-fit">
+                                <i class="@activityIcon mr-1"></i>
+                                @activity.ActivityType
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">
+                            @if (activity.Order != null)
+                            {
+                                <span class="text-blue-600 font-medium">@activity.Order.OrderNumber</span>
+                            }
+                            else
+                            {
+                                <span class="text-gray-400">-</span>
+                            }
+                        </td>
+                        <td class="py-3 px-4">
+                            <div>
+                                <div class="font-medium">@activity.ActivityTime.ToString("dd/MM/yyyy")</div>
+                                <div class="text-sm text-gray-500">@activity.ActivityTime.ToString("HH:mm:ss")</div>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="text-center py-8 text-gray-500">
+        <i class="fas fa-chart-line text-4xl mb-4"></i>
+        <p>Tidak ada data aktivitas kasir</p>
+    </div>
+}

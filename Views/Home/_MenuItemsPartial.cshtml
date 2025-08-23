@@ -1,0 +1,131 @@
+﻿@model List<POSRestoran01.Models.MenuItem>
+
+@if (Model != null && Model.Any())
+{
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        @foreach (var item in Model)
+        {
+            <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer menu-item @(item.Stock <= 0 ? "opacity-50" : "")"
+                 data-menu-id="@item.MenuItemId"
+                 data-item-name="@item.ItemName"
+                 data-price="@item.Price"
+                 onclick="@(item.Stock > 0 ? $"addToOrder({item.MenuItemId}, '{item.ItemName}', {item.Price})" : "")"
+                 title="@(item.Stock <= 0 ? "Stok habis" : $"Klik untuk menambah {item.ItemName} ke order")">
+
+                <!-- Product Image -->
+                <div class="aspect-square mb-3 bg-gray-200 rounded-t-lg overflow-hidden relative">
+                    @if (!string.IsNullOrEmpty(item.ImagePath))
+                    {
+                        <img src="@item.ImagePath" alt="@item.ItemName" class="w-full h-full object-cover">
+                    }
+                    else
+                    {
+                        <div class="w-full h-full flex items-center justify-center text-gray-400">
+                            <i class="fas fa-utensils text-3xl"></i>
+                        </div>
+                    }
+
+                    <!-- Stock indicator -->
+                    @if (item.Stock <= 0)
+                    {
+                        <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                            <span class="text-white font-bold text-sm">HABIS</span>
+                        </div>
+                    }
+                    else if (item.Stock <= 5)
+                    {
+                        <div class="absolute top-2 right-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
+                            @item.Stock left
+                        </div>
+                    }
+                </div>
+
+                <!-- Product Info -->
+                <div class="p-4">
+                    <h4 class="font-semibold text-gray-800 mb-2 text-sm line-clamp-2" title="@item.ItemName">
+                        @item.ItemName
+                    </h4>
+
+                    @if (!string.IsNullOrEmpty(item.Description))
+                    {
+                        <p class="text-gray-500 text-xs mb-2 line-clamp-2" title="@item.Description">
+                            @item.Description
+                        </p>
+                    }
+
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-blue-600 font-bold text-lg">
+                                Rp @item.Price.ToString("N0")
+                            </p>
+                            <p class="text-gray-500 text-xs">
+                                Stok: @item.Stock
+                            </p>
+                        </div>
+
+                        @if (item.Stock > 0)
+                        {
+                            <button type="button"
+                                    class="add-to-cart-btn bg-blue-500 hover:bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                                    onclick="event.stopPropagation(); addToOrder(@item.MenuItemId, '@item.ItemName', @item.Price);"
+                                    title="Tambah ke order">
+                                <i class="fas fa-plus text-xs"></i>
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button"
+                                    class="bg-gray-400 text-white rounded-full w-8 h-8 flex items-center justify-center cursor-not-allowed"
+                                    disabled
+                                    title="Stok habis">
+                                <i class="fas fa-times text-xs"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <!-- Add to cart overlay on hover -->
+                @if (item.Stock > 0)
+                {
+                    <div class="absolute inset-0 bg-blue-500 bg-opacity-0 hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 hover:opacity-100">
+                        <div class="bg-white rounded-full p-3 shadow-lg transform scale-0 hover:scale-100 transition-transform duration-200">
+                            <i class="fas fa-plus text-blue-500 text-xl"></i>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="text-center py-12">
+        <div class="text-gray-400 mb-4">
+            <i class="fas fa-search text-4xl"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-600 mb-2">Tidak ada menu ditemukan</h3>
+        <p class="text-gray-500">Coba cari dengan kata kunci lain atau pilih kategori yang berbeda</p>
+    </div>
+}
+
+<style>
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .menu-item {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .menu-item:hover .add-to-cart-btn {
+        transform: scale(1.1);
+    }
+
+    .menu-item:active {
+        transform: scale(0.98);
+    }
+</style>

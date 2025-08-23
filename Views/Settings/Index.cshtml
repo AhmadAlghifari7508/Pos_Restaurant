@@ -1,0 +1,264 @@
+﻿@model POSRestoran01.Models.ViewModels.SettingsViewModels.SettingsViewModel
+@{
+    ViewData["Title"] = "Settings";
+}
+
+<div class="flex h-screen bg-gray-100">
+    <!-- Settings Sidebar -->
+    <div class="w-64 bg-white shadow-lg">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800">Settings</h2>
+        </div>
+        
+        <nav class="mt-6">
+            <a href="?section=account" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors @(Model.ActiveSection == "account" ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600" : "")">
+                <i class="fas fa-users mr-3"></i>
+                <span>Akun</span>
+            </a>
+            
+            <a href="?section=about" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors @(Model.ActiveSection == "about" ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600" : "")">
+                <i class="fas fa-info-circle mr-3"></i>
+                <span>About Us</span>
+            </a>
+            
+            <a href="?section=stock-history" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors @(Model.ActiveSection == "stock-history" ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600" : "")">
+                <i class="fas fa-history mr-3"></i>
+                <span>Riwayat Stok</span>
+            </a>
+            
+            <a href="?section=user-activity" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors @(Model.ActiveSection == "user-activity" ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600" : "")">
+                <i class="fas fa-chart-line mr-3"></i>
+                <span>Aktivitas Kasir</span>
+            </a>
+            
+            <button onclick="logout()" class="w-full flex items-center px-6 py-3 text-red-600 hover:bg-red-50 transition-colors mt-6 border-t border-gray-200">
+                <i class="fas fa-sign-out-alt mr-3"></i>
+                <span>Logout</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 p-6 overflow-y-auto">
+        @if (Model.ActiveSection == "account")
+        {
+            <!-- User Management Section -->
+            <div class="mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h1 class="text-3xl font-bold text-gray-800">Manajemen Pengguna</h1>
+                    <button onclick="showCreateUserModal()" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+                        <i class="fas fa-plus"></i>
+                        <span>Tambah Pengguna</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="p-6" id="userManagementContainer">
+                    @await Html.PartialAsync("_UserManagementPartial", Model.Users)
+                </div>
+            </div>
+        }
+        else if (Model.ActiveSection == "about")
+        {
+            <!-- About Us Section -->
+            <div class="mb-6">
+                <h1 class="text-3xl font-bold text-gray-800 mb-4">Tentang Restoran</h1>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="text-center mb-8">
+                    <div class="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-utensils text-3xl text-blue-600"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">POS Restoran</h2>
+                    <p class="text-gray-600">Sistem Point of Sale untuk Restoran Modern</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Fitur Utama</h3>
+                        <ul class="space-y-3 text-gray-600">
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Manajemen Menu & Kategori
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Sistem Order & Pembayaran
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Laporan Penjualan
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Manajemen Stok
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Dashboard Analytics
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Informasi Sistem</h3>
+                        <div class="space-y-3 text-gray-600">
+                            <div class="flex justify-between">
+                                <span>Versi:</span>
+                                <span class="font-semibold">1.0.0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Technology:</span>
+                                <span class="font-semibold">ASP.NET Core MVC</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Database:</span>
+                                <span class="font-semibold">SQL Server</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>UI Framework:</span>
+                                <span class="font-semibold">Tailwind CSS</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 p-4 bg-blue-50 rounded-lg">
+                    <h4 class="font-semibold text-blue-800 mb-2">Bantuan & Support</h4>
+                    <p class="text-blue-600 text-sm">
+                        Untuk bantuan teknis atau pertanyaan mengenai sistem, silakan hubungi administrator sistem.
+                    </p>
+                </div>
+            </div>
+        }
+        else if (Model.ActiveSection == "stock-history")
+        {
+            <!-- Stock History Section -->
+            <div class="mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h1 class="text-3xl font-bold text-gray-800">Riwayat Stok</h1>
+                    <div class="flex items-center space-x-4">
+                        <input type="date" id="stockStartDate" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                        <input type="date" id="stockEndDate" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                        <button onclick="filterStockHistory()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-search mr-2"></i>Filter
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="p-6" id="stockHistoryContainer">
+                    @await Html.PartialAsync("_StockHistoryPartial", Model.StockHistories)
+                </div>
+            </div>
+        }
+        else if (Model.ActiveSection == "user-activity")
+        {
+            <!-- User Activity Section -->
+            <div class="mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h1 class="text-3xl font-bold text-gray-800">Aktivitas Kasir</h1>
+                    <div class="flex items-center space-x-4">
+                        <input type="date" id="activityStartDate" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                        <input type="date" id="activityEndDate" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                        <button onclick="filterUserActivity()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-search mr-2"></i>Filter
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="p-6" id="userActivityContainer">
+                    @await Html.PartialAsync("_UserActivityPartial", Model.UserActivities)
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Create/Edit User Modal -->
+<div id="userModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-2xl w-full max-w-lg mx-4 max-h-screen overflow-y-auto">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 id="userModalTitle" class="text-lg font-semibold text-gray-800">Tambah Pengguna</h3>
+                <button onclick="hideUserModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="userForm">
+                <input type="hidden" id="userId" name="Id" value="">
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nama Lengkap</label>
+                        <input type="text" id="userFullName" name="FullName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                        <input type="text" id="userUsername" name="Username" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input type="email" id="userEmail" name="Email" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required>
+                    </div>
+
+                    <div id="passwordFields">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" id="passwordLabel">Password</label>
+                            <input type="password" id="userPassword" name="Password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" id="confirmPasswordLabel">Konfirmasi Password</label>
+                            <input type="password" id="userConfirmPassword" name="ConfirmPassword" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                        <select id="userRole" name="Role" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required>
+                            <option value="Cashier">Cashier</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center">
+                        <input type="checkbox" id="userIsActive" name="IsActive" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                        <label for="userIsActive" class="ml-2 block text-sm text-gray-900">Status Aktif</label>
+                    </div>
+                </div>
+
+                <div class="flex space-x-3 pt-6">
+                    <button type="button" onclick="hideUserModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-lg transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" id="userSubmitBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors">
+                        Tambah Pengguna
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-30 hidden items-center justify-center z-40">
+    <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+        <span class="text-gray-700">Memproses...</span>
+    </div>
+</div>
+
+@section Scripts { 
+    <script src="~/js/settings.js"></script>
+    
+}

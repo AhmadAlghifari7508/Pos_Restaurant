@@ -1,0 +1,72 @@
+﻿@model List<POSRestoran01.Models.StockHistory>
+
+@if (Model.Any())
+{
+    <div class="overflow-x-auto">
+        <table class="min-w-full">
+            <thead>
+                <tr class="border-b border-gray-200">
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">ID</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Kasir</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Menu Item</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Stok Sebelum</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Stok Sesudah</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Perubahan</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Tipe</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Tanggal</th>
+                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Keterangan</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var history in Model)
+                {
+                    <tr class="border-b border-gray-100 hover:bg-gray-50">
+                        <td class="py-3 px-4">@history.StockHistoryId</td>
+                        <td class="py-3 px-4">
+                            <div>
+                                <div class="font-medium">@history.User?.FullName</div>
+                                <div class="text-sm text-gray-500">@history.User?.Username</div>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <div>
+                                <div class="font-medium">@history.MenuItem?.ItemName</div>
+                                <div class="text-sm text-gray-500">@history.MenuItem?.Category?.CategoryName</div>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4 text-center">@history.PreviousStock</td>
+                        <td class="py-3 px-4 text-center">@history.NewStock</td>
+                        <td class="py-3 px-4 text-center">
+                            @if (history.StockChange > 0)
+                            {
+                                <span class="text-green-600">+@history.StockChange</span>
+                            }
+                            else if (history.StockChange < 0)
+                            {
+                                <span class="text-red-600">@history.StockChange</span>
+                            }
+                            else
+                            {
+                                <span class="text-gray-600">0</span>
+                            }
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-1 text-xs rounded-full @(history.ChangeType == "Manual Update" ? "bg-blue-100 text-blue-800" : "bg-orange-100 text-orange-800")">
+                                @history.ChangeType
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-sm">@history.ChangedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="py-3 px-4 text-sm text-gray-600">@(history.Notes ?? "-")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="text-center py-8 text-gray-500">
+        <i class="fas fa-history text-4xl mb-4"></i>
+        <p>Tidak ada riwayat perubahan stok</p>
+    </div>
+}
