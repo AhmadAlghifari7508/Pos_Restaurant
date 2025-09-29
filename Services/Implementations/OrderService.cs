@@ -10,12 +10,14 @@ namespace POSRestoran01.Services.Implementations
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly IStockHistoryService _stockHistoryService;
         private readonly decimal _ppnRate = 0.11m; // 11%
 
-        public OrderService(ApplicationDbContext context, IConfiguration configuration)
+        public OrderService(ApplicationDbContext context, IConfiguration configuration, IStockHistoryService stockHistoryService) // TAMBAH PARAMETER
         {
             _context = context;
             _configuration = configuration;
+            _stockHistoryService = stockHistoryService; // TAMBAH INI
         }
 
         // Property untuk mengambil discount percentage dari konfigurasi dengan default 5%
@@ -33,6 +35,11 @@ namespace POSRestoran01.Services.Implementations
         }
 
         public async Task<Order> CreateOrderAsync(PaymentViewModel paymentModel, int userId)
+        {
+            return await CreateOrderWithMenuDiscountAsync(paymentModel, userId, 0);
+        }
+
+        public async Task<Order> CreateOrderWithMenuDiscountAsync(PaymentViewModel paymentModel, int userId, decimal menuDiscountTotal)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -68,6 +75,7 @@ namespace POSRestoran01.Services.Implementations
                     OrderTime = DateTime.Now.TimeOfDay,
                     Subtotal = paymentModel.Subtotal,
                     Discount = paymentModel.Discount,
+                    MenuDiscountTotal = menuDiscountTotal, // Set menu discount total
                     PPN = paymentModel.PPN,
                     Total = paymentModel.Total,
                     Status = "Completed",
@@ -79,7 +87,7 @@ namespace POSRestoran01.Services.Implementations
                 _context.Orders.Add(order);
                 await _context.SaveChangesAsync();
 
-                // Add order details dan update stock
+                // Add order details dengan informasi diskon per menu
                 foreach (var item in paymentModel.Items)
                 {
                     var orderDetail = new OrderDetail
@@ -87,18 +95,35 @@ namespace POSRestoran01.Services.Implementations
                         OrderId = order.OrderId,
                         MenuItemId = item.MenuItemId,
                         Quantity = item.Quantity,
-                        UnitPrice = item.UnitPrice,
+                        UnitPrice = item.UnitPrice, // Final price (after discount)
+                        OriginalPrice = item.OriginalPrice > 0 ? item.OriginalPrice : item.UnitPrice, // Store original price
+                        DiscountPercentage = item.DiscountPercentage,
+                        DiscountAmount = item.DiscountAmount,
                         OrderNote = item.OrderNote,
                         Subtotal = item.Subtotal
                     };
 
                     _context.OrderDetails.Add(orderDetail);
 
-                    // Update stock
+                    // Update stock dengan stock history recording
                     var menuItem = await _context.MenuItems.FindAsync(item.MenuItemId);
                     if (menuItem != null)
                     {
-                        menuItem.Stock -= item.Quantity;
+                        var previousStock = menuItem.Stock;
+                        var newStock = previousStock - item.Quantity;
+
+                        // Record stock history SEBELUM update stock
+                        await _stockHistoryService.RecordStockChangeAsync(
+                            item.MenuItemId,
+                            userId,
+                            previousStock,
+                            newStock,
+                            "Order Reduction",
+                            $"Order: {paymentModel.OrderNumber} - {item.ItemName} x{item.Quantity}"
+                        );
+
+                        // Update stock
+                        menuItem.Stock = newStock;
                         menuItem.UpdatedAt = DateTime.Now;
                     }
                 }
@@ -161,6 +186,25 @@ namespace POSRestoran01.Services.Implementations
             return items.Sum(item => item.UnitPrice * item.Quantity);
         }
 
+        // New method to calculate subtotal considering menu discounts are already applied
+        public decimal CalculateSubtotalWithMenuDiscount(List<OrderItemViewModel> items)
+        {
+            return items.Sum(item => item.UnitPrice * item.Quantity); // UnitPrice is already the discounted price
+        }
+
+        // Calculate subtotal before any discounts (original prices)
+        public decimal CalculateOriginalSubtotal(List<OrderItemViewModel> items)
+        {
+            return items.Sum(item => (item.OriginalPrice > 0 ? item.OriginalPrice : item.UnitPrice) * item.Quantity);
+        }
+
+        // Calculate total menu discount amount
+        public decimal CalculateMenuDiscountTotal(List<OrderItemViewModel> items)
+        {
+            return items.Where(item => item.HasDiscount)
+                       .Sum(item => item.DiscountAmount * item.Quantity);
+        }
+
         public decimal CalculatePPN(decimal subtotal, decimal discountAmount = 0)
         {
             var taxableAmount = Math.Max(0, subtotal - discountAmount);
@@ -172,7 +216,7 @@ namespace POSRestoran01.Services.Implementations
             return subtotal - discount + ppn;
         }
 
-        // Method untuk menghitung discount berdasarkan subtotal dan discount yang diinginkan
+        // Method untuk menghitung discount order berdasarkan subtotal dan discount yang diinginkan
         public decimal CalculateDiscountAmount(decimal subtotal)
         {
             if (subtotal <= 0)
@@ -193,17 +237,18 @@ namespace POSRestoran01.Services.Implementations
             return DiscountPercentage;
         }
 
-        // Method to calculate order totals with discount
-        public (decimal subtotal, decimal discount, decimal ppn, decimal total) CalculateOrderTotals(
+        // Method to calculate order totals with discount including menu discounts
+        public (decimal subtotal, decimal discount, decimal menuDiscount, decimal ppn, decimal total) CalculateOrderTotalsWithMenuDiscount(
             List<OrderItemViewModel> items,
-            bool applyDiscount = false)
+            bool applyOrderDiscount = false)
         {
-            var subtotal = CalculateSubtotal(items);
-            var discount = applyDiscount ? CalculateDiscountAmount(subtotal) : 0;
-            var ppn = CalculatePPN(subtotal, discount);
-            var total = CalculateTotal(subtotal, discount, ppn);
+            var subtotal = CalculateSubtotalWithMenuDiscount(items);
+            var menuDiscountTotal = CalculateMenuDiscountTotal(items);
+            var orderDiscount = applyOrderDiscount ? CalculateDiscountAmount(subtotal) : 0;
+            var ppn = CalculatePPN(subtotal, orderDiscount);
+            var total = CalculateTotal(subtotal, orderDiscount, ppn);
 
-            return (subtotal, discount, ppn, total);
+            return (subtotal, orderDiscount, menuDiscountTotal, ppn, total);
         }
 
         // Method tambahan untuk mendukung HomeController
@@ -269,13 +314,26 @@ namespace POSRestoran01.Services.Implementations
                 if (order == null || order.Status == "Canceled")
                     return false;
 
-                // Restore stock
+                // Restore stock dengan stock history recording
                 foreach (var detail in order.OrderDetails)
                 {
                     var menuItem = await _context.MenuItems.FindAsync(detail.MenuItemId);
                     if (menuItem != null)
                     {
-                        menuItem.Stock += detail.Quantity;
+                        var previousStock = menuItem.Stock;
+                        var newStock = previousStock + detail.Quantity;
+
+                        // Record stock history untuk restore
+                        await _stockHistoryService.RecordStockChangeAsync(
+                            detail.MenuItemId,
+                            order.UserId,
+                            previousStock,
+                            newStock,
+                            "Order Cancellation",
+                            $"Order Canceled: {order.OrderNumber} - {menuItem.ItemName} x{detail.Quantity}"
+                        );
+
+                        menuItem.Stock = newStock;
                         menuItem.UpdatedAt = DateTime.Now;
                     }
                 }
@@ -302,6 +360,7 @@ namespace POSRestoran01.Services.Implementations
                 OrderNumber = order.OrderNumber,
                 Subtotal = order.Subtotal,
                 Discount = order.Discount,
+                MenuDiscountTotal = order.MenuDiscountTotal,
                 PPN = order.PPN,
                 Total = order.Total,
                 Items = new List<OrderItemViewModel>()
@@ -315,6 +374,10 @@ namespace POSRestoran01.Services.Implementations
                     ItemName = detail.MenuItem?.ItemName ?? "",
                     ImagePath = detail.MenuItem?.ImagePath ?? "",
                     UnitPrice = detail.UnitPrice,
+                    OriginalPrice = detail.OriginalPrice,
+                    DiscountPercentage = detail.DiscountPercentage,
+                    DiscountAmount = detail.DiscountAmount,
+                    HasDiscount = detail.HasDiscount,
                     Quantity = detail.Quantity,
                     Subtotal = detail.Subtotal,
                     OrderNote = detail.OrderNote
@@ -353,13 +416,15 @@ namespace POSRestoran01.Services.Implementations
                 { "AverageOrderValue", orders.Any() ? orders.Where(o => o.Status == "Completed").Average(o => o.Total) : 0 },
                 { "DineInOrders", orders.Count(o => o.OrderType == "Dine In") },
                 { "TakeAwayOrders", orders.Count(o => o.OrderType == "Take Away") },
-                { "TotalDiscountGiven", orders.Where(o => o.Status == "Completed").Sum(o => o.Discount) },
-                { "OrdersWithDiscount", orders.Count(o => o.Status == "Completed" && o.Discount > 0) },
+                { "TotalOrderDiscount", orders.Where(o => o.Status == "Completed").Sum(o => o.Discount) },
+                { "TotalMenuDiscount", orders.Where(o => o.Status == "Completed").Sum(o => o.MenuDiscountTotal) },
+                { "TotalDiscountGiven", orders.Where(o => o.Status == "Completed").Sum(o => o.Discount + o.MenuDiscountTotal) },
+                { "OrdersWithDiscount", orders.Count(o => o.Status == "Completed" && (o.Discount > 0 || o.MenuDiscountTotal > 0)) },
                 { "CurrentDiscountPercentage", DiscountPercentage }
             };
         }
 
-        // Method to get discount statistics
+        // Method to get discount statistics including menu discounts
         public async Task<Dictionary<string, object>> GetDiscountStatisticsAsync(DateTime startDate, DateTime endDate)
         {
             var orders = await _context.Orders
@@ -367,17 +432,24 @@ namespace POSRestoran01.Services.Implementations
                 .ToListAsync();
 
             var totalOrders = orders.Count;
-            var ordersWithDiscount = orders.Count(o => o.Discount > 0);
-            var totalDiscountGiven = orders.Sum(o => o.Discount);
-            var averageDiscountPerOrder = ordersWithDiscount > 0 ? totalDiscountGiven / ordersWithDiscount : 0;
+            var ordersWithOrderDiscount = orders.Count(o => o.Discount > 0);
+            var ordersWithMenuDiscount = orders.Count(o => o.MenuDiscountTotal > 0);
+            var ordersWithAnyDiscount = orders.Count(o => o.Discount > 0 || o.MenuDiscountTotal > 0);
+            var totalOrderDiscountGiven = orders.Sum(o => o.Discount);
+            var totalMenuDiscountGiven = orders.Sum(o => o.MenuDiscountTotal);
+            var totalDiscountGiven = totalOrderDiscountGiven + totalMenuDiscountGiven;
 
             return new Dictionary<string, object>
             {
                 { "TotalOrders", totalOrders },
-                { "OrdersWithDiscount", ordersWithDiscount },
-                { "DiscountPercentage", totalOrders > 0 ? (decimal)ordersWithDiscount / totalOrders * 100 : 0 },
+                { "OrdersWithOrderDiscount", ordersWithOrderDiscount },
+                { "OrdersWithMenuDiscount", ordersWithMenuDiscount },
+                { "OrdersWithAnyDiscount", ordersWithAnyDiscount },
+                { "DiscountPercentage", totalOrders > 0 ? (decimal)ordersWithAnyDiscount / totalOrders * 100 : 0 },
+                { "TotalOrderDiscountAmount", totalOrderDiscountGiven },
+                { "TotalMenuDiscountAmount", totalMenuDiscountGiven },
                 { "TotalDiscountAmount", totalDiscountGiven },
-                { "AverageDiscountPerOrder", averageDiscountPerOrder },
+                { "AverageDiscountPerOrder", ordersWithAnyDiscount > 0 ? totalDiscountGiven / ordersWithAnyDiscount : 0 },
                 { "TotalSavings", totalDiscountGiven },
                 { "CurrentDiscountPercentage", DiscountPercentage }
             };
@@ -395,7 +467,7 @@ namespace POSRestoran01.Services.Implementations
         {
             return new List<(string, decimal, decimal)>
             {
-                ($"Diskon {DiscountPercentage}%", DiscountPercentage, 50000m)
+                ($"Diskon Order {DiscountPercentage}%", DiscountPercentage, 50000m)
             };
         }
 
@@ -403,6 +475,62 @@ namespace POSRestoran01.Services.Implementations
         public decimal CalculateSavings(decimal subtotal)
         {
             return CalculateDiscountAmount(subtotal);
+        }
+
+        // Method to calculate total savings including menu discounts
+        public decimal CalculateTotalSavings(List<OrderItemViewModel> items, bool hasOrderDiscount = false)
+        {
+            var menuDiscountTotal = CalculateMenuDiscountTotal(items);
+            var orderDiscountTotal = hasOrderDiscount ? CalculateDiscountAmount(CalculateSubtotal(items)) : 0;
+            return menuDiscountTotal + orderDiscountTotal;
+        }
+        // TAMBAH methods berikut di OrderService.cs:
+
+        // Method untuk mendapatkan orders berdasarkan user dan tanggal
+        public async Task<List<Order>> GetOrdersByUserIdAsync(int userId, DateTime startDate, DateTime endDate)
+        {
+            return await _context.Orders
+                .Include(o => o.OrderDetails)
+                .ThenInclude(od => od.MenuItem)
+                .Where(o => o.UserId == userId &&
+                            o.OrderDate >= startDate.Date &&
+                            o.OrderDate <= endDate.Date)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+        }
+
+        // Method untuk mendapatkan total revenue berdasarkan user dan tanggal
+        public async Task<decimal> GetTotalRevenueByUserIdAsync(int userId, DateTime startDate, DateTime endDate)
+        {
+            return await _context.Orders
+                .Where(o => o.UserId == userId &&
+                            o.OrderDate >= startDate.Date &&
+                            o.OrderDate <= endDate.Date &&
+                            o.Status == "Completed")
+                .SumAsync(o => o.Total);
+        }
+
+        // Method untuk mendapatkan total customers berdasarkan user dan tanggal
+        public async Task<int> GetTotalCustomersByUserIdAsync(int userId, DateTime startDate, DateTime endDate)
+        {
+            return await _context.Orders
+                .Where(o => o.UserId == userId &&
+                            o.OrderDate >= startDate.Date &&
+                            o.OrderDate <= endDate.Date &&
+                            o.Status == "Completed")
+                .CountAsync();
+        }
+
+        // Method untuk mendapatkan total menus ordered berdasarkan user dan tanggal
+        public async Task<int> GetTotalMenusOrderedByUserIdAsync(int userId, DateTime startDate, DateTime endDate)
+        {
+            return await _context.Orders
+                .Where(o => o.UserId == userId &&
+                            o.OrderDate >= startDate.Date &&
+                            o.OrderDate <= endDate.Date &&
+                            o.Status == "Completed")
+                .SelectMany(o => o.OrderDetails)
+                .SumAsync(od => od.Quantity);
         }
     }
 }

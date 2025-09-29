@@ -28,33 +28,33 @@ function renderCategories(categories) {
 
     categories.forEach(category => {
         const categoryItem = document.createElement('div');
-        categoryItem.className = 'flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200 hover:shadow-md transition-all duration-300';
+        categoryItem.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg border hover:shadow-sm transition-all duration-300';
         categoryItem.innerHTML = `
             <div class="flex-1">
                 <input type="text" value="${category.categoryName}" 
                        id="category_${category.categoryId}" 
-                       class="bg-transparent border-none focus:outline-none focus:bg-white focus:border-gray-300 focus:rounded-lg px-3 py-2 w-full font-medium text-gray-800" 
+                       class="bg-transparent border-none focus:outline-none focus:bg-white focus:border-gray-300 focus:rounded px-2 py-1 w-full font-medium text-gray-800" 
                        readonly>
             </div>
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-2">
                 <button onclick="editCategory(${category.categoryId})" 
-                        class="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-lg transition-all duration-300" 
-                        id="editBtn_${category.categoryId}" title="Edit Kategori">
-                    <i class="fas fa-edit text-lg"></i>
+                        class="text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-50 rounded transition-all duration-300" 
+                        id="editBtn_${category.categoryId}" title="Edit">
+                    <i class="fas fa-edit"></i>
                 </button>
                 <button onclick="saveCategory(${category.categoryId})" 
-                        class="text-green-600 hover:text-green-800 p-2 hover:bg-green-50 rounded-lg transition-all duration-300 hidden" 
+                        class="text-green-600 hover:text-green-800 p-1 hover:bg-green-50 rounded transition-all duration-300 hidden" 
                         id="saveBtn_${category.categoryId}" title="Simpan">
-                    <i class="fas fa-check text-lg"></i>
+                    <i class="fas fa-check"></i>
                 </button>
                 <button onclick="cancelEditCategory(${category.categoryId}, '${category.categoryName.replace(/'/g, "\\\'")}')" 
-                        class="text-gray-600 hover:text-gray-800 p-2 hover:bg-gray-50 rounded-lg transition-all duration-300 hidden" 
+                        class="text-gray-600 hover:text-gray-800 p-1 hover:bg-gray-50 rounded transition-all duration-300 hidden" 
                         id="cancelBtn_${category.categoryId}" title="Batal">
-                    <i class="fas fa-times text-lg"></i>
+                    <i class="fas fa-times"></i>
                 </button>
                 <button onclick="deleteCategory(${category.categoryId}, '${category.categoryName.replace(/'/g, "\\\'")}\')" 
-                        class="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-all duration-300" title="Hapus Kategori">
-                    <i class="fas fa-trash text-lg"></i>
+                        class="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded transition-all duration-300" title="Hapus">
+                    <i class="fas fa-trash"></i>
                 </button>
             </div>
         `;
@@ -71,7 +71,7 @@ function editCategory(categoryId) {
     input.readOnly = false;
     input.focus();
     input.select();
-    input.classList.add('bg-white', 'border-2', 'border-blue-300', 'rounded-lg', 'shadow-sm');
+    input.classList.add('bg-white', 'border', 'border-blue-300', 'rounded', 'shadow-sm');
 
     editBtn.classList.add('hidden');
     saveBtn.classList.remove('hidden');
@@ -138,7 +138,7 @@ function cancelEditCategory(categoryId, originalName) {
 
     input.value = originalName;
     input.readOnly = true;
-    input.classList.remove('bg-white', 'border-2', 'border-blue-300', 'rounded-lg', 'shadow-sm');
+    input.classList.remove('bg-white', 'border', 'border-blue-300', 'rounded', 'shadow-sm');
 
     editBtn.classList.remove('hidden');
     saveBtn.classList.add('hidden');
@@ -148,21 +148,21 @@ function cancelEditCategory(categoryId, originalName) {
 function deleteCategory(categoryId, categoryName) {
     // Create custom confirmation dialog
     const confirmDialog = document.createElement('div');
-    confirmDialog.className = 'fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50';
+    confirmDialog.className = 'fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50';
     confirmDialog.innerHTML = `
-        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4">
+        <div class="bg-white rounded-xl shadow-xl p-6 max-w-md mx-4">
             <div class="text-center">
-                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-trash text-2xl text-red-600"></i>
+                <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-trash text-xl text-red-600"></i>
                 </div>
-                <h3 class="text-xl font-bold text-gray-800 mb-2">Hapus Kategori</h3>
-                <p class="text-gray-600 mb-6">Apakah Anda yakin ingin menghapus kategori "<strong>${categoryName}</strong>"? Semua menu dalam kategori ini akan terpengaruh.</p>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Hapus Kategori</h3>
+                <p class="text-gray-600 mb-6">Apakah Anda yakin ingin menghapus kategori "<strong>${categoryName}</strong>"?</p>
                 <div class="flex space-x-3">
-                    <button onclick="this.closest('.fixed').remove()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-3 px-4 rounded-xl transition-all duration-300 font-medium">
+                    <button onclick="this.closest('.fixed').remove()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 px-4 rounded-lg transition-colors">
                         Batal
                     </button>
-                    <button onclick="confirmDeleteCategory(${categoryId}); this.closest('.fixed').remove();" class="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-3 px-4 rounded-xl transition-all duration-300 font-medium shadow-lg">
-                        Hapus Kategori
+                    <button onclick="confirmDeleteCategory(${categoryId}); this.closest('.fixed').remove();" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition-colors">
+                        Hapus
                     </button>
                 </div>
             </div>
@@ -201,6 +201,447 @@ function confirmDeleteCategory(categoryId) {
             console.error('Error deleting category:', error);
             showNotification('Terjadi kesalahan saat menghapus kategori', 'error');
         });
+}
+
+// Product Category Loading
+function loadProductCategory(categoryId) {
+    showLoading();
+
+    fetch(`/Product/GetMenuByCategory?categoryId=${categoryId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.text();
+        })
+        .then(html => {
+            document.getElementById('existingMenuItems').innerHTML = html;
+            hideLoading();
+            updateActiveCategoryTab(categoryId);
+        })
+        .catch(error => {
+            console.error('Error loading category:', error);
+            hideLoading();
+            showNotification('Terjadi kesalahan saat memuat kategori', 'error');
+        });
+}
+
+function updateActiveCategoryTab(categoryId) {
+    document.querySelectorAll('.category-tab').forEach(tab => {
+        const tabCategoryId = parseInt(tab.getAttribute('data-category-id'));
+        if (tabCategoryId === categoryId) {
+            tab.classList.add('border-b-2', 'border-blue-500', 'text-blue-600');
+            tab.classList.remove('text-gray-600');
+        } else {
+            tab.classList.remove('border-b-2', 'border-blue-500', 'text-blue-600');
+            tab.classList.add('text-gray-600');
+        }
+    });
+}
+
+// Modal Functions
+function showCategoryModal() {
+    document.getElementById('categoryModal').classList.remove('hidden');
+    document.getElementById('categoryModal').classList.add('flex');
+    loadCategories();
+}
+
+function hideCategoryModal() {
+    document.getElementById('categoryModal').classList.add('hidden');
+    document.getElementById('categoryModal').classList.remove('flex');
+}
+
+function showAddMenuModal() {
+    document.getElementById('menuModalTitle').textContent = 'Tambah Menu Baru';
+    document.getElementById('menuSubmitBtn').textContent = 'Tambah Menu';
+    document.getElementById('menuForm').reset();
+    document.getElementById('menuItemId').value = '';
+
+    // Set default active status to true
+    setActiveStatus(true);
+
+    // Set default discount status to false
+    setDiscountStatus(false);
+
+    document.getElementById('currentImagePreview').classList.add('hidden');
+    document.getElementById('imagePreview').classList.add('hidden');
+
+    document.getElementById('menuModal').classList.remove('hidden');
+    document.getElementById('menuModal').classList.add('flex');
+
+    // Clear price preview
+    updatePricePreview();
+}
+
+function showEditMenuModal(menuItemId) {
+    document.getElementById('menuModalTitle').textContent = 'Edit Menu';
+    document.getElementById('menuSubmitBtn').textContent = 'Update Menu';
+
+    showLoading();
+
+    // Load menu data
+    fetch(`/Product/GetMenuItem?menuItemId=${menuItemId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            hideLoading();
+            if (data.success) {
+                const menu = data.data;
+                document.getElementById('menuItemId').value = menu.menuItemId;
+                document.getElementById('menuCategoryId').value = menu.categoryId;
+                document.getElementById('menuItemName').value = menu.itemName;
+                document.getElementById('menuDescription').value = menu.description || '';
+                document.getElementById('menuPrice').value = menu.price;
+                document.getElementById('menuStock').value = menu.stock;
+
+                // Set discount fields
+                document.getElementById('menuDiscountPercentage').value = menu.discountPercentage || 0;
+                document.getElementById('menuDiscountStartDate').value = menu.discountStartDate || '';
+                document.getElementById('menuDiscountEndDate').value = menu.discountEndDate || '';
+
+                // Set discount status
+                setDiscountStatus(menu.isDiscountActive);
+
+                // Set active status properly
+                setActiveStatus(menu.isActive);
+
+                // Show current image if exists
+                if (menu.imagePath) {
+                    document.getElementById('currentImage').src = menu.imagePath;
+                    document.getElementById('currentImagePreview').classList.remove('hidden');
+                } else {
+                    document.getElementById('currentImagePreview').classList.add('hidden');
+                }
+
+                document.getElementById('imagePreview').classList.add('hidden');
+                document.getElementById('menuModal').classList.remove('hidden');
+                document.getElementById('menuModal').classList.add('flex');
+
+                // Update price preview
+                updatePricePreview();
+            } else {
+                showNotification(data.message || 'Terjadi kesalahan saat memuat data menu', 'error');
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            console.error('Error loading menu:', error);
+            showNotification('Terjadi kesalahan saat memuat data menu', 'error');
+        });
+}
+
+function hideMenuModal() {
+    document.getElementById('menuModal').classList.add('hidden');
+    document.getElementById('menuModal').classList.remove('flex');
+}
+
+// Discount Toggle Functions
+function toggleDiscountStatus() {
+    const checkbox = document.getElementById('menuDiscountActive');
+    const currentState = checkbox.checked;
+    const newState = !currentState;
+
+    setDiscountStatus(newState);
+    updatePricePreview(); // Update preview when toggling
+}
+
+function setDiscountStatus(isActive) {
+    const checkbox = document.getElementById('menuDiscountActive');
+    const hiddenInput = document.getElementById('hiddenDiscountActive');
+    const toggleSwitch = document.querySelector('.discount-toggle-switch');
+    const toggleDot = document.querySelector('.discount-toggle-dot');
+    const fieldsContainer = document.getElementById('discountFieldsContainer');
+
+    if (!checkbox || !toggleSwitch || !toggleDot || !fieldsContainer) return;
+
+    checkbox.checked = isActive;
+    hiddenInput.value = isActive ? 'true' : 'false';
+
+    if (isActive) {
+        toggleSwitch.classList.remove('bg-gray-300');
+        toggleSwitch.classList.add('bg-green-500');
+        toggleDot.classList.remove('translate-x-0.5');
+        toggleDot.classList.add('translate-x-5');
+        fieldsContainer.classList.remove('hidden');
+
+        // Set default dates if empty with current time
+        const startDate = document.getElementById('menuDiscountStartDate');
+        const endDate = document.getElementById('menuDiscountEndDate');
+
+        if (!startDate.value) {
+            startDate.value = getCurrentLocalDateTime();
+        }
+
+        if (!endDate.value) {
+            endDate.value = getOneWeekFromNow();
+        }
+    } else {
+        toggleSwitch.classList.remove('bg-green-500');
+        toggleSwitch.classList.add('bg-gray-300');
+        toggleDot.classList.remove('translate-x-5');
+        toggleDot.classList.add('translate-x-0.5');
+        fieldsContainer.classList.add('hidden');
+
+        // Clear discount fields when deactivated
+        const discountPercentage = document.getElementById('menuDiscountPercentage');
+        if (discountPercentage) discountPercentage.value = 0;
+    }
+
+    updatePricePreview();
+}
+
+function updatePricePreview() {
+    const priceInput = document.getElementById('menuPrice');
+    const discountPercentageInput = document.getElementById('menuDiscountPercentage');
+    const discountActive = document.getElementById('menuDiscountActive');
+    const originalPricePreview = document.getElementById('originalPricePreview');
+    const discountedPricePreview = document.getElementById('discountedPricePreview');
+    const savingsPreview = document.getElementById('savingsPreview');
+
+    if (!priceInput || !discountPercentageInput || !originalPricePreview || !discountedPricePreview || !savingsPreview) return;
+
+    const originalPrice = parseFloat(priceInput.value) || 0;
+    const discountPercentage = parseFloat(discountPercentageInput.value) || 0;
+    const isDiscountActive = discountActive && discountActive.checked;
+
+    if (originalPrice > 0 && isDiscountActive && discountPercentage > 0) {
+        const discountAmount = originalPrice * (discountPercentage / 100);
+        const finalPrice = originalPrice - discountAmount;
+
+        originalPricePreview.textContent = `Rp ${originalPrice.toLocaleString('id-ID')}`;
+        discountedPricePreview.textContent = `Rp ${finalPrice.toLocaleString('id-ID')}`;
+        savingsPreview.textContent = `-${discountPercentage}% (Hemat Rp ${discountAmount.toLocaleString('id-ID')})`;
+        savingsPreview.classList.remove('hidden');
+
+        originalPricePreview.parentElement.classList.remove('hidden');
+    } else {
+        originalPricePreview.textContent = 'Rp 0';
+        discountedPricePreview.textContent = originalPrice > 0 ? `Rp ${originalPrice.toLocaleString('id-ID')}` : 'Rp 0';
+        savingsPreview.classList.add('hidden');
+
+        if (!isDiscountActive || discountPercentage === 0) {
+            originalPricePreview.parentElement.classList.add('hidden');
+        }
+    }
+}
+
+// Toggle Switch Functions for Active Status
+function toggleActiveStatus() {
+    const checkbox = document.getElementById('menuIsActive');
+    const currentState = checkbox.checked;
+    const newState = !currentState;
+
+    setActiveStatus(newState);
+}
+
+function setActiveStatus(isActive) {
+    const checkbox = document.getElementById('menuIsActive');
+    const hiddenInput = document.getElementById('hiddenIsActive');
+    const toggleSwitch = document.querySelector('.toggle-switch');
+    const toggleDot = document.querySelector('.toggle-dot');
+
+    if (!checkbox || !toggleSwitch || !toggleDot) return;
+
+    checkbox.checked = isActive;
+    hiddenInput.value = isActive ? 'true' : 'false';
+
+    if (isActive) {
+        toggleSwitch.classList.remove('bg-gray-300');
+        toggleSwitch.classList.add('bg-green-500');
+        toggleDot.classList.remove('translate-x-0.5');
+        toggleDot.classList.add('translate-x-5');
+    } else {
+        toggleSwitch.classList.remove('bg-green-500');
+        toggleSwitch.classList.add('bg-gray-300');
+        toggleDot.classList.remove('translate-x-5');
+        toggleDot.classList.add('translate-x-0.5');
+    }
+}
+
+function setupToggleSwitch() {
+    // Set default state to active (true) for new menu
+    setActiveStatus(true);
+}
+
+// Setup discount features
+function setupDiscountFeatures() {
+    // Set default discount status to false for new menu
+    setDiscountStatus(false);
+
+    // Add event listeners for price preview
+    const priceInput = document.getElementById('menuPrice');
+    const discountPercentageInput = document.getElementById('menuDiscountPercentage');
+    const discountStartDate = document.getElementById('menuDiscountStartDate');
+    const discountEndDate = document.getElementById('menuDiscountEndDate');
+
+    if (priceInput) {
+        priceInput.addEventListener('input', updatePricePreview);
+    }
+
+    if (discountPercentageInput) {
+        discountPercentageInput.addEventListener('input', function () {
+            // Validate percentage range
+            let value = parseFloat(this.value);
+            if (value < 0) this.value = 0;
+            if (value > 100) this.value = 100;
+            updatePricePreview();
+        });
+    }
+
+    // Date validation
+    if (discountStartDate && discountEndDate) {
+        discountStartDate.addEventListener('change', validateDiscountDates);
+        discountEndDate.addEventListener('change', validateDiscountDates);
+    }
+}
+
+function validateDiscountDates() {
+    const startDate = document.getElementById('menuDiscountStartDate');
+    const endDate = document.getElementById('menuDiscountEndDate');
+
+    if (!startDate || !endDate || !startDate.value || !endDate.value) return;
+
+    const start = new Date(startDate.value);
+    const end = new Date(endDate.value);
+
+    if (end <= start) {
+        showNotification('Tanggal berakhir harus setelah tanggal mulai', 'warning');
+        // Set end date to one day after start date
+        const nextDay = new Date(start);
+        nextDay.setDate(nextDay.getDate() + 1);
+        endDate.value = nextDay.toISOString().slice(0, 16);
+    }
+}
+
+// Image preview functions
+function setupImagePreview() {
+    const imageInput = document.getElementById('menuImage');
+    const preview = document.getElementById('imagePreview');
+    const previewImage = document.getElementById('previewImage');
+
+    if (!imageInput || !preview || !previewImage) return;
+
+    imageInput.addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                showNotification('File yang dipilih bukan gambar', 'warning');
+                imageInput.value = '';
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('Ukuran file tidak boleh lebih dari 5MB', 'warning');
+                imageInput.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                previewImage.src = e.target.result;
+                preview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            preview.classList.add('hidden');
+        }
+    });
+}
+
+function clearImagePreview() {
+    document.getElementById('menuImage').value = '';
+    document.getElementById('imagePreview').classList.add('hidden');
+}
+
+function validateMenuForm() {
+    const categoryId = document.getElementById('menuCategoryId').value;
+    const itemName = document.getElementById('menuItemName').value.trim();
+    const price = document.getElementById('menuPrice').value;
+    const stock = document.getElementById('menuStock').value;
+    const discountActive = document.getElementById('menuDiscountActive').checked;
+    const discountPercentage = document.getElementById('menuDiscountPercentage').value;
+    const discountStartDate = document.getElementById('menuDiscountStartDate').value;
+    const discountEndDate = document.getElementById('menuDiscountEndDate').value;
+
+    if (!categoryId) {
+        showNotification('Pilih kategori terlebih dahulu', 'warning');
+        document.getElementById('menuCategoryId').focus();
+        return false;
+    }
+
+    if (!itemName) {
+        showNotification('Nama item tidak boleh kosong', 'warning');
+        document.getElementById('menuItemName').focus();
+        return false;
+    }
+
+    if (itemName.length > 100) {
+        showNotification('Nama item maksimal 100 karakter', 'warning');
+        document.getElementById('menuItemName').focus();
+        return false;
+    }
+
+    if (!price || parseFloat(price) <= 0) {
+        showNotification('Harga harus lebih besar dari 0', 'warning');
+        document.getElementById('menuPrice').focus();
+        return false;
+    }
+
+    if (!stock || parseInt(stock) < 0) {
+        showNotification('Stok tidak boleh negatif', 'warning');
+        document.getElementById('menuStock').focus();
+        return false;
+    }
+
+    // Validate discount settings
+    if (discountActive) {
+        if (!discountPercentage || parseFloat(discountPercentage) <= 0) {
+            showNotification('Persentase diskon harus lebih dari 0 jika diskon aktif', 'warning');
+            document.getElementById('menuDiscountPercentage').focus();
+            return false;
+        }
+
+        if (parseFloat(discountPercentage) > 100) {
+            showNotification('Persentase diskon tidak boleh lebih dari 100%', 'warning');
+            document.getElementById('menuDiscountPercentage').focus();
+            return false;
+        }
+
+        if (discountStartDate && discountEndDate) {
+            const start = new Date(discountStartDate);
+            const end = new Date(discountEndDate);
+
+            if (end <= start) {
+                showNotification('Tanggal berakhir diskon harus setelah tanggal mulai', 'warning');
+                document.getElementById('menuDiscountEndDate').focus();
+                return false;
+            }
+        }
+    }
+
+    // Validate image file if selected
+    const imageFile = document.getElementById('menuImage').files[0];
+    if (imageFile) {
+        if (!imageFile.type.startsWith('image/')) {
+            showNotification('File yang dipilih bukan gambar', 'warning');
+            document.getElementById('menuImage').focus();
+            return false;
+        }
+
+        if (imageFile.size > 5 * 1024 * 1024) {
+            showNotification('Ukuran file tidak boleh lebih dari 5MB', 'warning');
+            document.getElementById('menuImage').focus();
+            return false;
+        }
+    }
+
+    return true;
 }
 
 // Add Category Form Handler
@@ -289,6 +730,11 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.delete('IsActive');
             formData.append('IsActive', isActiveCheckbox.checked);
 
+            // Ensure discount values are properly set
+            const isDiscountActiveCheckbox = document.getElementById('menuDiscountActive');
+            formData.delete('IsDiscountActive');
+            formData.append('IsDiscountActive', isDiscountActiveCheckbox.checked);
+
             formData.append('__RequestVerificationToken', getAntiForgeryToken());
 
             const menuItemId = document.getElementById('menuItemId').value;
@@ -324,7 +770,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         hideMenuModal();
 
                         // Reload current category
-                        const activeTab = document.querySelector('.category-tab.bg-gradient-to-r');
+                        const activeTab = document.querySelector('.category-tab.border-b-2');
                         if (activeTab) {
                             const categoryId = parseInt(activeTab.getAttribute('data-category-id'));
                             setTimeout(() => loadProductCategory(categoryId), 500);
@@ -351,59 +797,17 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-function validateMenuForm() {
-    const categoryId = document.getElementById('menuCategoryId').value;
-    const itemName = document.getElementById('menuItemName').value.trim();
-    const price = document.getElementById('menuPrice').value;
-    const stock = document.getElementById('menuStock').value;
+// Initialize everything when document is ready
+document.addEventListener('DOMContentLoaded', function () {
+    initializeProductManagement();
+    loadCategories();
+    setupImagePreview();
+    setupToggleSwitch();
+    setupDiscountFeatures();
+});
 
-    if (!categoryId) {
-        showNotification('Pilih kategori terlebih dahulu', 'warning');
-        document.getElementById('menuCategoryId').focus();
-        return false;
-    }
-
-    if (!itemName) {
-        showNotification('Nama item tidak boleh kosong', 'warning');
-        document.getElementById('menuItemName').focus();
-        return false;
-    }
-
-    if (itemName.length > 100) {
-        showNotification('Nama item maksimal 100 karakter', 'warning');
-        document.getElementById('menuItemName').focus();
-        return false;
-    }
-
-    if (!price || parseFloat(price) <= 0) {
-        showNotification('Harga harus lebih besar dari 0', 'warning');
-        document.getElementById('menuPrice').focus();
-        return false;
-    }
-
-    if (!stock || parseInt(stock) < 0) {
-        showNotification('Stok tidak boleh negatif', 'warning');
-        document.getElementById('menuStock').focus();
-        return false;
-    }
-
-    // Validate image file if selected
-    const imageFile = document.getElementById('menuImage').files[0];
-    if (imageFile) {
-        if (!imageFile.type.startsWith('image/')) {
-            showNotification('File yang dipilih bukan gambar', 'warning');
-            document.getElementById('menuImage').focus();
-            return false;
-        }
-
-        if (imageFile.size > 5 * 1024 * 1024) {
-            showNotification('Ukuran file tidak boleh lebih dari 5MB', 'warning');
-            document.getElementById('menuImage').focus();
-            return false;
-        }
-    }
-
-    return true;
+function initializeProductManagement() {
+    console.log('Product Management with Discount Features initialized');
 }
 
 // Keyboard shortcuts

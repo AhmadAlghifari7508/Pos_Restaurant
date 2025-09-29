@@ -13,49 +13,104 @@ namespace POSRestoran01.Controllers
             _authService = authService;
         }
 
-        public IActionResult Login(string? returnUrl = null)
+        [HttpGet]
+        public IActionResult Login()
         {
+            // Jika sudah login, redirect ke home
             if (!string.IsNullOrEmpty(HttpContext.Session.GetString("UserId")))
             {
                 return RedirectToAction("Index", "Home");
             }
 
-            ViewBag.ReturnUrl = returnUrl;
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (ModelState.IsValid)
             {
-                var user = await _authService.AuthenticateAsync(model);
-                if (user != null)
+                try
                 {
-                    // Set session
-                    HttpContext.Session.SetString("UserId", user.Id.ToString());
-                    HttpContext.Session.SetString("Username", user.Username);
-                    HttpContext.Session.SetString("FullName", user.FullName);
-                    HttpContext.Session.SetString("Role", user.Role);
-
-                    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                    var user = await _authService.AuthenticateAsync(model);
+                    if (user != null)
                     {
-                        return Redirect(returnUrl);
+                        // Set session
+                        HttpContext.Session.SetString("UserId", user.Id.ToString());
+                        HttpContext.Session.SetString("Username", user.Username);
+                        HttpContext.Session.SetString("FullName", user.FullName);
+                        HttpContext.Session.SetString("UserRole", user.Role);
+
+                        // Activity recording sudah dilakukan di AuthService
+                        TempData["Success"] = $"Selamat datang, {user.FullName}!";
+                        return RedirectToAction("Index", "Home");
                     }
-
-                    return RedirectToAction("Index", "Home");
+                    else
+                    {
+                        ModelState.AddModelError("", "Username atau password salah, atau akun tidak aktif");
+                    }
                 }
-
-                ModelState.AddModelError("", "Username atau password salah.");
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "Terjadi kesalahan saat login. Silakan coba lagi.");
+                }
             }
 
             return View(model);
         }
 
-        public IActionResult Logout()
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
         {
+            try
+            {
+                var userIdString = HttpContext.Session.GetString("UserId");
+                if (!string.IsNullOrEmpty(userIdString) && int.TryParse(userIdString, out int userId))
+                {
+                    // Record logout activity
+                    await _authService.LogoutAsync(userId);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error but continue with logout
+                // Logging dapat ditambahkan di sini
+            }
+
             HttpContext.Session.Clear();
+            TempData["Success"] = "Anda telah berhasil logout.";
             return RedirectToAction("Login");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> LogoutJson()
+        {
+            try
+            {
+                var userIdString = HttpContext.Session.GetString("UserId");
+                if (!string.IsNullOrEmpty(userIdString) && int.TryParse(userIdString, out int userId))
+                {
+                    // Record logout activity
+                    await _authService.LogoutAsync(userId);
+                }
+
+                HttpContext.Session.Clear();
+                return Json(new { success = true, redirectUrl = Url.Action("Login", "Account") });
+            }
+            catch (Exception)
+            {
+                // Even if there's an error, still logout
+                HttpContext.Session.Clear();
+                return Json(new { success = true, redirectUrl = Url.Action("Login", "Account") });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult AccessDenied()
+        {
+            return View();
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
 namespace POSRestoran01.Models
 {
     public class OrderDetail
@@ -35,11 +34,32 @@ namespace POSRestoran01.Models
         [Display(Name = "Subtotal")]
         public decimal Subtotal { get; set; }
 
+        // Discount Properties untuk menyimpan info diskon saat order dibuat
+        [Column(TypeName = "decimal(10,2)")]
+        [Display(Name = "Harga Asli")]
+        public decimal OriginalPrice { get; set; } = 0;
+
+        [Column(TypeName = "decimal(5,2)")]
+        [Display(Name = "Persentase Diskon")]
+        public decimal DiscountPercentage { get; set; } = 0;
+
+        [Column(TypeName = "decimal(10,2)")]
+        [Display(Name = "Jumlah Diskon")]
+        public decimal DiscountAmount { get; set; } = 0;
+
         // Navigation Properties
         [ForeignKey("OrderId")]
         public virtual Order Order { get; set; } = null!;
 
         [ForeignKey("MenuItemId")]
         public virtual MenuItem MenuItem { get; set; } = null!;
+
+        // Computed Properties
+        [NotMapped]
+        public bool HasDiscount => DiscountPercentage > 0 && DiscountAmount > 0;
+
+        [NotMapped]
+        [Display(Name = "Total Penghematan Item")]
+        public decimal TotalSavings => DiscountAmount * Quantity;
     }
 }

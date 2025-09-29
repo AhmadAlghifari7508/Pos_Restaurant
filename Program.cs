@@ -31,7 +31,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IStockHistoryService, StockHistoryService>();
 builder.Services.AddScoped<IUserActivityService, UserActivityService>();
 
-builder.Services.AddScoped<IDbSeederService, DbSeederService>(); // Add seeder
+builder.Services.AddScoped<IDbSeederService, DbSeederService>();
 
 var app = builder.Build();
 

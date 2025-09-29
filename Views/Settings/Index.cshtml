@@ -9,28 +9,35 @@
         <div class="p-6 border-b border-gray-200">
             <h2 class="text-xl font-semibold text-gray-800">Settings</h2>
         </div>
-        
+
         <nav class="mt-6">
-            <a href="?section=account" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors @(Model.ActiveSection == "account" ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600" : "")">
-                <i class="fas fa-users mr-3"></i>
-                <span>Akun</span>
+            <!-- Account Menu (Default) -->
+            <a href="?section=account" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors @(Model.ActiveSection == "account" || string.IsNullOrEmpty(Model.ActiveSection) ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600" : "")">
+                <i class="fas fa-user mr-3"></i>
+                <span>Akun Saya</span>
             </a>
-            
+
+            <!-- Cashier Dashboard Menu Item -->
+            <a href="?section=cashier-dashboard" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors @(Model.ActiveSection == "cashier-dashboard" ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600" : "")">
+                <i class="fas fa-tachometer-alt mr-3"></i>
+                <span>Dashboard Kasir</span>
+            </a>
+
             <a href="?section=about" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors @(Model.ActiveSection == "about" ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600" : "")">
                 <i class="fas fa-info-circle mr-3"></i>
                 <span>About Us</span>
             </a>
-            
+
             <a href="?section=stock-history" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors @(Model.ActiveSection == "stock-history" ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600" : "")">
                 <i class="fas fa-history mr-3"></i>
                 <span>Riwayat Stok</span>
             </a>
-            
+
             <a href="?section=user-activity" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors @(Model.ActiveSection == "user-activity" ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600" : "")">
                 <i class="fas fa-chart-line mr-3"></i>
                 <span>Aktivitas Kasir</span>
             </a>
-            
+
             <button onclick="logout()" class="w-full flex items-center px-6 py-3 text-red-600 hover:bg-red-50 transition-colors mt-6 border-t border-gray-200">
                 <i class="fas fa-sign-out-alt mr-3"></i>
                 <span>Logout</span>
@@ -40,24 +47,44 @@
 
     <!-- Main Content -->
     <div class="flex-1 p-6 overflow-y-auto">
-        @if (Model.ActiveSection == "account")
+        @if (Model.ActiveSection == "account" || string.IsNullOrEmpty(Model.ActiveSection))
         {
-            <!-- User Management Section -->
+            <!-- Current User Account Section -->
+            @await Html.PartialAsync("_CurrentUserAccountPartial", Model)
+        }
+        else if (Model.ActiveSection == "cashier-dashboard")
+        {
+            <!-- Cashier Dashboard Section -->
             <div class="mb-6">
                 <div class="flex items-center justify-between mb-4">
-                    <h1 class="text-3xl font-bold text-gray-800">Manajemen Pengguna</h1>
-                    <button onclick="showCreateUserModal()" 
-                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
-                        <i class="fas fa-plus"></i>
-                        <span>Tambah Pengguna</span>
-                    </button>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-800">Dashboard Kasir</h1>
+                        <p class="text-gray-600">@Model.CurrentUser?.FullName - @Model.CurrentUser?.Role</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <label class="text-sm font-medium text-gray-700">Filter Tanggal:</label>
+                        <input type="date" id="cashierStartDate" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                        <span class="text-gray-500">s/d</span>
+                        <input type="date" id="cashierEndDate" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                        <button onclick="filterCashierDashboard()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-search mr-2"></i>Filter
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg shadow-md">
-                <div class="p-6" id="userManagementContainer">
-                    @await Html.PartialAsync("_UserManagementPartial", Model.Users)
-                </div>
+            <div id="cashierDashboardContainer">
+                @if (Model.CashierDashboard != null)
+                {
+                    @await Html.PartialAsync("_CashierDashboardPartial", Model.CashierDashboard)
+                }
+                else
+                {
+                    <div class="bg-white rounded-lg shadow-md p-8 text-center">
+                        <i class="fas fa-chart-line text-6xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500 text-lg">Dashboard data akan dimuat...</p>
+                    </div>
+                }
             </div>
         }
         else if (Model.ActiveSection == "about")
@@ -82,14 +109,6 @@
                         <ul class="space-y-3 text-gray-600">
                             <li class="flex items-center">
                                 <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                                Manajemen Menu & Kategori
-                            </li>
-                            <li class="flex items-center">
-                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                                Sistem Order & Pembayaran
-                            </li>
-                            <li class="flex items-center">
-                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
                                 Laporan Penjualan
                             </li>
                             <li class="flex items-center">
@@ -102,7 +121,7 @@
                             </li>
                         </ul>
                     </div>
-                    
+
                     <div>
                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Informasi Sistem</h3>
                         <div class="space-y-3 text-gray-600">
@@ -152,7 +171,17 @@
 
             <div class="bg-white rounded-lg shadow-md">
                 <div class="p-6" id="stockHistoryContainer">
-                    @await Html.PartialAsync("_StockHistoryPartial", Model.StockHistories)
+                    @if (Model.StockHistories != null)
+                    {
+                        @await Html.PartialAsync("_StockHistoryPartial", Model.StockHistories)
+                    }
+                    else
+                    {
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-history text-4xl mb-4"></i>
+                            <p>Riwayat stok akan dimuat...</p>
+                        </div>
+                    }
                 </div>
             </div>
         }
@@ -174,91 +203,279 @@
 
             <div class="bg-white rounded-lg shadow-md">
                 <div class="p-6" id="userActivityContainer">
-                    @await Html.PartialAsync("_UserActivityPartial", Model.UserActivities)
+                    @if (Model.UserActivities != null)
+                    {
+                        @await Html.PartialAsync("_UserActivityPartial", Model.UserActivities)
+                    }
+                    else
+                    {
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-chart-line text-4xl mb-4"></i>
+                            <p>Aktivitas pengguna akan dimuat...</p>
+                        </div>
+                    }
                 </div>
             </div>
         }
     </div>
 </div>
 
-<!-- Create/Edit User Modal -->
-<div id="userModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-2xl w-full max-w-lg mx-4 max-h-screen overflow-y-auto">
-        <div class="p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h3 id="userModalTitle" class="text-lg font-semibold text-gray-800">Tambah Pengguna</h3>
-                <button onclick="hideUserModal()" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
+<!-- Create User Modal -->
+<div id="createUserModal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto transform transition-all">
+        <div class="relative">
+            <!-- Header dengan gradient -->
+            <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 px-8 py-6 rounded-t-3xl">
+                <div class="flex items-center justify-between text-white">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-user-plus text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold">Tambah Pengguna Baru</h3>
+                            <p class="text-emerald-100 text-sm">Buat akun pengguna baru</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="hideCreateUserModal()"
+                            class="w-8 h-8 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg flex items-center justify-center transition-colors">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
             </div>
-            
-            <form id="userForm">
-                <input type="hidden" id="userId" name="Id" value="">
-                
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Nama Lengkap</label>
-                        <input type="text" id="userFullName" name="FullName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required>
-                    </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
-                        <input type="text" id="userUsername" name="Username" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                        <input type="email" id="userEmail" name="Email" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required>
-                    </div>
-
-                    <div id="passwordFields">
+            <!-- Form Content -->
+            <div class="p-8">
+                <form id="createUserForm">
+                    <div class="space-y-5">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2" id="passwordLabel">Password</label>
-                            <input type="password" id="userPassword" name="Password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                <i class="fas fa-user mr-2 text-gray-500"></i>Nama Lengkap
+                            </label>
+                            <input type="text" id="newUserFullName" name="FullName"
+                                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all hover:border-gray-300"
+                                   required placeholder="Masukkan nama lengkap">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2" id="confirmPasswordLabel">Konfirmasi Password</label>
-                            <input type="password" id="userConfirmPassword" name="ConfirmPassword" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                <i class="fas fa-at mr-2 text-gray-500"></i>Username
+                            </label>
+                            <input type="text" id="newUserUsername" name="Username"
+                                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all hover:border-gray-300"
+                                   required placeholder="Masukkan username">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                <i class="fas fa-envelope mr-2 text-gray-500"></i>Email
+                            </label>
+                            <input type="email" id="newUserEmail" name="Email"
+                                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all hover:border-gray-300"
+                                   required placeholder="contoh@email.com">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                <i class="fas fa-lock mr-2 text-gray-500"></i>Password
+                            </label>
+                            <div class="relative">
+                                <input type="password" id="newUserPassword" name="Password"
+                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all hover:border-gray-300"
+                                       required placeholder="Minimal 6 karakter">
+                                <button type="button" onclick="togglePasswordVisibility('newUserPassword', this)"
+                                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                <i class="fas fa-lock mr-2 text-gray-500"></i>Konfirmasi Password
+                            </label>
+                            <div class="relative">
+                                <input type="password" id="newUserConfirmPassword" name="ConfirmPassword"
+                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all hover:border-gray-300"
+                                       required placeholder="Ulangi password">
+                                <button type="button" onclick="togglePasswordVisibility('newUserConfirmPassword', this)"
+                                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                <i class="fas fa-user-tag mr-2 text-gray-500"></i>Role Pengguna
+                            </label>
+                            <select id="newUserRole" name="Role"
+                                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all hover:border-gray-300"
+                                    required>
+                                <option value="Cashier">Kasir</option>
+                                <option value="Admin">Administrator</option>
+                            </select>
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
-                        <select id="userRole" name="Role" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required>
-                            <option value="Cashier">Cashier</option>
-                            <option value="Admin">Admin</option>
-                        </select>
+                    <!-- Form Actions -->
+                    <div class="flex space-x-3 pt-8 border-t border-gray-200 mt-8">
+                        <button type="button" onclick="hideCreateUserModal()"
+                                class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-3 px-6 rounded-xl transition-colors font-semibold">
+                            Batal
+                        </button>
+                        <button type="submit"
+                                class="flex-1 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white py-3 px-6 rounded-xl transition-all font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                            <i class="fas fa-plus mr-2"></i>Tambah Pengguna
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Current User Modal -->
+<div id="editCurrentUserModal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto transform transition-all">
+        <div class="relative">
+            <!-- Header dengan gradient -->
+            <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-8 py-6 rounded-t-3xl">
+                <div class="flex items-center justify-between text-white">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-user-edit text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold">Edit Akun Saya</h3>
+                            <p class="text-blue-100 text-sm">Perbarui informasi profil</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="hideEditCurrentUserModal()"
+                            class="w-8 h-8 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg flex items-center justify-center transition-colors">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Form Content -->
+            <div class="p-8">
+                <form id="editCurrentUserForm">
+                    <div class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                <i class="fas fa-user mr-2 text-gray-500"></i>Nama Lengkap
+                            </label>
+                            <input type="text" id="editCurrentUserFullName" name="FullName"
+                                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-300"
+                                   required placeholder="Nama lengkap">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                <i class="fas fa-at mr-2 text-gray-500"></i>Username
+                            </label>
+                            <input type="text" id="editCurrentUserUsername" name="Username"
+                                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed"
+                                   readonly disabled>
+                            <p class="text-xs text-gray-500 mt-2 flex items-center">
+                                <i class="fas fa-info-circle mr-1"></i>Username tidak dapat diubah
+                            </p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                <i class="fas fa-envelope mr-2 text-gray-500"></i>Email
+                            </label>
+                            <input type="email" id="editCurrentUserEmail" name="Email"
+                                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-300"
+                                   required placeholder="Email aktif">
+                        </div>
+
+                        <!-- Password Section -->
+                        <div class="bg-gray-50 rounded-2xl p-6 mt-8">
+                            <div class="flex items-center mb-4">
+                                <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                    <i class="fas fa-key text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-semibold text-gray-800">Ubah Password</h4>
+                                    <p class="text-sm text-gray-600">Kosongkan jika tidak ingin mengubah</p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Password Lama</label>
+                                    <div class="relative">
+                                        <input type="password" id="editCurrentUserCurrentPassword" name="CurrentPassword"
+                                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-300"
+                                               placeholder="Masukkan password lama">
+                                        <button type="button" onclick="togglePasswordVisibility('editCurrentUserCurrentPassword', this)"
+                                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Password Baru</label>
+                                    <div class="relative">
+                                        <input type="password" id="editCurrentUserNewPassword" name="NewPassword"
+                                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-300"
+                                               placeholder="Minimal 6 karakter">
+                                        <button type="button" onclick="togglePasswordVisibility('editCurrentUserNewPassword', this)"
+                                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Konfirmasi Password Baru</label>
+                                    <div class="relative">
+                                        <input type="password" id="editCurrentUserConfirmPassword" name="ConfirmPassword"
+                                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-300"
+                                               placeholder="Ulangi password baru">
+                                        <button type="button" onclick="togglePasswordVisibility('editCurrentUserConfirmPassword', this)"
+                                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="flex items-center">
-                        <input type="checkbox" id="userIsActive" name="IsActive" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                        <label for="userIsActive" class="ml-2 block text-sm text-gray-900">Status Aktif</label>
+                    <!-- Form Actions -->
+                    <div class="flex space-x-3 pt-8 border-t border-gray-200 mt-8">
+                        <button type="button" onclick="hideEditCurrentUserModal()"
+                                class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-3 px-6 rounded-xl transition-colors font-semibold">
+                            Batal
+                        </button>
+                        <button type="submit"
+                                class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3 px-6 rounded-xl transition-all font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                            <i class="fas fa-save mr-2"></i>Update Akun
+                        </button>
                     </div>
-                </div>
-
-                <div class="flex space-x-3 pt-6">
-                    <button type="button" onclick="hideUserModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-lg transition-colors">
-                        Cancel
-                    </button>
-                    <button type="submit" id="userSubmitBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors">
-                        Tambah Pengguna
-                    </button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Loading Overlay -->
 <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-30 hidden items-center justify-center z-40">
-    <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
-        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-        <span class="text-gray-700">Memproses...</span>
+    <div class="bg-white rounded-lg p-6 flex items-center space-x-3 shadow-xl">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <span class="text-gray-700 font-medium">Memproses...</span>
     </div>
 </div>
 
-@section Scripts { 
+<!-- Add CSRF Token -->
+<form style="display: none;">
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
     <script src="~/js/settings.js"></script>
-    
 }

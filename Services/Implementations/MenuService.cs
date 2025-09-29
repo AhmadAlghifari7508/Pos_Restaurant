@@ -8,10 +8,12 @@ namespace POSRestoran01.Services.Implementations
     public class MenuService : IMenuService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IStockHistoryService _stockHistoryService;
 
-        public MenuService(ApplicationDbContext context)
+        public MenuService(ApplicationDbContext context, IStockHistoryService stockHistoryService)
         {
             _context = context;
+            _stockHistoryService = stockHistoryService;
         }
 
         public async Task<List<MenuItem>> GetAllMenuItemsAsync()
@@ -76,6 +78,11 @@ namespace POSRestoran01.Services.Implementations
         {
             menuItem.CreatedAt = DateTime.Now;
             menuItem.UpdatedAt = DateTime.Now;
+
+            // Ensure discount properties have default values
+            if (!menuItem.DiscountPercentage.HasValue)
+                menuItem.DiscountPercentage = 0.00m;
+
             _context.MenuItems.Add(menuItem);
             await _context.SaveChangesAsync();
             return menuItem;
@@ -84,6 +91,20 @@ namespace POSRestoran01.Services.Implementations
         public async Task<MenuItem> UpdateMenuItemAsync(MenuItem menuItem)
         {
             menuItem.UpdatedAt = DateTime.Now;
+
+            // Validate discount settings
+            if (menuItem.IsDiscountActive && menuItem.DiscountPercentage.HasValue && menuItem.DiscountPercentage > 0)
+            {
+                // Ensure discount dates are valid
+                if (menuItem.DiscountStartDate.HasValue && menuItem.DiscountEndDate.HasValue)
+                {
+                    if (menuItem.DiscountEndDate < menuItem.DiscountStartDate)
+                    {
+                        throw new InvalidOperationException("Tanggal berakhir diskon harus setelah tanggal mulai");
+                    }
+                }
+            }
+
             _context.MenuItems.Update(menuItem);
             await _context.SaveChangesAsync();
             return menuItem;
@@ -107,7 +128,46 @@ namespace POSRestoran01.Services.Implementations
             var menuItem = await _context.MenuItems.FindAsync(menuItemId);
             if (menuItem != null && menuItem.Stock >= quantity)
             {
-                menuItem.Stock -= quantity;
+                var previousStock = menuItem.Stock;
+                var newStock = previousStock - quantity;
+
+                // Record stock history
+                await _stockHistoryService.RecordStockChangeAsync(
+                    menuItemId,
+                    1, // Default user ID (sesuaikan dengan user yang login)
+                    previousStock,
+                    newStock,
+                    "Manual Update",
+                    $"Manual stock update - reduced by {quantity}"
+                );
+
+                menuItem.Stock = newStock;
+                menuItem.UpdatedAt = DateTime.Now;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> IncreaseStockAsync(int menuItemId, int quantity, int userId, string? notes = null)
+        {
+            var menuItem = await _context.MenuItems.FindAsync(menuItemId);
+            if (menuItem != null)
+            {
+                var previousStock = menuItem.Stock;
+                var newStock = previousStock + quantity;
+
+                // Record stock history
+                await _stockHistoryService.RecordStockChangeAsync(
+                    menuItemId,
+                    userId,
+                    previousStock,
+                    newStock,
+                    "Manual Update",
+                    notes ?? $"Manual stock increase by {quantity}"
+                );
+
+                menuItem.Stock = newStock;
                 menuItem.UpdatedAt = DateTime.Now;
                 await _context.SaveChangesAsync();
                 return true;
@@ -158,7 +218,99 @@ namespace POSRestoran01.Services.Implementations
         public async Task<decimal> GetMenuItemPriceAsync(int menuItemId)
         {
             var menuItem = await _context.MenuItems.FindAsync(menuItemId);
-            return menuItem?.Price ?? 0;
+            return menuItem?.FinalPrice ?? 0; // Use FinalPrice to include discount
+        }
+
+        // New discount-related methods
+        public async Task<List<MenuItem>> GetMenuItemsWithActiveDiscountAsync()
+        {
+            return await _context.MenuItems
+                .Include(m => m.Category)
+                .Where(m => m.IsActive && m.HasActiveDiscount)
+                .OrderBy(m => m.ItemName)
+                .ToListAsync();
+        }
+
+        public async Task<List<MenuItem>> GetMenuItemsWithDiscountByCategoryAsync(int categoryId)
+        {
+            var query = _context.MenuItems
+                .Include(m => m.Category)
+                .Where(m => m.IsActive && m.HasActiveDiscount);
+
+            if (categoryId > 0)
+            {
+                query = query.Where(m => m.CategoryId == categoryId);
+            }
+
+            return await query.OrderBy(m => m.ItemName).ToListAsync();
+        }
+
+        public async Task<decimal> GetDiscountedPriceAsync(int menuItemId, DateTime? checkDate = null)
+        {
+            var menuItem = await _context.MenuItems.FindAsync(menuItemId);
+            return menuItem?.GetPriceForDate(checkDate) ?? 0;
+        }
+
+        public async Task<bool> IsDiscountValidAsync(int menuItemId, DateTime? checkDate = null)
+        {
+            var menuItem = await _context.MenuItems.FindAsync(menuItemId);
+            return menuItem?.IsDiscountValidForDate(checkDate) ?? false;
+        }
+
+        public async Task<List<MenuItem>> GetMenuItemsByDiscountPercentageAsync(decimal minPercentage, decimal maxPercentage)
+        {
+            return await _context.MenuItems
+                .Include(m => m.Category)
+                .Where(m => m.IsActive &&
+                           m.IsDiscountActive &&
+                           m.DiscountPercentage >= minPercentage &&
+                           m.DiscountPercentage <= maxPercentage)
+                .OrderByDescending(m => m.DiscountPercentage)
+                .ToListAsync();
+        }
+
+        public async Task<Dictionary<string, object>> GetDiscountStatisticsAsync()
+        {
+            var totalMenus = await _context.MenuItems.CountAsync(m => m.IsActive);
+            var menusWithActiveDiscount = await _context.MenuItems.CountAsync(m => m.IsActive && m.HasActiveDiscount);
+            var averageDiscountPercentage = await _context.MenuItems
+                .Where(m => m.IsActive && m.HasActiveDiscount)
+                .AverageAsync(m => m.DiscountPercentage ?? 0);
+
+            return new Dictionary<string, object>
+            {
+                { "TotalActiveMenus", totalMenus },
+                { "MenusWithActiveDiscount", menusWithActiveDiscount },
+                { "DiscountCoveragePercentage", totalMenus > 0 ? (decimal)menusWithActiveDiscount / totalMenus * 100 : 0 },
+                { "AverageDiscountPercentage", Math.Round(averageDiscountPercentage, 2) }
+            };
+        }
+
+        public async Task<bool> UpdateDiscountStatusAsync(int menuItemId, bool isActive)
+        {
+            var menuItem = await _context.MenuItems.FindAsync(menuItemId);
+            if (menuItem != null)
+            {
+                menuItem.IsDiscountActive = isActive;
+                menuItem.UpdatedAt = DateTime.Now;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<List<MenuItem>> GetExpiringDiscountsAsync(int daysFromNow = 7)
+        {
+            var cutoffDate = DateTime.Now.AddDays(daysFromNow);
+
+            return await _context.MenuItems
+                .Include(m => m.Category)
+                .Where(m => m.IsActive &&
+                           m.IsDiscountActive &&
+                           m.DiscountEndDate.HasValue &&
+                           m.DiscountEndDate <= cutoffDate)
+                .OrderBy(m => m.DiscountEndDate)
+                .ToListAsync();
         }
     }
 }

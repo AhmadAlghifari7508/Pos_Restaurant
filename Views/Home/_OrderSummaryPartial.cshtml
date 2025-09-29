@@ -1,104 +1,125 @@
 ﻿@model POSRestoran01.Models.ViewModels.HomeViewModels.OrderViewModel
 
 <div class="h-full flex flex-col p-6">
-    <!-- Order Info -->
-    <div class="mb-4">
+    <!-- Order Number at Top - Left aligned with content on right -->
+    <div class="mb-4 pb-3 border-b border-gray-200">
         <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-600">Order No:</p>
-                <p class="font-semibold text-gray-800">@Model.OrderNumber</p>
-            </div>
+            <span class="text-base text-gray-600 font-medium">Order No:</span>
+            <span class="font-bold text-lg text-gray-800">@Model.OrderNumber</span>
         </div>
     </div>
 
-    <!-- Order Items -->
-    <div class="flex-1 overflow-y-auto mb-4">
+    <!-- Column Headers -->
+    @if (Model.Items.Any())
+    {
+        <div class="mb-3 pb-2 border-b border-gray-100">
+            <div class="grid grid-cols-12 gap-1 text-sm font-semibold text-gray-700">
+                <div class="col-span-6">Item Menu</div>
+                <div class="col-span-3 text-center">Jumlah</div>
+                <div class="col-span-3 pl-2">Harga</div>
+            </div>
+        </div>
+    }
+
+    <!-- Order Items with fixed scrolling area -->
+    <div class="flex-1 overflow-y-auto mb-2" style="max-height: calc(100vh - 380px);">
         @if (Model.Items.Any())
         {
-            <div class="space-y-4">
+            <div class="space-y-3">
                 @foreach (var item in Model.Items)
                 {
-                    <div class="order-item bg-gray-50 rounded-lg p-4 border border-gray-200">
-                        <!-- Item Header -->
-                        <div class="flex items-start justify-between mb-3">
-                            <!-- Item Info -->
-                            <div class="flex items-start space-x-3 flex-1">
-                                <!-- Item Image -->
-                                <div class="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                                    @if (!string.IsNullOrEmpty(item.ImagePath))
-                                    {
-                                        <img src="@item.ImagePath" alt="@item.ItemName" class="w-full h-full object-cover">
-                                    }
-                                    else
-                                    {
-                                        <div class="w-full h-full flex items-center justify-center text-gray-400">
-                                            <i class="fas fa-utensils text-sm"></i>
-                                        </div>
-                                    }
+                    <div class="order-item bg-gray-50 rounded-lg p-3 border border-gray-200 @(item.HasDiscount ? "bg-red-50 border-red-200" : "")">
+                        <!-- Main Item Row -->
+                        <div class="grid grid-cols-12 gap-1">
+                            <!-- Item Info with Image (6 columns) -->
+                            <div class="col-span-6">
+                                <div class="flex items-start space-x-2">
+                                    <!-- Item Image -->
+                                    <div class="w-10 h-10 bg-gray-200 rounded overflow-hidden flex-shrink-0">
+                                        @if (!string.IsNullOrEmpty(item.ImagePath))
+                                        {
+                                            <img src="@item.ImagePath" alt="@item.ItemName" class="w-full h-full object-cover">
+                                        }
+                                        else
+                                        {
+                                            <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                                <i class="fas fa-utensils text-sm"></i>
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <!-- Item Details -->
+                                    <div class="flex-1 min-w-0">
+                                        <h5 class="font-semibold text-gray-800 text-sm leading-tight mb-1" title="@item.ItemName">
+                                            @item.ItemName
+                                        </h5>
+
+                                        <!-- Price Information -->
+                                        @if (item.HasDiscount)
+                                        {
+                                            <div class="text-xs space-y-1">
+                                                <div class="flex items-center space-x-2">
+                                                    <span class="text-red-600 font-bold">Rp @item.UnitPrice.ToString("N0")</span>
+                                                    <span class="text-gray-400 line-through">Rp @item.OriginalPrice.ToString("N0")</span>
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <p class="text-gray-600 text-xs font-bold">Rp @item.UnitPrice.ToString("N0")</p>
+                                        }
+                                    </div>
                                 </div>
 
-                                <!-- Item Details -->
-                                <div class="flex-1 min-w-0">
-                                    <h5 class="font-semibold text-gray-800 text-sm leading-tight mb-1" title="@item.ItemName">
-                                        @item.ItemName
-                                    </h5>
-                                    <p class="text-gray-600 text-xs">@item.UnitPrice.ToString("C0", new System.Globalization.CultureInfo("id-ID"))</p>
+                                <!-- Note Field positioned under the image -->
+                                <div class="mt-2">
+                                    <input type="text"
+                                           value="@(item.OrderNote ?? "")"
+                                           class="px-3 py-2 text-xs border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 @(!string.IsNullOrEmpty(item.OrderNote) ? "bg-blue-50 border-blue-300" : "")"
+                                           onchange="updateItemNote(@item.MenuItemId, this.value)"
+                                           oninput="updateNoteVisual(this)"
+                                           placeholder="Catatan Pesanan..."
+                                           style="height: 32px; width: calc(100% + 75px);">
                                 </div>
                             </div>
 
-                            <!-- Remove Button -->
-                            <button onclick="removeFromOrder(@item.MenuItemId)"
-                                    class="text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded transition-colors ml-2"
-                                    title="Hapus item">
-                                <i class="fas fa-trash text-xs"></i>
-                            </button>
-                        </div>
-
-                        <!-- Quantity Controls -->
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="flex items-center space-x-2">
-                                <button onclick="updateQuantity(@item.MenuItemId, @(item.Quantity - 1))"
-                                        class="w-7 h-7 bg-gray-300 hover:bg-gray-400 rounded-full flex items-center justify-center text-xs transition-colors @(item.Quantity <= 1 ? "opacity-50 cursor-not-allowed" : "")"
-                                        @(item.Quantity <= 1 ? "disabled" : "")>
-                                    <i class="fas fa-minus"></i>
-                                </button>
-                                <span class="w-8 text-center text-sm font-semibold">@item.Quantity</span>
-                                <button onclick="updateQuantity(@item.MenuItemId, @(item.Quantity + 1))"
-                                        class="w-7 h-7 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center text-xs transition-colors">
-                                    <i class="fas fa-plus"></i>
-                                </button>
+                            <!-- Quantity Controls (3 columns) -->
+                            <div class="col-span-3 flex flex-col items-center">
+                                <div class="flex items-center justify-center space-x-1">
+                                    <button onclick="updateQuantity(@item.MenuItemId, @(item.Quantity - 1))"
+                                            class="w-7 h-7 bg-gray-300 hover:bg-gray-400 rounded-full flex items-center justify-center text-xs transition-colors @(item.Quantity <= 1 ? "opacity-50 cursor-not-allowed" : "")"
+                                            @(item.Quantity <= 1 ? "disabled" : "")>
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <span class="w-8 text-center text-sm font-semibold">@item.Quantity</span>
+                                    <button onclick="updateQuantity(@item.MenuItemId, @(item.Quantity + 1))"
+                                            class="w-7 h-7 @(item.HasDiscount ? "bg-red-500 hover:bg-red-600" : "bg-blue-500 hover:bg-blue-600") text-white rounded-full flex items-center justify-center text-xs transition-colors">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
                             </div>
 
-                            <!-- Subtotal -->
-                            <div class="text-right">
-                                <span class="text-sm font-bold text-gray-800">
-                                    @item.Subtotal.ToString("C0", new System.Globalization.CultureInfo("id-ID"))
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Individual Order Note Section -->
-                        <div class="border-t pt-3 mt-3">
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-sticky-note text-gray-400 text-xs mt-1"></i>
-                                <div class="flex-1">
-                                    @if (!string.IsNullOrEmpty(item.OrderNote))
+                            <!-- Price Column (3 columns) -->
+                            <div class="col-span-3 flex flex-col pl-2">
+                                <div class="text-left">
+                                    <span class="text-sm font-bold @(item.HasDiscount ? "text-red-600" : "text-gray-800")">
+                                        @item.Subtotal.ToString("C0", new System.Globalization.CultureInfo("id-ID"))
+                                    </span>
+                                    @if (item.HasDiscount)
                                     {
-                                        <div class="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
-                                            <p class="text-blue-800 text-xs italic">"@item.OrderNote"</p>
-                                        </div>
-                                        <button onclick="editItemNote(@item.MenuItemId, '@Html.Raw(item.OrderNote?.Replace("'", "\\'"))')"
-                                                class="text-blue-600 hover:text-blue-800 text-xs">
-                                            <i class="fas fa-edit mr-1"></i>Edit Note
-                                        </button>
+                                        <p class="text-xs text-gray-400 line-through">
+                                            @((item.OriginalPrice * item.Quantity).ToString("C0", new System.Globalization.CultureInfo("id-ID")))
+                                        </p>
                                     }
-                                    else
-                                    {
-                                        <button onclick="addItemNote(@item.MenuItemId)"
-                                                class="text-gray-500 hover:text-blue-600 text-xs">
-                                            <i class="fas fa-plus mr-1"></i>Tambah Catatan
-                                        </button>
-                                    }
+                                </div>
+                                <!-- Delete Button positioned under the price -->
+                                <div class="mt-2 text-left">
+                                    <button onclick="removeFromOrder(@item.MenuItemId)"
+                                            class="text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-2 rounded transition-colors"
+                                            title="Hapus item"
+                                            style="height: 32px;">
+                                        <i class="fas fa-trash text-xs"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -111,36 +132,36 @@
             <!-- Empty State -->
             <div class="text-center text-gray-500 py-12">
                 <div class="mb-4">
-                    <i class="fas fa-shopping-cart text-4xl text-gray-300"></i>
+                    <i class="fas fa-shopping-cart text-6xl text-gray-300"></i>
                 </div>
-                <h4 class="text-lg font-medium text-gray-600 mb-2">Order Kosong</h4>
-                <p class="text-sm text-gray-500">Pilih menu untuk memulai order</p>
+                <h4 class="text-xl font-medium text-gray-600 mb-2">Belum Ada Pesanan</h4>
+                <p class="text-sm text-gray-500">Silakan pilih menu untuk memulai pesanan</p>
             </div>
         }
     </div>
 
-    <!-- Order Summary & Actions -->
-    @if (Model.Items.Any())
-    {
-        <!-- Order Totals -->
-        <div class="border-t border-gray-200 pt-4 space-y-3">
-            <!-- Item Count -->
-            <div class="flex justify-between text-sm text-gray-600">
-                <span>Total Item</span>
-                <span>@Model.Items.Sum(i => i.Quantity) pcs</span>
-            </div>
-
-            <!-- Financial Summary -->
-            <div class="space-y-2">
+    <!-- Order Summary & Actions - Fixed at bottom -->
+    <div class="mt-2">
+        @if (Model.Items.Any())
+        {
+            <!-- Order Totals -->
+            <div class="border-t border-gray-200 pt-3 space-y-2 bg-white">
+                <!-- First Row: Total Item and Subtotal -->
                 <div class="flex justify-between text-sm">
-                    <span>Subtotal</span>
-                    <span>@Model.Subtotal.ToString("C0", new System.Globalization.CultureInfo("id-ID"))</span>
+                    <div class="flex items-center space-x-1">
+                        <span class="text-gray-600">Total Item:</span>
+                        <span class="font-medium">@Model.Items.Sum(i => i.Quantity) pcs</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <span class="text-gray-600">Subtotal:</span>
+                        <span class="font-medium">@Model.Subtotal.ToString("C0", new System.Globalization.CultureInfo("id-ID"))</span>
+                    </div>
                 </div>
 
-                <!-- Discount Section - Updated to use dynamic percentage -->
+                <!-- Second Row: Order Discount and PPN -->
                 <div class="flex justify-between text-sm">
                     <div class="flex items-center space-x-2">
-                        <span id="discountLabel">Diskon</span>
+                        <span id="discountLabel" class="text-gray-600">Diskon Order:</span>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox"
                                    id="discountToggle"
@@ -149,78 +170,49 @@
                                    onchange="toggleDiscount(this.checked)">
                             <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
                         </label>
+                        <span class="@(Model.Discount > 0 ? "text-green-600 font-medium" : "text-gray-400")">
+                            @(Model.Discount > 0 ? "-" : "")@Model.Discount.ToString("C0", new System.Globalization.CultureInfo("id-ID"))
+                        </span>
                     </div>
-                    <span class="@(Model.Discount > 0 ? "text-green-600 font-medium" : "text-gray-400")">
-                        @(Model.Discount > 0 ? "-" : "")@Model.Discount.ToString("C0", new System.Globalization.CultureInfo("id-ID"))
-                    </span>
+                    <div class="flex items-center space-x-1">
+                        <span class="text-gray-600">PPN (11%):</span>
+                        <span class="font-medium">@Model.PPN.ToString("C0", new System.Globalization.CultureInfo("id-ID"))</span>
+                    </div>
                 </div>
 
-                <div class="flex justify-between text-sm">
-                    <span>PPN (11%)</span>
-                    <span>@Model.PPN.ToString("C0", new System.Globalization.CultureInfo("id-ID"))</span>
-                </div>
+                <!-- Total Hemat Row (if any discounts) -->
+                @if (Model.TotalSavings > 0)
+                {
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Total Hemat:</span>
+                        <span class="font-medium">
+                            Rp @Model.TotalSavings.ToString("N0", new System.Globalization.CultureInfo("id-ID"))
+                        </span>
+                    </div>
+                }
 
+                <!-- Total -->
                 <div class="flex justify-between font-bold text-lg border-t pt-2 text-gray-800">
                     <span>Total</span>
                     <span class="text-blue-600">@Model.Total.ToString("C0", new System.Globalization.CultureInfo("id-ID"))</span>
                 </div>
             </div>
-        </div>
 
-        <!-- Action Buttons -->
-        <div class="mt-6 space-y-3">
-            <!-- Payment Button -->
-            <button onclick="showPaymentModal()"
-                    class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2">
-                <i class="fas fa-credit-card"></i>
-                <span>Proses Pembayaran</span>
-            </button>
-        </div>
-    }
-    else
-    {
-        <!-- Empty State Action -->
-        <div class="text-center">
-            <p class="text-gray-500 text-sm mb-4">Mulai dengan memilih menu favorit Anda</p>
-            <div class="grid grid-cols-2 gap-2 text-xs">
-                <div class="bg-blue-50 p-2 rounded text-blue-600">
-                    <i class="fas fa-mouse-pointer mb-1"></i>
-                    <p>Klik menu</p>
-                </div>
-                <div class="bg-green-50 p-2 rounded text-green-600">
-                    <i class="fas fa-search mb-1"></i>
-                    <p>Cari menu</p>
-                </div>
+            <!-- Action Buttons - Updated untuk slide payment -->
+            <div class="mt-3 bg-white">
+                <!-- Payment Button - Modified untuk slide effect -->
+                <button onclick="showSlidePayment()"
+                        class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Proses Pembayaran</span>
+                </button>
             </div>
-        </div>
-    }
-</div>
-
-<!-- Item Note Modal -->
-<div id="itemNoteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 w-80 mx-4">
-        <h3 class="text-lg font-bold mb-4">Catatan Item</h3>
-        <textarea id="itemNoteInput"
-                  class="w-full h-24 p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                  placeholder="Tulis catatan untuk item ini..."></textarea>
-        <div class="flex space-x-3 mt-4">
-            <button onclick="hideItemNoteModal()"
-                    class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
-                Batal
-            </button>
-            <button onclick="saveItemNote()"
-                    class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
-                Simpan
-            </button>
-        </div>
+        }
     </div>
 </div>
 
 <script>
-    // Global variable to track which item note is being edited
-    let currentEditingMenuItemId = null;
-
-    // Update quantity function - Fixed to properly handle add/reduce
+    // Update quantity function
     function updateQuantity(menuItemId, newQuantity) {
         if (newQuantity <= 0) {
             removeFromOrder(menuItemId);
@@ -240,7 +232,7 @@
         .then(data => {
             if (data.success) {
                 refreshOrderSummary();
-                showNotification('Quantity berhasil diperbarui', 'success');
+                // Don't show notification for quantity updates to reduce noise
             } else {
                 showNotification(data.message || 'Terjadi kesalahan', 'error');
             }
@@ -251,7 +243,7 @@
         });
     }
 
-    // Toggle discount function - Updated to show dynamic percentage
+    // Toggle order discount function (not menu discount)
     function toggleDiscount(isApplied) {
         const formData = new FormData();
         formData.append('applyDiscount', isApplied);
@@ -271,7 +263,7 @@
                 if (data.discountPercentage) {
                     const discountLabel = document.getElementById('discountLabel');
                     if (discountLabel) {
-                        discountLabel.textContent = `Diskon ${data.discountPercentage}%`;
+                        discountLabel.textContent = `Diskon Order ${data.discountPercentage}%`;
                     }
                 }
             } else {
@@ -293,9 +285,47 @@
         });
     }
 
+    // Update item note function - No notification for auto-save
+    function updateItemNote(menuItemId, note) {
+        const formData = new FormData();
+        formData.append('menuItemId', menuItemId);
+        formData.append('note', note);
+        formData.append('__RequestVerificationToken', getAntiForgeryToken());
+
+        fetch('/Home/UpdateItemNote', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Silent save - no notification shown
+            if (!data.success) {
+                showNotification(data.message || 'Terjadi kesalahan', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error saving note:', error);
+            showNotification('Terjadi kesalahan saat menyimpan catatan', 'error');
+        });
+    }
+
+    // Update note visual styling without refresh
+    function updateNoteVisual(input) {
+        if (input.value.trim()) {
+            input.classList.add('bg-blue-50', 'border-blue-300');
+        } else {
+            input.classList.remove('bg-blue-50', 'border-blue-300');
+        }
+    }
+
     // Initialize discount label when partial loads
     document.addEventListener('DOMContentLoaded', function() {
         updateDiscountLabel();
+
+        // Initialize note field styling
+        document.querySelectorAll('input[placeholder="Catatan Pesanan..."]').forEach(input => {
+            updateNoteVisual(input);
+        });
     });
 
     function updateDiscountLabel() {
@@ -306,7 +336,7 @@
                     if (data.success && data.data.discountPercentage) {
                         const discountLabel = document.getElementById('discountLabel');
                         if (discountLabel) {
-                            discountLabel.textContent = `Diskon ${data.data.discountPercentage}%`;
+                            discountLabel.textContent = `Diskon Order ${data.data.discountPercentage}%`;
                         }
                     }
                 })
@@ -314,76 +344,6 @@
                     console.error('Error updating discount label:', error);
                 });
         }
-    }
-
-    // Item note functions
-    function addItemNote(menuItemId) {
-        currentEditingMenuItemId = menuItemId;
-        const noteInput = document.getElementById('itemNoteInput');
-        const modal = document.getElementById('itemNoteModal');
-
-        if (noteInput) noteInput.value = '';
-        if (modal) {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            setTimeout(() => noteInput && noteInput.focus(), 100);
-        }
-    }
-
-    function editItemNote(menuItemId, currentNote) {
-        currentEditingMenuItemId = menuItemId;
-        const noteInput = document.getElementById('itemNoteInput');
-        const modal = document.getElementById('itemNoteModal');
-
-        if (noteInput) noteInput.value = currentNote || '';
-        if (modal) {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            setTimeout(() => noteInput && noteInput.focus(), 100);
-        }
-    }
-
-    function hideItemNoteModal() {
-        const modal = document.getElementById('itemNoteModal');
-        const noteInput = document.getElementById('itemNoteInput');
-
-        if (modal) {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-        if (noteInput) noteInput.value = '';
-        currentEditingMenuItemId = null;
-    }
-
-    function saveItemNote() {
-        if (!currentEditingMenuItemId) return;
-
-        const noteInput = document.getElementById('itemNoteInput');
-        const note = noteInput ? noteInput.value.trim() : '';
-
-        const formData = new FormData();
-        formData.append('menuItemId', currentEditingMenuItemId);
-        formData.append('note', note);
-        formData.append('__RequestVerificationToken', getAntiForgeryToken());
-
-        fetch('/Home/UpdateItemNote', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                refreshOrderSummary();
-                hideItemNoteModal();
-                showNotification(data.message, 'success');
-            } else {
-                showNotification(data.message || 'Terjadi kesalahan', 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error saving note:', error);
-            showNotification('Terjadi kesalahan saat menyimpan catatan', 'error');
-        });
     }
 
     // Helper function to get anti-forgery token
@@ -396,10 +356,8 @@
     if (typeof window !== 'undefined') {
         window.updateQuantity = updateQuantity;
         window.toggleDiscount = toggleDiscount;
-        window.addItemNote = addItemNote;
-        window.editItemNote = editItemNote;
-        window.hideItemNoteModal = hideItemNoteModal;
-        window.saveItemNote = saveItemNote;
+        window.updateItemNote = updateItemNote;
+        window.updateNoteVisual = updateNoteVisual;
     }
 
     // Initialize discount label when this partial is loaded
@@ -412,8 +370,18 @@
     }
 
         .order-item:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
+
+        /* Enhanced styling for discount items */
+        .order-item.bg-red-50 {
+            background: linear-gradient(135deg, #fef2f2 0%, #fdf2f8 100%);
+            border: 1px solid #fecaca;
+        }
+
+            .order-item.bg-red-50:hover {
+                box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
+            }
 
     /* Custom scrollbar for order items */
     .overflow-y-auto::-webkit-scrollbar {
@@ -434,5 +402,22 @@
             background: #a8a8a8;
         }
 
-    /* Toggle switch styling is handled by Tailwind classes */
+    /* Grid layout responsive adjustments */
+    media (max-width: 640px) {
+        .grid.grid-cols-12
+
+    {
+        display: block;
+    }
+
+    .grid.grid-cols-12 > div {
+        margin-bottom: 0.5rem;
+    }
+
+    }
+
+    /* Ensure note input and delete button have same height */
+    input[placeholder="Catatan Pesanan..."] {
+        height: 32px;
+    }
 </style>

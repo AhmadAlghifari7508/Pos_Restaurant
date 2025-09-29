@@ -2,121 +2,144 @@
 
 @foreach (var menuItem in Model)
 {
-    <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+    <div class="bg-white rounded-lg shadow border hover:shadow-md transition-shadow @(menuItem.HasActiveDiscount ? "ring-2 ring-red-300" : "")">
         <!-- Image -->
-        <div class="relative h-56 bg-gradient-to-br from-gray-100 to-gray-200">
+        <div class="relative h-32 bg-gray-100 rounded-t-lg">
             @if (!string.IsNullOrEmpty(menuItem.ImagePath))
             {
-                <img src="@menuItem.ImagePath" alt="@menuItem.ItemName" class="w-full h-full object-cover">
-                <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-300"></div>
+                <img src="@menuItem.ImagePath" alt="@menuItem.ItemName" class="w-full h-full object-cover rounded-t-lg">
             }
             else
             {
                 <div class="w-full h-full flex items-center justify-center">
-                    <div class="text-center">
-                        <i class="fas fa-utensils text-5xl text-gray-400 mb-2"></i>
-                        <p class="text-gray-500 text-sm">No Image</p>
-                    </div>
+                    <i class="fas fa-utensils text-2xl text-gray-400"></i>
                 </div>
             }
 
             <!-- Status Badge -->
-            <div class="absolute top-3 right-3">
+            <div class="absolute top-2 right-2">
                 @if (menuItem.IsActive)
                 {
-                    <span class="bg-gradient-to-r from-green-500 to-green-600 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
-                        <i class="fas fa-check-circle mr-1"></i>Active
+                    <span class="bg-green-500 text-white text-xs px-2 py-1 rounded font-medium">
+                        Active
                     </span>
                 }
                 else
                 {
-                    <span class="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg">
-                        <i class="fas fa-times-circle mr-1"></i>Inactive
+                    <span class="bg-red-500 text-white text-xs px-2 py-1 rounded font-medium">
+                        Inactive
                     </span>
                 }
             </div>
 
-            <!-- Low Stock Warning -->
-            @if (menuItem.Stock <= 5 && menuItem.IsActive)
+            <!-- Discount Badge -->
+            @if (menuItem.HasActiveDiscount)
             {
-                <div class="absolute top-3 left-3">
-                    <span class="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-lg animate-pulse">
-                        <i class="fas fa-exclamation-triangle mr-1"></i>Low Stock
+                <div class="absolute top-2 left-2">
+                    <span class="bg-red-500 text-white text-xs px-2 py-1 rounded font-bold animate-pulse">
+                        <i class="fas fa-percent mr-1"></i>@(menuItem.DiscountPercentage?.ToString("0"))% OFF
                     </span>
                 </div>
             }
 
-            <!-- Category Badge -->
-            <div class="absolute bottom-3 left-3">
-                <span class="bg-black bg-opacity-70 text-white text-xs px-3 py-1 rounded-full backdrop-blur-sm">
-                    @menuItem.Category?.CategoryName
-                </span>
-            </div>
+            <!-- Low Stock Warning -->
+            @if (menuItem.Stock <= 5 && menuItem.IsActive)
+            {
+                <div class="absolute bottom-2 left-2">
+                    <span class="bg-orange-500 text-white text-xs px-2 py-1 rounded font-medium">
+                        <i class="fas fa-exclamation-triangle"></i> Low Stock
+                    </span>
+                </div>
+            }
         </div>
 
         <!-- Content -->
-        <div class="p-6">
-            <div class="mb-4">
-                <h3 class="font-bold text-xl text-gray-800 mb-2 line-clamp-1">@menuItem.ItemName</h3>
+        <div class="p-3">
+            <div class="mb-3">
+                <h3 class="font-semibold text-sm text-gray-800 mb-1 line-clamp-1">
+                    @menuItem.ItemName
+                </h3>
                 @if (!string.IsNullOrEmpty(menuItem.Description))
                 {
-                    <p class="text-gray-600 text-sm line-clamp-2 leading-relaxed">@menuItem.Description</p>
-                }
-                else
-                {
-                    <p class="text-gray-400 text-sm italic">Tidak ada deskripsi</p>
+                    <p class="text-gray-600 text-xs line-clamp-2">@menuItem.Description</p>
                 }
             </div>
 
-            <!-- Price and Stock Info -->
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <p class="text-xs text-gray-500 uppercase tracking-wide font-medium">Harga</p>
-                    <span class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        @menuItem.Price.ToString("C", new System.Globalization.CultureInfo("id-ID"))
-                    </span>
-                </div>
-                <div class="text-right">
-                    <p class="text-xs text-gray-500 uppercase tracking-wide font-medium">Stok</p>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-xl font-bold @(menuItem.Stock <= 5 ? "text-red-600" : menuItem.Stock <= 10 ? "text-yellow-600" : "text-green-600")">
-                            @menuItem.Stock
+            <!-- Price and Discount Info -->
+            <div class="flex justify-between items-start mb-3">
+                <div class="flex-1">
+                    @if (menuItem.HasActiveDiscount)
+                    {
+                        <!-- Discounted Price Layout -->
+                        <div class="space-y-1">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-lg font-bold text-red-600">
+                                    Rp @menuItem.FinalPrice.ToString("N0", new System.Globalization.CultureInfo("id-ID"))
+                                </span>
+                            </div>
+                            <p class="text-gray-400 text-sm line-through">
+                                Rp @menuItem.Price.ToString("N0", new System.Globalization.CultureInfo("id-ID"))
+                            </p>
+
+                            <!-- Discount Period -->
+                            @if (menuItem.DiscountStartDate.HasValue || menuItem.DiscountEndDate.HasValue)
+                            {
+                                <p class="text-blue-600 text-xs">
+                                    <i class="fas fa-clock mr-1"></i>
+                                    @if (menuItem.DiscountStartDate.HasValue && menuItem.DiscountEndDate.HasValue)
+                                    {
+                                        @menuItem.DiscountStartDate?.ToString("dd/MM")
+                                        @menuItem.DiscountEndDate?.ToString("dd/MM/yyyy")
+                                                            }
+                                    else if (menuItem.DiscountEndDate.HasValue)
+                                    {
+                                        <text>Sampai @menuItem.DiscountEndDate?.ToString("dd/MM/yyyy")</text>
+                                    }
+                                    else if (menuItem.DiscountStartDate.HasValue)
+                                    {
+                                        <text>Mulai @menuItem.DiscountStartDate?.ToString("dd/MM/yyyy")</text>
+                                    }
+                                </p>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Regular Price -->
+                        <span class="text-lg font-bold text-blue-600">
+                            Rp @menuItem.Price.ToString("N0", new System.Globalization.CultureInfo("id-ID"))
                         </span>
-                        @if (menuItem.Stock <= 5)
+                    }
+                </div>
+
+                <!-- Stock Info -->
+                <div class="text-right ml-2">
+                    <div class="text-xs text-gray-500">Stok</div>
+                    <div class="font-semibold text-gray-800 text-sm @(menuItem.Stock <= 5 ? "text-orange-600" : "")">
+                        @menuItem.Stock
+                        @if (menuItem.Stock <= 5 && menuItem.Stock > 0)
                         {
-                            <i class="fas fa-exclamation-triangle text-red-500 text-sm"></i>
-                        }
-                        else if (menuItem.Stock <= 10)
-                        {
-                            <i class="fas fa-exclamation-circle text-yellow-500 text-sm"></i>
-                        }
-                        else
-                        {
-                            <i class="fas fa-check-circle text-green-500 text-sm"></i>
+                            <i class="fas fa-exclamation-triangle text-orange-500 ml-1" title="Stok menipis"></i>
                         }
                     </div>
                 </div>
             </div>
 
             <!-- Action Buttons -->
-            <div class="flex space-x-3">
+            <div class="flex space-x-2">
                 <button onclick="showEditMenuModal(@menuItem.MenuItemId)"
-                        class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-sm py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                        class="flex-1 @(menuItem.HasActiveDiscount ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700") text-white text-xs py-2 px-3 rounded transition-colors flex items-center justify-center space-x-1">
                     <i class="fas fa-edit"></i>
-                    <span class="font-medium">Edit Menu</span>
+                    <span>Edit</span>
+                    @if (menuItem.HasActiveDiscount)
+                    {
+                        <i class="fas fa-percent text-xs"></i>
+                    }
                 </button>
                 <button onclick="deleteMenuItem(@menuItem.MenuItemId, '@Html.Raw(Html.Encode(menuItem.ItemName))')"
-                        class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-sm py-3 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                        class="bg-red-600 hover:bg-red-700 text-white text-xs py-2 px-3 rounded transition-colors">
                     <i class="fas fa-trash"></i>
                 </button>
-            </div>
-
-            <!-- Additional Info -->
-            <div class="mt-4 pt-4 border-t border-gray-100">
-                <div class="flex justify-between text-xs text-gray-500">
-                    <span>ID: #@menuItem.MenuItemId</span>
-                    <span>Updated: @menuItem.UpdatedAt.ToString("dd/MM/yyyy")</span>
-                </div>
             </div>
         </div>
     </div>
@@ -125,16 +148,14 @@
 @if (!Model.Any())
 {
     <div class="col-span-full">
-        <div class="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <div class="mb-6">
-                <div class="w-24 h-24 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-utensils text-4xl text-gray-400"></i>
-                </div>
-                <h3 class="text-xl font-semibold text-gray-600 mb-2">Tidak ada menu item</h3>
-                <p class="text-gray-500">Belum ada menu item dalam kategori ini. Klik tombol "Tambah Menu Baru" untuk menambahkan menu pertama Anda.</p>
+        <div class="bg-white rounded-lg shadow p-8 text-center">
+            <div class="mb-4">
+                <i class="fas fa-utensils text-4xl text-gray-400 mb-3"></i>
+                <h3 class="text-lg font-medium text-gray-600 mb-2">Tidak ada menu item</h3>
+                <p class="text-gray-500 text-sm">Belum ada menu item dalam kategori ini.</p>
             </div>
-            <button onclick="showAddMenuModal()" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                <i class="fas fa-plus mr-2"></i>Tambah Menu Baru
+            <button onclick="showAddMenuModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors">
+                <i class="fas fa-plus mr-2"></i>Tambah Menu
             </button>
         </div>
     </div>
@@ -144,21 +165,21 @@
     function deleteMenuItem(menuItemId, itemName) {
         // Create custom confirmation dialog
         const confirmDialog = document.createElement('div');
-        confirmDialog.className = 'fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50';
+        confirmDialog.className = 'fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50';
         confirmDialog.innerHTML = `
-            <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4">
+            <div class="bg-white rounded-xl shadow-xl p-6 max-w-md mx-4">
                 <div class="text-center">
-                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-trash text-2xl text-red-600"></i>
+                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-trash text-xl text-red-600"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Hapus Menu Item</h3>
-                    <p class="text-gray-600 mb-6">Apakah Anda yakin ingin menghapus menu "<strong>${itemName}</strong>"? Tindakan ini tidak dapat dibatalkan.</p>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Hapus Menu Item</h3>
+                    <p class="text-gray-600 mb-6">Apakah Anda yakin ingin menghapus menu "<strong>${itemName}</strong>"?<br><small class="text-red-600">Termasuk pengaturan diskon yang ada!</small></p>
                     <div class="flex space-x-3">
-                        <button onclick="this.closest('.fixed').remove()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-3 px-4 rounded-xl transition-all duration-300 font-medium">
+                        <button onclick="this.closest('.fixed').remove()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 px-4 rounded-lg transition-colors">
                             Batal
                         </button>
-                        <button onclick="confirmDeleteMenuItem(${menuItemId}); this.closest('.fixed').remove();" class="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-3 px-4 rounded-xl transition-all duration-300 font-medium shadow-lg">
-                            Hapus Menu
+                        <button onclick="confirmDeleteMenuItem(${menuItemId}); this.closest('.fixed').remove();" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition-colors">
+                            Hapus
                         </button>
                     </div>
                 </div>
@@ -190,7 +211,7 @@
             if (data.success) {
                 showNotification(data.message, 'success');
                 // Reload current category
-                const activeTab = document.querySelector('.category-tab.bg-gradient-to-r');
+                const activeTab = document.querySelector('.category-tab.border-b-2');
                 if (activeTab) {
                     const categoryId = parseInt(activeTab.getAttribute('data-category-id'));
                     loadProductCategory(categoryId);
@@ -223,5 +244,43 @@
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
+    }
+
+    /* Enhanced discount item styling */
+    .ring-2.ring-red-300 {
+        animation: discount-ring-pulse 2s ease-in-out infinite;
+    }
+
+    keyframes discount-ring-pulse {
+        0%, 100%
+
+    {
+        box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.5), 0 0 10px rgba(248, 113, 113, 0.3);
+    }
+
+    }
+
+    /* Discount badge animation */
+    .animate-pulse {
+        animation: discount-badge-pulse 1.5s ease-in-out infinite alternate;
+    }
+
+    keyframes discount-badge-pulse {
+        from
+
+    {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    to {
+        transform: scale(1.05);
+        opacity: 0.9;
+    }
+
     }
 </style>

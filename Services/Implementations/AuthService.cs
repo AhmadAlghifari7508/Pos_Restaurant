@@ -12,10 +12,12 @@ namespace POSRestoran01.Services.Implementations
     public class AuthService : IAuthService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IUserActivityService _userActivityService;
 
-        public AuthService(ApplicationDbContext context)
+        public AuthService(ApplicationDbContext context, IUserActivityService userActivityService)
         {
             _context = context;
+            _userActivityService = userActivityService;
         }
 
         public async Task<User?> AuthenticateAsync(LoginViewModel model)
@@ -29,9 +31,12 @@ namespace POSRestoran01.Services.Implementations
                 user.LastLogin = DateTime.Now;
                 user.UpdatedAt = DateTime.Now;
                 await _context.SaveChangesAsync();
+
+                // Record login activity
+                await _userActivityService.RecordLoginAsync(user.Id);
+
                 return user;
             }
-
             return null;
         }
 
@@ -39,7 +44,6 @@ namespace POSRestoran01.Services.Implementations
         {
             var user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
-
             return user != null && VerifyPassword(password, user.Password);
         }
 
@@ -66,7 +70,6 @@ namespace POSRestoran01.Services.Implementations
         {
             var existingUser = await _context.Users
                 .FirstOrDefaultAsync(u => u.Username == username || u.Email == email);
-
             if (existingUser != null)
                 throw new InvalidOperationException("Username atau email sudah digunakan");
 
@@ -99,6 +102,55 @@ namespace POSRestoran01.Services.Implementations
             await _context.SaveChangesAsync();
             return true;
         }
+
+        // Method untuk logout dengan activity recording
+        public async Task LogoutAsync(int userId)
+        {
+            await _userActivityService.RecordLogoutAsync(userId);
+        }
+
+        // TAMBAH: Method untuk mendapatkan user by ID
+        public async Task<User?> GetUserByIdAsync(int userId)
+        {
+            return await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == userId && u.IsActive);
+        }
+
+        // TAMBAH: Method untuk update user profile
+        public async Task<bool> UpdateUserProfileAsync(int userId, string fullName, string email, string? newPassword = null)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                return false;
+
+            // Check if email is already used by another user
+            var existingUserWithEmail = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == email && u.Id != userId);
+            if (existingUserWithEmail != null)
+                throw new InvalidOperationException("Email sudah digunakan oleh pengguna lain");
+
+            user.FullName = fullName;
+            user.Email = email;
+
+            if (!string.IsNullOrEmpty(newPassword))
+            {
+                user.Password = HashPassword(newPassword);
+            }
+
+            user.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        // TAMBAH: Method untuk validasi password lama saat update current user
+        public async Task<bool> ValidateCurrentPasswordAsync(int userId, string currentPassword)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                return false;
+
+            return VerifyPassword(currentPassword, user.Password);
+        }
     }
 }
-    

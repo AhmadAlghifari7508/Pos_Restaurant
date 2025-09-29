@@ -1,7 +1,6 @@
 ﻿using POSRestoran01.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
 namespace POSRestoran01.Models
 {
     public class Order
@@ -41,8 +40,12 @@ namespace POSRestoran01.Models
         public decimal Subtotal { get; set; } = 0;
 
         [Column(TypeName = "decimal(10,2)")]
-        [Display(Name = "Diskon")]
+        [Display(Name = "Diskon Order")]
         public decimal Discount { get; set; } = 0;
+
+        [Column(TypeName = "decimal(10,2)")]
+        [Display(Name = "Total Diskon Menu")]
+        public decimal MenuDiscountTotal { get; set; } = 0;
 
         [Column(TypeName = "decimal(10,2)")]
         [Display(Name = "PPN (11%)")]
@@ -72,6 +75,16 @@ namespace POSRestoran01.Models
         public virtual User User { get; set; } = null!;
 
         public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
+
         public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+
+        // Computed Properties
+        [NotMapped]
+        [Display(Name = "Total Penghematan")]
+        public decimal TotalSavings => MenuDiscountTotal;
+
+        [NotMapped]
+        [Display(Name = "Total Diskon Keseluruhan")]
+        public decimal TotalDiscountAmount => Discount + MenuDiscountTotal;
     }
 }

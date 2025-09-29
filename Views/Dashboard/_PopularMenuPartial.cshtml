@@ -1,19 +1,18 @@
 ﻿@model List<POSRestoran01.Models.ViewModels.DashboardViewModels.PopularMenuViewModel>
-
 @if (Model.Any())
 {
     @for (int i = 0; i < Model.Count; i++)
     {
         var menu = Model[i];
         <div class="flex items-center space-x-3 py-2 @(i < Model.Count - 1 ? "border-b border-gray-100" : "")">
-            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                <span class="text-sm font-semibold text-blue-600">@(i + 1)</span>
+            <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <span class="text-xs font-semibold text-blue-600">@(i + 1)</span>
             </div>
-            <div class="flex-1">
-                <p class="font-medium text-sm">@menu.ItemName</p>
-                <p class="text-xs text-gray-500">@menu.CategoryName</p>
+            <div class="flex-1 min-w-0">
+                <p class="font-medium text-sm truncate">@menu.ItemName</p>
+                <p class="text-xs text-gray-500 truncate">@menu.CategoryName</p>
             </div>
-            <div class="text-right">
+            <div class="text-right flex-shrink-0">
                 <p class="font-semibold text-sm">@menu.TotalOrdered</p>
                 <p class="text-xs text-gray-500">@menu.Revenue.ToString("C", new System.Globalization.CultureInfo("id-ID"))</p>
             </div>

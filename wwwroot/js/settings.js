@@ -1,4 +1,18 @@
-﻿// Settings JavaScript Functions
+﻿// TAMBAH: Function untuk toggle password visibility
+function togglePasswordVisibility(inputId, buttonElement) {
+    const input = document.getElementById(inputId);
+    const icon = buttonElement.querySelector('i');
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'fas fa-eye';
+    }
+}
+
+// Utility Functions// Settings JavaScript Functions - Updated for AuthService
 
 // Initialize settings page
 function initializeSettings() {
@@ -12,11 +26,29 @@ function initializeSettings() {
     const stockEndDate = document.getElementById('stockEndDate');
     const activityStartDate = document.getElementById('activityStartDate');
     const activityEndDate = document.getElementById('activityEndDate');
+    const cashierStartDate = document.getElementById('cashierStartDate');
+    const cashierEndDate = document.getElementById('cashierEndDate');
 
     if (stockStartDate) stockStartDate.value = formatDate(oneWeekAgo);
     if (stockEndDate) stockEndDate.value = formatDate(today);
     if (activityStartDate) activityStartDate.value = formatDate(oneWeekAgo);
     if (activityEndDate) activityEndDate.value = formatDate(today);
+    if (cashierStartDate) cashierStartDate.value = formatDate(today);
+    if (cashierEndDate) cashierEndDate.value = formatDate(today);
+
+    // Load current user data if on account page
+    if (window.location.search.includes('section=account') || window.location.search === '' || !window.location.search.includes('section=')) {
+        setTimeout(() => {
+            loadCurrentUserData();
+        }, 500);
+    }
+
+    // Auto load cashier dashboard jika di halaman tersebut
+    if (window.location.search.includes('cashier-dashboard')) {
+        setTimeout(() => {
+            filterCashierDashboard();
+        }, 500);
+    }
 }
 
 // Utility function to format date
@@ -24,147 +56,284 @@ function formatDate(date) {
     return date.toISOString().split('T')[0];
 }
 
-// User Management Functions
-function showCreateUserModal() {
-    document.getElementById('userModalTitle').textContent = 'Tambah Pengguna';
-    document.getElementById('userSubmitBtn').textContent = 'Tambah Pengguna';
-    document.getElementById('userForm').reset();
-    document.getElementById('userId').value = '';
-    document.getElementById('userIsActive').checked = true;
+// Load current user data - MENGGUNAKAN AuthService
+function loadCurrentUserData() {
+    console.log('Loading current user data...');
 
-    // Show password fields for new user
-    document.getElementById('passwordLabel').textContent = 'Password';
-    document.getElementById('confirmPasswordLabel').textContent = 'Konfirmasi Password';
-    document.getElementById('userPassword').required = true;
-    document.getElementById('userConfirmPassword').required = true;
-    document.getElementById('userPassword').name = 'Password';
-    document.getElementById('userConfirmPassword').name = 'ConfirmPassword';
-
-    showModal('userModal');
-}
-
-function showEditUserModal(userId) {
-    document.getElementById('userModalTitle').textContent = 'Edit Pengguna';
-    document.getElementById('userSubmitBtn').textContent = 'Update Pengguna';
-
-    // Change password fields for edit
-    document.getElementById('passwordLabel').textContent = 'Password Baru (Kosongkan jika tidak ingin mengubah)';
-    document.getElementById('confirmPasswordLabel').textContent = 'Konfirmasi Password Baru';
-    document.getElementById('userPassword').required = false;
-    document.getElementById('userConfirmPassword').required = false;
-    document.getElementById('userPassword').name = 'NewPassword';
-    document.getElementById('userConfirmPassword').name = 'ConfirmNewPassword';
-
-    // Load user data
-    showLoading();
-
-    fetch(`/Settings/GetUser?userId=${userId}`)
-        .then(response => response.json())
+    fetch('/Settings/GetCurrentUser')
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
-            hideLoading();
+            console.log('Response data:', data);
+
             if (data.success) {
                 const user = data.data;
-                document.getElementById('userId').value = user.id;
-                document.getElementById('userFullName').value = user.fullName;
-                document.getElementById('userUsername').value = user.username;
-                document.getElementById('userEmail').value = user.email;
-                document.getElementById('userRole').value = user.role;
-                document.getElementById('userIsActive').checked = user.isActive;
+                console.log('User data:', user);
 
-                showModal('userModal');
+                // Update UI elements
+                const emailElement = document.getElementById('currentUserEmail');
+                const lastLoginElement = document.getElementById('currentUserLastLogin');
+                const createdAtElement = document.getElementById('currentUserCreatedAt');
+
+                if (emailElement) {
+                    emailElement.innerHTML = `<span class="font-bold text-gray-800 bg-white px-3 py-1 rounded-lg shadow-sm">${user.email || 'Tidak ada email'}</span>`;
+                    console.log('Email updated to:', user.email);
+                }
+
+                if (lastLoginElement) {
+                    const lastLoginText = user.lastLogin ?
+                        new Date(user.lastLogin).toLocaleDateString('id-ID', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }) : 'Belum pernah';
+                    lastLoginElement.innerHTML = `<span class="font-bold text-gray-800 bg-white px-3 py-1 rounded-lg shadow-sm">${lastLoginText}</span>`;
+                    console.log('Last login updated to:', lastLoginText);
+                }
+
+                // TAMBAH: Update Created At
+                if (createdAtElement) {
+                    const createdAtText = user.createdAt ?
+                        new Date(user.createdAt).toLocaleDateString('id-ID', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        }) : 'Data tidak tersedia';
+                    createdAtElement.innerHTML = `<span class="font-bold text-gray-800 bg-white px-3 py-1 rounded-lg shadow-sm">${createdAtText}</span>`;
+                    console.log('Created at updated to:', createdAtText);
+                }
+            } else {
+                console.error('Error from server:', data.message);
+                showNotification('Error loading user data: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            showNotification('Network error loading user data', 'error');
+
+            // Update UI dengan error state
+            const emailElement = document.getElementById('currentUserEmail');
+            const lastLoginElement = document.getElementById('currentUserLastLogin');
+            const createdAtElement = document.getElementById('currentUserCreatedAt');
+
+            if (emailElement) {
+                emailElement.innerHTML = '<span class="text-red-600 bg-red-50 px-3 py-1 rounded-lg">Error memuat</span>';
+            }
+            if (lastLoginElement) {
+                lastLoginElement.innerHTML = '<span class="text-red-600 bg-red-50 px-3 py-1 rounded-lg">Error memuat</span>';
+            }
+            if (createdAtElement) {
+                createdAtElement.innerHTML = '<span class="text-red-600 bg-red-50 px-3 py-1 rounded-lg">Error memuat</span>';
+            }
+        });
+}
+
+// Show edit current user modal - MENGGUNAKAN AuthService
+function showEditCurrentUserModal() {
+    console.log('Opening edit current user modal...');
+    showLoading();
+
+    fetch('/Settings/GetCurrentUser')
+        .then(response => {
+            console.log('Edit modal - Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            hideLoading();
+            console.log('Edit modal - Response data:', data);
+
+            if (data.success) {
+                const user = data.data;
+                console.log('Edit modal - User data:', user);
+
+                // Update form fields
+                const fullNameField = document.getElementById('editCurrentUserFullName');
+                const usernameField = document.getElementById('editCurrentUserUsername');
+                const emailField = document.getElementById('editCurrentUserEmail');
+
+                if (fullNameField) {
+                    fullNameField.value = user.fullName || '';
+                    console.log('Full name field updated');
+                }
+
+                if (usernameField) {
+                    usernameField.value = user.username || '';
+                    console.log('Username field updated');
+                }
+
+                if (emailField) {
+                    emailField.value = user.email || '';
+                    console.log('Email field updated');
+                }
+
+                // Clear password fields
+                document.getElementById('editCurrentUserCurrentPassword').value = '';
+                document.getElementById('editCurrentUserNewPassword').value = '';
+                document.getElementById('editCurrentUserConfirmPassword').value = '';
+
+                showModal('editCurrentUserModal');
             } else {
                 showNotification(data.message || 'Terjadi kesalahan', 'error');
             }
         })
         .catch(error => {
             hideLoading();
-            console.error('Error loading user:', error);
+            console.error('Error loading current user:', error);
             showNotification('Terjadi kesalahan saat memuat data pengguna', 'error');
         });
 }
 
-function hideUserModal() {
-    hideModal('userModal');
-
-    // Reset password field names
-    document.getElementById('userPassword').name = 'Password';
-    document.getElementById('userConfirmPassword').name = 'ConfirmPassword';
+// Hide edit current user modal
+function hideEditCurrentUserModal() {
+    hideModal('editCurrentUserModal');
 }
 
-function deleteUser(userId, userName) {
-    if (!confirm(`Apakah Anda yakin ingin menghapus pengguna "${userName}"?`)) {
+// Validate current user form
+function validateCurrentUserForm() {
+    const fullName = document.getElementById('editCurrentUserFullName').value.trim();
+    const email = document.getElementById('editCurrentUserEmail').value.trim();
+    const currentPassword = document.getElementById('editCurrentUserCurrentPassword').value;
+    const newPassword = document.getElementById('editCurrentUserNewPassword').value;
+    const confirmPassword = document.getElementById('editCurrentUserConfirmPassword').value;
+
+    if (!fullName) {
+        showNotification('Nama lengkap tidak boleh kosong', 'warning');
+        return false;
+    }
+
+    if (!email) {
+        showNotification('Email tidak boleh kosong', 'warning');
+        return false;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showNotification('Format email tidak valid', 'warning');
+        return false;
+    }
+
+    // Password validation (only if changing password)
+    if (newPassword || confirmPassword || currentPassword) {
+        if (!currentPassword) {
+            showNotification('Password lama harus diisi untuk mengubah password', 'warning');
+            return false;
+        }
+
+        if (!newPassword) {
+            showNotification('Password baru harus diisi', 'warning');
+            return false;
+        }
+
+        if (newPassword.length < 6) {
+            showNotification('Password baru minimal 6 karakter', 'warning');
+            return false;
+        }
+
+        if (newPassword !== confirmPassword) {
+            showNotification('Password baru dan konfirmasi password tidak cocok', 'warning');
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// Cashier Dashboard Functions
+function filterCashierDashboard() {
+    const startDate = document.getElementById('cashierStartDate').value;
+    const endDate = document.getElementById('cashierEndDate').value;
+
+    if (startDate && endDate && startDate > endDate) {
+        showNotification('Tanggal mulai tidak boleh lebih besar dari tanggal akhir', 'warning');
         return;
     }
 
-    const formData = new FormData();
-    formData.append('userId', userId);
-    formData.append('__RequestVerificationToken', getAntiForgeryToken());
-
     showLoading();
 
-    fetch('/Settings/DeleteUser', {
-        method: 'POST',
-        body: formData
-    })
-        .then(response => response.json())
-        .then(data => {
-            hideLoading();
-            if (data.success) {
-                showNotification(data.message, 'success');
-                loadUsers();
-            } else {
-                showNotification(data.message || 'Terjadi kesalahan', 'error');
-            }
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Error deleting user:', error);
-            showNotification('Terjadi kesalahan saat menghapus pengguna', 'error');
-        });
-}
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
 
-function toggleUserStatus(userId, userName) {
-    if (!confirm(`Apakah Anda yakin ingin mengubah status pengguna "${userName}"?`)) {
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append('userId', userId);
-    formData.append('__RequestVerificationToken', getAntiForgeryToken());
-
-    showLoading();
-
-    fetch('/Settings/ToggleUserStatus', {
-        method: 'POST',
-        body: formData
-    })
-        .then(response => response.json())
-        .then(data => {
-            hideLoading();
-            if (data.success) {
-                showNotification(data.message, 'success');
-                loadUsers();
-            } else {
-                showNotification(data.message || 'Terjadi kesalahan', 'error');
-            }
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Error toggling user status:', error);
-            showNotification('Terjadi kesalahan saat mengubah status pengguna', 'error');
-        });
-}
-
-function loadUsers() {
-    fetch('/Settings/GetUsers')
+    fetch(`/Settings/GetCashierDashboard?${params.toString()}`)
         .then(response => response.text())
         .then(html => {
-            document.getElementById('userManagementContainer').innerHTML = html;
+            hideLoading();
+            document.getElementById('cashierDashboardContainer').innerHTML = html;
         })
         .catch(error => {
-            console.error('Error loading users:', error);
-            showNotification('Terjadi kesalahan saat memuat data pengguna', 'error');
+            hideLoading();
+            console.error('Error loading cashier dashboard:', error);
+            showNotification('Terjadi kesalahan saat memuat dashboard kasir', 'error');
         });
+}
+
+// Create User Functions
+function showCreateUserModal() {
+    document.getElementById('createUserForm').reset();
+    document.getElementById('newUserRole').value = 'Cashier'; // Default to Cashier
+    showModal('createUserModal');
+}
+
+function hideCreateUserModal() {
+    hideModal('createUserModal');
+}
+
+function validateCreateUserForm() {
+    const fullName = document.getElementById('newUserFullName').value.trim();
+    const username = document.getElementById('newUserUsername').value.trim();
+    const email = document.getElementById('newUserEmail').value.trim();
+    const password = document.getElementById('newUserPassword').value;
+    const confirmPassword = document.getElementById('newUserConfirmPassword').value;
+
+    if (!fullName) {
+        showNotification('Nama lengkap tidak boleh kosong', 'warning');
+        return false;
+    }
+
+    if (!username) {
+        showNotification('Username tidak boleh kosong', 'warning');
+        return false;
+    }
+
+    if (!email) {
+        showNotification('Email tidak boleh kosong', 'warning');
+        return false;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showNotification('Format email tidak valid', 'warning');
+        return false;
+    }
+
+    if (!password) {
+        showNotification('Password tidak boleh kosong', 'warning');
+        return false;
+    }
+
+    if (password.length < 6) {
+        showNotification('Password minimal 6 karakter', 'warning');
+        return false;
+    }
+
+    if (password !== confirmPassword) {
+        showNotification('Password dan konfirmasi password tidak cocok', 'warning');
+        return false;
+    }
+
+    return true;
 }
 
 // Stock History Functions
@@ -225,7 +394,7 @@ function filterUserActivity() {
         });
 }
 
-// Logout function
+// Logout function - FIXED
 function logout() {
     if (!confirm('Apakah Anda yakin ingin logout?')) {
         return;
@@ -259,69 +428,6 @@ function logout() {
             // Even if there's an error, redirect to login
             window.location.href = '/Account/Login';
         });
-}
-
-// Form validation
-function validateUserForm() {
-    const fullName = document.getElementById('userFullName').value.trim();
-    const username = document.getElementById('userUsername').value.trim();
-    const email = document.getElementById('userEmail').value.trim();
-    const password = document.getElementById('userPassword').value;
-    const confirmPassword = document.getElementById('userConfirmPassword').value;
-    const isEdit = document.getElementById('userId').value !== '';
-
-    if (!fullName) {
-        showNotification('Nama lengkap tidak boleh kosong', 'warning');
-        return false;
-    }
-
-    if (!username) {
-        showNotification('Username tidak boleh kosong', 'warning');
-        return false;
-    }
-
-    if (!email) {
-        showNotification('Email tidak boleh kosong', 'warning');
-        return false;
-    }
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        showNotification('Format email tidak valid', 'warning');
-        return false;
-    }
-
-    // Password validation for new users
-    if (!isEdit) {
-        if (!password) {
-            showNotification('Password tidak boleh kosong', 'warning');
-            return false;
-        }
-
-        if (password.length < 6) {
-            showNotification('Password minimal 6 karakter', 'warning');
-            return false;
-        }
-
-        if (password !== confirmPassword) {
-            showNotification('Password dan konfirmasi password tidak cocok', 'warning');
-            return false;
-        }
-    } else {
-        // Password validation for edit (only if password is provided)
-        if (password && password.length < 6) {
-            showNotification('Password minimal 6 karakter', 'warning');
-            return false;
-        }
-
-        if (password !== confirmPassword) {
-            showNotification('Password dan konfirmasi password tidak cocok', 'warning');
-            return false;
-        }
-    }
-
-    return true;
 }
 
 // Utility Functions
@@ -421,27 +527,105 @@ function getAntiForgeryToken() {
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', function () {
-    // User form submit handler
-    const userForm = document.getElementById('userForm');
-    if (userForm) {
-        userForm.addEventListener('submit', function (e) {
-            e.preventDefault();
+    // Initialize settings
+    initializeSettings();
 
-            if (!validateUserForm()) {
+    // Create User form submit handler
+    const createUserForm = document.getElementById('createUserForm');
+    if (createUserForm) {
+        createUserForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            console.log('Create user form submitted');
+
+            if (!validateCreateUserForm()) {
                 return;
             }
 
-            const formData = new FormData(e.target);
+            const formData = new FormData();
+            formData.append('fullName', document.getElementById('newUserFullName').value);
+            formData.append('username', document.getElementById('newUserUsername').value);
+            formData.append('email', document.getElementById('newUserEmail').value);
+            formData.append('password', document.getElementById('newUserPassword').value);
+            formData.append('role', document.getElementById('newUserRole').value);
             formData.append('__RequestVerificationToken', getAntiForgeryToken());
 
-            const userId = document.getElementById('userId').value;
-            const isEdit = userId && userId !== '';
+            // Debug: Log form data
+            console.log('Form data being sent:');
+            for (let [key, value] of formData.entries()) {
+                if (key !== 'password' && key !== '__RequestVerificationToken') {
+                    console.log(`${key}: ${value}`);
+                }
+            }
 
-            const url = isEdit ? '/Settings/UpdateUser' : '/Settings/CreateUser';
+            console.log('Sending create user request...');
+            showLoading();
+
+            fetch('/Settings/CreateUser', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    console.log('Create user response status:', response.status);
+                    console.log('Create user response headers:', response.headers);
+
+                    // Check if response is JSON
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json();
+                    } else {
+                        // If not JSON, get text to see what's returned
+                        return response.text().then(text => {
+                            console.error('Non-JSON response:', text);
+                            throw new Error('Server returned non-JSON response: ' + text.substring(0, 200));
+                        });
+                    }
+                })
+                .then(data => {
+                    hideLoading();
+                    console.log('Create user response data:', data);
+
+                    if (data.success) {
+                        showNotification(data.message || 'Pengguna berhasil dibuat', 'success');
+                        hideCreateUserModal();
+                        // Reset form
+                        createUserForm.reset();
+                        document.getElementById('newUserRole').value = 'Cashier';
+                    } else {
+                        console.error('Server error:', data);
+                        showNotification(data.message || 'Terjadi kesalahan pada server', 'error');
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('Error creating user:', error);
+                    console.error('Error stack:', error.stack);
+                    showNotification('Terjadi kesalahan saat membuat pengguna: ' + error.message, 'error');
+                });
+        });
+    } else {
+        console.error('Create user form not found!');
+    }
+
+    // Edit Current User form submit handler
+    const editCurrentUserForm = document.getElementById('editCurrentUserForm');
+    if (editCurrentUserForm) {
+        editCurrentUserForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            if (!validateCurrentUserForm()) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('fullName', document.getElementById('editCurrentUserFullName').value);
+            formData.append('email', document.getElementById('editCurrentUserEmail').value);
+            formData.append('currentPassword', document.getElementById('editCurrentUserCurrentPassword').value);
+            formData.append('newPassword', document.getElementById('editCurrentUserNewPassword').value);
+            formData.append('__RequestVerificationToken', getAntiForgeryToken());
 
             showLoading();
 
-            fetch(url, {
+            fetch('/Settings/UpdateCurrentUser', {
                 method: 'POST',
                 body: formData
             })
@@ -450,25 +634,36 @@ document.addEventListener('DOMContentLoaded', function () {
                     hideLoading();
                     if (data.success) {
                         showNotification(data.message, 'success');
-                        hideUserModal();
-                        loadUsers();
+                        hideEditCurrentUserModal();
+                        // Reload current user data to reflect changes
+                        setTimeout(() => {
+                            loadCurrentUserData();
+                            // Update the profile card display
+                            document.getElementById('currentUserFullName').textContent =
+                                document.getElementById('editCurrentUserFullName').value;
+                        }, 500);
                     } else {
                         showNotification(data.message || 'Terjadi kesalahan', 'error');
                     }
                 })
                 .catch(error => {
                     hideLoading();
-                    console.error('Error saving user:', error);
-                    showNotification('Terjadi kesalahan saat menyimpan pengguna', 'error');
+                    console.error('Error updating current user:', error);
+                    showNotification('Terjadi kesalahan saat mengupdate akun', 'error');
                 });
         });
     }
 
     // Modal click outside to close
     document.addEventListener('click', function (e) {
-        const userModal = document.getElementById('userModal');
-        if (e.target === userModal) {
-            hideUserModal();
+        const createUserModal = document.getElementById('createUserModal');
+        const editCurrentUserModal = document.getElementById('editCurrentUserModal');
+
+        if (e.target === createUserModal) {
+            hideCreateUserModal();
+        }
+        if (e.target === editCurrentUserModal) {
+            hideEditCurrentUserModal();
         }
     });
 
@@ -482,7 +677,8 @@ document.addEventListener('DOMContentLoaded', function () {
         switch (e.key) {
             case 'Escape':
                 e.preventDefault();
-                hideUserModal();
+                hideCreateUserModal();
+                hideEditCurrentUserModal();
                 break;
             case 'n':
             case 'N':
@@ -495,7 +691,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Auto-filter on Enter key press for date inputs
-    const dateInputs = ['stockStartDate', 'stockEndDate', 'activityStartDate', 'activityEndDate'];
+    const dateInputs = ['stockStartDate', 'stockEndDate', 'activityStartDate', 'activityEndDate', 'cashierStartDate', 'cashierEndDate'];
     dateInputs.forEach(inputId => {
         const input = document.getElementById(inputId);
         if (input) {
@@ -505,6 +701,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         filterStockHistory();
                     } else if (inputId.startsWith('activity')) {
                         filterUserActivity();
+                    } else if (inputId.startsWith('cashier')) {
+                        filterCashierDashboard();
                     }
                 }
             });

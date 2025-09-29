@@ -2,18 +2,22 @@
 
 @if (Model != null && Model.Any())
 {
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
         @foreach (var item in Model)
         {
-            <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer menu-item @(item.Stock <= 0 ? "opacity-50" : "")"
+            <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer menu-item @(item.Stock <= 0 ? "opacity-50" : "") @(item.HasActiveDiscount ? "ring-2 ring-red-300" : "")"
                  data-menu-id="@item.MenuItemId"
                  data-item-name="@item.ItemName"
-                 data-price="@item.Price"
-                 onclick="@(item.Stock > 0 ? $"addToOrder({item.MenuItemId}, '{item.ItemName}', {item.Price})" : "")"
+                 data-price="@item.FinalPrice"
+                 data-original-price="@item.Price"
+                 data-has-discount="@item.HasActiveDiscount.ToString().ToLower()"
+                 data-discount-percentage="@item.DiscountPercentage"
+                 data-discount-amount="@item.DiscountAmount"
+                 onclick="@(item.Stock > 0 ? $"addToOrder({item.MenuItemId}, '{item.ItemName}', {item.FinalPrice})" : "")"
                  title="@(item.Stock <= 0 ? "Stok habis" : $"Klik untuk menambah {item.ItemName} ke order")">
 
                 <!-- Product Image -->
-                <div class="aspect-square mb-3 bg-gray-200 rounded-t-lg overflow-hidden relative">
+                <div class="aspect-square mb-2 bg-gray-200 rounded-t-lg overflow-hidden relative">
                     @if (!string.IsNullOrEmpty(item.ImagePath))
                     {
                         <img src="@item.ImagePath" alt="@item.ItemName" class="w-full h-full object-cover">
@@ -21,7 +25,15 @@
                     else
                     {
                         <div class="w-full h-full flex items-center justify-center text-gray-400">
-                            <i class="fas fa-utensils text-3xl"></i>
+                            <i class="fas fa-utensils text-2xl"></i>
+                        </div>
+                    }
+
+                    <!-- Discount Badge -->
+                    @if (item.HasActiveDiscount)
+                    {
+                        <div class="absolute top-1 left-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg animate-pulse">
+                            <i class="fas fa-percent mr-1"></i>@(item.DiscountPercentage?.ToString("0"))%
                         </div>
                     }
 
@@ -29,35 +41,54 @@
                     @if (item.Stock <= 0)
                     {
                         <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                            <span class="text-white font-bold text-sm">HABIS</span>
+                            <span class="text-white font-bold text-xs">HABIS</span>
                         </div>
                     }
                     else if (item.Stock <= 5)
                     {
-                        <div class="absolute top-2 right-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
-                            @item.Stock left
+                        <div class="absolute top-1 right-1 bg-orange-500 text-white text-xs px-1 py-0.5 rounded-full">
+                            @item.Stock
                         </div>
                     }
                 </div>
 
                 <!-- Product Info -->
-                <div class="p-4">
-                    <h4 class="font-semibold text-gray-800 mb-2 text-sm line-clamp-2" title="@item.ItemName">
+                <div class="p-3">
+                    <h4 class="font-semibold text-gray-800 mb-1 text-xs line-clamp-2" title="@item.ItemName">
                         @item.ItemName
                     </h4>
 
                     @if (!string.IsNullOrEmpty(item.Description))
                     {
-                        <p class="text-gray-500 text-xs mb-2 line-clamp-2" title="@item.Description">
+                        <p class="text-gray-500 text-xs mb-2 line-clamp-1" title="@item.Description">
                             @item.Description
                         </p>
                     }
 
                     <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-blue-600 font-bold text-lg">
-                                Rp @item.Price.ToString("N0")
-                            </p>
+                        <div class="flex-1">
+                            <!-- Price with discount info -->
+                            @if (item.HasActiveDiscount)
+                            {
+                                <div class="mb-1">
+                                    <!-- Discounted Price and Original Price in same line -->
+                                    <div class="flex items-center space-x-2">
+                                        <p class="text-red-600 font-bold text-sm">
+                                            Rp @item.FinalPrice.ToString("N0")
+                                        </p>
+                                        <p class="text-gray-400 text-xs line-through">
+                                            Rp @item.Price.ToString("N0")
+                                        </p>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-blue-600 font-bold text-sm mb-1">
+                                    Rp @item.Price.ToString("N0")
+                                </p>
+                            }
+
                             <p class="text-gray-500 text-xs">
                                 Stok: @item.Stock
                             </p>
@@ -66,16 +97,16 @@
                         @if (item.Stock > 0)
                         {
                             <button type="button"
-                                    class="add-to-cart-btn bg-blue-500 hover:bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                                    onclick="event.stopPropagation(); addToOrder(@item.MenuItemId, '@item.ItemName', @item.Price);"
-                                    title="Tambah ke order">
+                                    class="add-to-cart-btn @(item.HasActiveDiscount ? "bg-red-500 hover:bg-red-600" : "bg-blue-500 hover:bg-blue-600") text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors ml-2"
+                                    onclick="event.stopPropagation(); addToOrder(@item.MenuItemId, '@item.ItemName', @item.FinalPrice);"
+                                    title="@(item.HasActiveDiscount ? $"Tambah ke order (Hemat {item.DiscountPercentage:0}%)" : "Tambah ke order")">
                                 <i class="fas fa-plus text-xs"></i>
                             </button>
                         }
                         else
                         {
                             <button type="button"
-                                    class="bg-gray-400 text-white rounded-full w-8 h-8 flex items-center justify-center cursor-not-allowed"
+                                    class="bg-gray-400 text-white rounded-full w-6 h-6 flex items-center justify-center cursor-not-allowed ml-2"
                                     disabled
                                     title="Stok habis">
                                 <i class="fas fa-times text-xs"></i>
@@ -84,12 +115,18 @@
                     </div>
                 </div>
 
+                <!-- Special Discount Glow Effect -->
+                @if (item.HasActiveDiscount)
+                {
+                    <div class="absolute inset-0 rounded-lg opacity-0 hover:opacity-20 transition-opacity bg-gradient-to-br from-red-400 to-pink-400 pointer-events-none"></div>
+                }
+
                 <!-- Add to cart overlay on hover -->
                 @if (item.Stock > 0)
                 {
-                    <div class="absolute inset-0 bg-blue-500 bg-opacity-0 hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 hover:opacity-100">
-                        <div class="bg-white rounded-full p-3 shadow-lg transform scale-0 hover:scale-100 transition-transform duration-200">
-                            <i class="fas fa-plus text-blue-500 text-xl"></i>
+                    <div class="absolute inset-0 @(item.HasActiveDiscount ? "bg-red-500" : "bg-blue-500") bg-opacity-0 hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 hover:opacity-100">
+                        <div class="bg-white rounded-full p-2 shadow-lg transform scale-0 hover:scale-100 transition-transform duration-200">
+                            <i class="fas fa-plus @(item.HasActiveDiscount ? "text-red-500" : "text-blue-500") text-sm"></i>
                         </div>
                     </div>
                 }
@@ -109,6 +146,13 @@ else
 }
 
 <style>
+    .line-clamp-1 {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
     .line-clamp-2 {
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -119,13 +163,53 @@ else
     .menu-item {
         position: relative;
         overflow: hidden;
+        min-height: 140px;
     }
 
-    .menu-item:hover .add-to-cart-btn {
-        transform: scale(1.1);
+        .menu-item:hover .add-to-cart-btn {
+            transform: scale(1.1);
+        }
+
+        .menu-item:active {
+            transform: scale(0.98);
+        }
+
+        /* Enhanced discount animation */
+        .menu-item[data-has-discount="true"] {
+            animation: discount-glow 3s ease-in-out infinite alternate;
+            border: 2px solid transparent;
+            background: linear-gradient(white, white), linear-gradient(45deg, #ef4444, #f97316, #ef4444);
+            background-clip: padding-box, border-box;
+        }
+
+    keyframes discount-glow {
+        from
+
+    {
+        box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
     }
 
-    .menu-item:active {
-        transform: scale(0.98);
+    to {
+        box-shadow: 0 0 15px rgba(239, 68, 68, 0.7), 0 0 25px rgba(239, 68, 68, 0.3);
+    }
+
+    }
+
+    /* Discount badge animation */
+    .menu-item[data-has-discount="true"] .bg-red-500 {
+        animation: badge-pulse 2s ease-in-out infinite;
+    }
+
+    keyframes badge-pulse {
+        0%, 100%
+
+    {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
     }
 </style>

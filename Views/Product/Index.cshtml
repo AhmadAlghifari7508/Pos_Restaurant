@@ -3,97 +3,101 @@
     ViewData["Title"] = "Product Management";
 }
 
-<div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-    <!-- Main Content -->
-    <div class="container mx-auto px-6 py-8">
-        <!-- Header -->
-        <div class="mb-8">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        Product Management
-                    </h1>
-                    <p class="text-gray-600 mt-2">Kelola menu dan kategori restoran Anda</p>
-                </div>
-                <div class="flex space-x-3">
-                    <button onclick="showCategoryModal()"
-                            class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                        <i class="fas fa-tags"></i>
-                        <span class="font-medium">Manage Kategori</span>
-                    </button>
-                    <button onclick="showAddMenuModal()"
-                            class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                        <i class="fas fa-plus"></i>
-                        <span class="font-medium">Tambah Menu</span>
-                    </button>
+<div class="min-h-screen bg-white">
+    <!-- Main Content with scroll -->
+    <div class="h-screen overflow-y-auto">
+        <div class="container mx-auto px-6 py-6">
+            <!-- Header -->
+            <div class="mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Product Management</h1>
+                    </div>
+                    <div>
+                        <button onclick="showCategoryModal()"
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+                            <i class="fas fa-tags"></i>
+                            <span>Manage Kategori</span>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Category Tabs -->
-        <div class="mb-8">
-            <div class="bg-white rounded-2xl shadow-lg p-2">
-                <div class="flex space-x-2 overflow-x-auto">
+            <!-- Category Tabs -->
+            <div class="mb-6">
+                <div class="flex space-x-6 overflow-x-auto">
+                    <button onclick="loadProductCategory(0)"
+                            class="py-2 font-medium transition-colors category-tab whitespace-nowrap @(Model.SelectedCategoryId == 0 ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-600 hover:text-blue-600")"
+                            data-category-id="0">
+                        Semua Kategori
+                    </button>
                     @foreach (var category in Model.Categories)
                     {
                         <button onclick="loadProductCategory(@category.CategoryId)"
-                                class="px-6 py-3 font-medium transition-all duration-300 category-tab whitespace-nowrap rounded-xl @(category.CategoryId == Model.SelectedCategoryId ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg" : "text-gray-600 hover:text-blue-600 hover:bg-blue-50")"
+                                class="py-2 font-medium transition-colors category-tab whitespace-nowrap @(category.CategoryId == Model.SelectedCategoryId ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-600 hover:text-blue-600")"
                                 data-category-id="@category.CategoryId">
                             @category.CategoryName
                         </button>
                     }
                 </div>
             </div>
-        </div>
 
-        <!-- Menu Items Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="menuItemsGrid">
-            <!-- Add New Menu Item Card -->
-            <div class="bg-white rounded-2xl shadow-lg border-2 border-dashed border-gray-300 hover:border-blue-400 transition-all duration-300 cursor-pointer transform hover:-translate-y-2 hover:shadow-xl"
-                 onclick="showAddMenuModal()">
-                <div class="p-8 text-center">
-                    <div class="w-20 h-20 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-plus text-3xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"></i>
+            <!-- Menu Items Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4" id="menuItemsGrid">
+                <!-- Add New Menu Item Card -->
+                <div class="bg-white rounded-lg shadow border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors cursor-pointer"
+                     onclick="showAddMenuModal()">
+                    <div class="p-4 text-center">
+                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-plus text-xl text-blue-600"></i>
+                        </div>
+                        <h3 class="text-sm font-medium text-gray-800 mb-1">Tambah Menu</h3>
+                        <p class="text-gray-600 text-xs">Klik untuk menambah</p>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Tambah Menu Baru</h3>
-                    <p class="text-gray-600 text-sm">Klik untuk menambahkan menu item baru ke restoran Anda</p>
+                </div>
+
+                <!-- Existing Menu Items -->
+                <div id="existingMenuItems" class="contents">
+                    @await Html.PartialAsync("_ProductMenuItemsPartial", Model.MenuItems)
                 </div>
             </div>
-
-            <!-- Existing Menu Items -->
-            <div id="existingMenuItems" class="contents">
-                @await Html.PartialAsync("_ProductMenuItemsPartial", Model.MenuItems)
-            </div>
         </div>
+    </div>
+
+    <!-- Scroll to top button -->
+    <div id="scrollToTop" class="fixed bottom-6 right-6 z-40 opacity-0 transition-opacity duration-300">
+        <button onclick="scrollToTop()" class="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
+            <i class="fas fa-arrow-up"></i>
+        </button>
     </div>
 </div>
 
 <!-- Category Management Modal -->
-<div id="categoryModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden items-center justify-center z-50">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 max-h-screen overflow-y-auto">
-        <div class="p-8">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent">
+<div id="categoryModal" class="fixed inset-0 bg-black bg-opacity-30 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-screen overflow-y-auto">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">
                     Manage Kategori
                 </h3>
-                <button onclick="hideCategoryModal()" class="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                    <i class="fas fa-times text-xl"></i>
+                <button onclick="hideCategoryModal()" class="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded transition-colors">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <!-- Add New Category -->
-            <form id="addCategoryForm" class="mb-8">
-                <div class="flex space-x-3">
+            <form id="addCategoryForm" class="mb-6">
+                <div class="flex space-x-2">
                     <input type="text" id="newCategoryName" placeholder="Nama kategori baru"
-                           class="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
-                    <button type="submit" class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl">
+                           class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
             </form>
 
             <!-- Category List -->
-            <div id="categoryList" class="space-y-3">
+            <div id="categoryList" class="space-y-2">
                 <!-- Categories will be loaded here -->
             </div>
         </div>
@@ -101,109 +105,160 @@
 </div>
 
 <!-- Add/Edit Menu Modal -->
-<div id="menuModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden items-center justify-center z-50">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-screen overflow-y-auto">
-        <div class="p-8">
-            <div class="flex items-center justify-between mb-6">
-                <h3 id="menuModalTitle" class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+<div id="menuModal" class="fixed inset-0 bg-black bg-opacity-30 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-screen overflow-y-auto">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 id="menuModalTitle" class="text-lg font-semibold text-gray-800">
                     Tambah Menu Baru
                 </h3>
-                <button onclick="hideMenuModal()" class="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                    <i class="fas fa-times text-xl"></i>
+                <button onclick="hideMenuModal()" class="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded transition-colors">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <form id="menuForm" enctype="multipart/form-data">
                 <input type="hidden" id="menuItemId" name="MenuItemId" value="">
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Left Column -->
-                    <div class="space-y-6">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-3">Kategori</label>
-                            <select id="menuCategoryId" name="CategoryId" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" required>
-                                <option value="">Pilih Kategori</option>
-                                @foreach (var category in Model.Categories)
-                                {
-                                    <option value="@category.CategoryId">@category.CategoryName</option>
-                                }
-                            </select>
-                        </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
+                        <select id="menuCategoryId" name="CategoryId" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" required>
+                            <option value="">Pilih Kategori</option>
+                            @foreach (var category in Model.Categories)
+                            {
+                                <option value="@category.CategoryId">@category.CategoryName</option>
+                            }
+                        </select>
+                    </div>
 
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-3">Nama Item</label>
-                            <input type="text" id="menuItemName" name="ItemName" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" required>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nama Item</label>
+                        <input type="text" id="menuItemName" name="ItemName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" required>
+                    </div>
 
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-3">Deskripsi</label>
-                            <textarea id="menuDescription" name="Description" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"></textarea>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Deskripsi</label>
+                        <textarea id="menuDescription" name="Description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"></textarea>
+                    </div>
 
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-3">Harga (Rp)</label>
-                                <input type="number" id="menuPrice" name="Price" step="0.01" min="0" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" required>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Harga</label>
+                            <input type="number" id="menuPrice" name="Price" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Stok</label>
+                            <input type="number" id="menuStock" name="Stock" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Gambar Menu</label>
+                        <div class="space-y-3">
+                            <input type="file" id="menuImage" name="ImageFile" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+
+                            <!-- Current Image Preview -->
+                            <div id="currentImagePreview" class="hidden">
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Gambar Saat Ini:</label>
+                                <div class="relative">
+                                    <img id="currentImage" src="" alt="Current Image" class="w-20 h-20 object-cover rounded-lg border border-gray-200">
+                                </div>
                             </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-3">Stok</label>
-                                <input type="number" id="menuStock" name="Stock" min="0" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" required>
+
+                            <!-- New Image Preview -->
+                            <div id="imagePreview" class="hidden">
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Preview Gambar Baru:</label>
+                                <div class="relative">
+                                    <img id="previewImage" src="" alt="Preview" class="w-20 h-20 object-cover rounded-lg border border-gray-200">
+                                    <button type="button" onclick="clearImagePreview()" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Right Column -->
-                    <div class="space-y-6">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-3">Gambar Menu</label>
-                            <div class="space-y-4">
-                                <input type="file" id="menuImage" name="ImageFile" accept="image/*" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                    <!-- Discount Settings -->
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <h4 class="text-sm font-semibold text-blue-900 mb-3 flex items-center">
+                            <i class="fas fa-percentage mr-2"></i>Pengaturan Diskon
+                        </h4>
 
-                                <!-- Current Image Preview -->
-                                <div id="currentImagePreview" class="hidden">
-                                    <label class="block text-xs font-medium text-gray-600 mb-2">Gambar Saat Ini:</label>
-                                    <div class="relative">
-                                        <img id="currentImage" src="" alt="Current Image" class="w-full h-32 object-cover rounded-xl border-2 border-gray-200">
-                                    </div>
+                        <!-- Discount Active Toggle -->
+                        <div class="flex items-center justify-between mb-3">
+                            <div>
+                                <label for="menuDiscountActive" class="text-sm font-medium text-gray-700">Aktifkan Diskon</label>
+                                <p class="text-xs text-gray-500">Nyalakan untuk menerapkan diskon pada menu ini</p>
+                            </div>
+                            <div class="relative">
+                                <input type="checkbox" id="menuDiscountActive" name="IsDiscountActive" value="true" class="sr-only">
+                                <div class="discount-toggle-switch w-10 h-5 bg-gray-300 rounded-full cursor-pointer transition-colors duration-300" onclick="toggleDiscountStatus()">
+                                    <div class="discount-toggle-dot w-4 h-4 bg-white rounded-full shadow transform transition-transform duration-300 translate-x-0.5"></div>
                                 </div>
-
-                                <!-- New Image Preview -->
-                                <div id="imagePreview" class="hidden">
-                                    <label class="block text-xs font-medium text-gray-600 mb-2">Preview Gambar Baru:</label>
-                                    <div class="relative">
-                                        <img id="previewImage" src="" alt="Preview" class="w-full h-32 object-cover rounded-xl border-2 border-blue-200">
-                                        <button type="button" onclick="clearImagePreview()" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </div>
-                                </div>
+                                <input type="hidden" name="IsDiscountActive" value="false" id="hiddenDiscountActive">
                             </div>
                         </div>
 
-                        <!-- Status Aktif - Fixed -->
-                        <div class="bg-gray-50 p-4 rounded-xl">
-                            <div class="flex items-center justify-between">
+                        <!-- Discount Fields Container -->
+                        <div id="discountFieldsContainer" class="space-y-3 hidden">
+                            <!-- Discount Percentage -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Persentase Diskon (%)</label>
+                                <input type="number" id="menuDiscountPercentage" name="DiscountPercentage" step="0.01" min="0" max="100"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                       placeholder="0.00">
+                            </div>
+
+                            <!-- Discount Date Range -->
+                            <div class="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label for="menuIsActive" class="text-sm font-semibold text-gray-700">Status Menu</label>
-                                    <p class="text-xs text-gray-500 mt-1">Aktifkan menu untuk ditampilkan di aplikasi</p>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Mulai</label>
+                                    <input type="datetime-local" id="menuDiscountStartDate" name="DiscountStartDate"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm">
                                 </div>
-                                <div class="relative">
-                                    <input type="checkbox" id="menuIsActive" name="IsActive" value="true" class="sr-only">
-                                    <div class="toggle-switch w-12 h-6 bg-gray-300 rounded-full cursor-pointer transition-colors duration-300" onclick="toggleActiveStatus()">
-                                        <div class="toggle-dot w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 translate-x-0.5"></div>
-                                    </div>
-                                    <input type="hidden" name="IsActive" value="false" id="hiddenIsActive">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Berakhir</label>
+                                    <input type="datetime-local" id="menuDiscountEndDate" name="DiscountEndDate"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm">
                                 </div>
+                            </div>
+
+                            <!-- Price Preview -->
+                            <div id="pricePreviewContainer" class="bg-white p-3 rounded border">
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Preview Harga:</label>
+                                <div class="flex items-center space-x-2">
+                                    <span id="originalPricePreview" class="text-gray-400 line-through text-sm">Rp 0</span>
+                                    <span id="discountedPricePreview" class="text-red-600 font-bold">Rp 0</span>
+                                    <span id="savingsPreview" class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Aktif -->
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <label for="menuIsActive" class="text-sm font-medium text-gray-700">Status Menu</label>
+                                <p class="text-xs text-gray-500">Aktifkan menu untuk ditampilkan</p>
+                            </div>
+                            <div class="relative">
+                                <input type="checkbox" id="menuIsActive" name="IsActive" value="true" class="sr-only">
+                                <div class="toggle-switch w-10 h-5 bg-gray-300 rounded-full cursor-pointer transition-colors duration-300" onclick="toggleActiveStatus()">
+                                    <div class="toggle-dot w-4 h-4 bg-white rounded-full shadow transform transition-transform duration-300 translate-x-0.5"></div>
+                                </div>
+                                <input type="hidden" name="IsActive" value="false" id="hiddenIsActive">
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="flex space-x-4 pt-8">
-                    <button type="button" onclick="hideMenuModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-3 px-6 rounded-xl transition-all duration-300 font-medium">
+                <div class="flex space-x-3 pt-6">
+                    <button type="button" onclick="hideMenuModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 px-4 rounded-lg transition-colors font-medium">
                         Batal
                     </button>
-                    <button type="submit" id="menuSubmitBtn" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 px-6 rounded-xl transition-all duration-300 font-medium shadow-lg hover:shadow-xl">
+                    <button type="submit" id="menuSubmitBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors font-medium">
                         Tambah Menu
                     </button>
                 </div>
@@ -213,375 +268,47 @@
 </div>
 
 <!-- Loading Overlay -->
-<div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm hidden items-center justify-center z-40">
-    <div class="bg-white rounded-2xl p-8 flex items-center space-x-4 shadow-2xl">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-        <span class="text-gray-700 font-medium">Memproses...</span>
+<div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-20 hidden items-center justify-center z-40">
+    <div class="bg-white rounded-lg p-6 flex items-center space-x-3 shadow-lg">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+        <span class="text-gray-700">Memproses...</span>
     </div>
 </div>
 
 @section Scripts {
     <script src="~/js/product-management.js"></script>
     <script>
+        // Scroll functionality
+        function scrollToTop() {
+            document.querySelector('.h-screen.overflow-y-auto').scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Show/hide scroll to top button
+        document.querySelector('.h-screen.overflow-y-auto').addEventListener('scroll', function() {
+            const scrollToTopBtn = document.getElementById('scrollToTop');
+            if (this.scrollTop > 300) {
+                scrollToTopBtn.classList.remove('opacity-0');
+                scrollToTopBtn.classList.add('opacity-100');
+            } else {
+                scrollToTopBtn.classList.remove('opacity-100');
+                scrollToTopBtn.classList.add('opacity-0');
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', function() {
             initializeProductManagement();
             loadCategories();
             setupImagePreview();
             setupToggleSwitch();
-        });
+            setupDiscountFeatures();
 
-        function initializeProductManagement() {
-            console.log('Product Management initialized');
-        }
-
-        function loadProductCategory(categoryId) {
-            showLoading();
-
-            fetch(`/Product/GetMenuByCategory?categoryId=${categoryId}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.text();
-                })
-                .then(html => {
-                    document.getElementById('existingMenuItems').innerHTML = html;
-                    hideLoading();
-                    updateActiveCategoryTab(categoryId);
-                })
-                .catch(error => {
-                    console.error('Error loading category:', error);
-                    hideLoading();
-                    showNotification('Terjadi kesalahan saat memuat kategori', 'error');
-                });
-        }
-
-        function updateActiveCategoryTab(categoryId) {
-            document.querySelectorAll('.category-tab').forEach(tab => {
-                const tabCategoryId = parseInt(tab.getAttribute('data-category-id'));
-                if (tabCategoryId === categoryId) {
-                    tab.classList.add('bg-gradient-to-r', 'from-blue-500', 'to-blue-600', 'text-white', 'shadow-lg');
-                    tab.classList.remove('text-gray-600', 'hover:text-blue-600', 'hover:bg-blue-50');
-                } else {
-                    tab.classList.remove('bg-gradient-to-r', 'from-blue-500', 'to-blue-600', 'text-white', 'shadow-lg');
-                    tab.classList.add('text-gray-600', 'hover:text-blue-600', 'hover:bg-blue-50');
-                }
-            });
-        }
-
-        function showCategoryModal() {
-            document.getElementById('categoryModal').classList.remove('hidden');
-            document.getElementById('categoryModal').classList.add('flex');
-            loadCategories();
-        }
-
-        function hideCategoryModal() {
-            document.getElementById('categoryModal').classList.add('hidden');
-            document.getElementById('categoryModal').classList.remove('flex');
-        }
-
-        function showAddMenuModal() {
-            document.getElementById('menuModalTitle').textContent = 'Tambah Menu Baru';
-            document.getElementById('menuSubmitBtn').textContent = 'Tambah Menu';
-            document.getElementById('menuForm').reset();
-            document.getElementById('menuItemId').value = '';
-
-            // Set default active status to true
-            setActiveStatus(true);
-
-            document.getElementById('currentImagePreview').classList.add('hidden');
-            document.getElementById('imagePreview').classList.add('hidden');
-
-            document.getElementById('menuModal').classList.remove('hidden');
-            document.getElementById('menuModal').classList.add('flex');
-        }
-
-        function showEditMenuModal(menuItemId) {
-            document.getElementById('menuModalTitle').textContent = 'Edit Menu';
-            document.getElementById('menuSubmitBtn').textContent = 'Update Menu';
-
-            showLoading();
-
-            // Load menu data
-            fetch(`/Product/GetMenuItem?menuItemId=${menuItemId}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    hideLoading();
-                    if (data.success) {
-                        const menu = data.data;
-                        document.getElementById('menuItemId').value = menu.menuItemId;
-                        document.getElementById('menuCategoryId').value = menu.categoryId;
-                        document.getElementById('menuItemName').value = menu.itemName;
-                        document.getElementById('menuDescription').value = menu.description || '';
-                        document.getElementById('menuPrice').value = menu.price;
-                        document.getElementById('menuStock').value = menu.stock;
-
-                        // Set active status properly
-                        setActiveStatus(menu.isActive);
-
-                        // Show current image if exists
-                        if (menu.imagePath) {
-                            document.getElementById('currentImage').src = menu.imagePath;
-                            document.getElementById('currentImagePreview').classList.remove('hidden');
-                        } else {
-                            document.getElementById('currentImagePreview').classList.add('hidden');
-                        }
-
-                        document.getElementById('imagePreview').classList.add('hidden');
-                        document.getElementById('menuModal').classList.remove('hidden');
-                        document.getElementById('menuModal').classList.add('flex');
-                    } else {
-                        showNotification(data.message || 'Terjadi kesalahan saat memuat data menu', 'error');
-                    }
-                })
-                .catch(error => {
-                    hideLoading();
-                    console.error('Error loading menu:', error);
-                    showNotification('Terjadi kesalahan saat memuat data menu', 'error');
-                });
-        }
-
-        function hideMenuModal() {
-            document.getElementById('menuModal').classList.add('hidden');
-            document.getElementById('menuModal').classList.remove('flex');
-        }
-
-        function setupImagePreview() {
-            const imageInput = document.getElementById('menuImage');
-            const preview = document.getElementById('imagePreview');
-            const previewImage = document.getElementById('previewImage');
-
-            imageInput.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    // Validate file type
-                    if (!file.type.startsWith('image/')) {
-                        showNotification('File yang dipilih bukan gambar', 'warning');
-                        imageInput.value = '';
-                        return;
-                    }
-
-                    // Validate file size (max 5MB)
-                    if (file.size > 5 * 1024 * 1024) {
-                        showNotification('Ukuran file tidak boleh lebih dari 5MB', 'warning');
-                        imageInput.value = '';
-                        return;
-                    }
-
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        previewImage.src = e.target.result;
-                        preview.classList.remove('hidden');
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    preview.classList.add('hidden');
-                }
-            });
-        }
-
-        function clearImagePreview() {
-            document.getElementById('menuImage').value = '';
-            document.getElementById('imagePreview').classList.add('hidden');
-        }
-
-        // Toggle Switch Functions
-        function setupToggleSwitch() {
-            // Set default state to active (true) for new menu
-            setActiveStatus(true);
-        }
-
-        function toggleActiveStatus() {
-            const checkbox = document.getElementById('menuIsActive');
-            const hiddenInput = document.getElementById('hiddenIsActive');
-            const toggleSwitch = document.querySelector('.toggle-switch');
-            const toggleDot = document.querySelector('.toggle-dot');
-
-            const currentState = checkbox.checked;
-            const newState = !currentState;
-
-            setActiveStatus(newState);
-        }
-
-        function setActiveStatus(isActive) {
-            const checkbox = document.getElementById('menuIsActive');
-            const hiddenInput = document.getElementById('hiddenIsActive');
-            const toggleSwitch = document.querySelector('.toggle-switch');
-            const toggleDot = document.querySelector('.toggle-dot');
-
-            checkbox.checked = isActive;
-            hiddenInput.value = isActive ? 'true' : 'false';
-
-            if (isActive) {
-                toggleSwitch.classList.remove('bg-gray-300');
-                toggleSwitch.classList.add('bg-green-500');
-                toggleDot.classList.remove('translate-x-0.5');
-                toggleDot.classList.add('translate-x-6');
-            } else {
-                toggleSwitch.classList.remove('bg-green-500');
-                toggleSwitch.classList.add('bg-gray-300');
-                toggleDot.classList.remove('translate-x-6');
-                toggleDot.classList.add('translate-x-0.5');
-            }
-        }
-
-        // Utility functions
-        function showLoading() {
-            const overlay = document.getElementById('loadingOverlay');
-            if (overlay) {
-                overlay.classList.remove('hidden');
-                overlay.classList.add('flex');
-            }
-        }
-
-        function hideLoading() {
-            const overlay = document.getElementById('loadingOverlay');
-            if (overlay) {
-                overlay.classList.add('hidden');
-                overlay.classList.remove('flex');
-            }
-        }
-
-        function showNotification(message, type = 'info', duration = 4000) {
-            // Remove existing notifications
-            const existingNotifications = document.querySelectorAll('.notification');
-            existingNotifications.forEach(notification => notification.remove());
-
-            const notification = document.createElement('div');
-            notification.className = `notification fixed top-4 right-4 px-6 py-4 rounded-xl shadow-2xl z-50 transform transition-all duration-300 translate-x-full max-w-sm`;
-
-            let bgColor, textColor, icon, borderColor;
-            switch (type) {
-                case 'success':
-                    bgColor = 'bg-green-500';
-                    textColor = 'text-white';
-                    icon = 'fas fa-check-circle';
-                    borderColor = 'border-green-600';
-                    break;
-                case 'error':
-                    bgColor = 'bg-red-500';
-                    textColor = 'text-white';
-                    icon = 'fas fa-exclamation-circle';
-                    borderColor = 'border-red-600';
-                    break;
-                case 'warning':
-                    bgColor = 'bg-yellow-500';
-                    textColor = 'text-white';
-                    icon = 'fas fa-exclamation-triangle';
-                    borderColor = 'border-yellow-600';
-                    break;
-                default:
-                    bgColor = 'bg-blue-500';
-                    textColor = 'text-white';
-                    icon = 'fas fa-info-circle';
-                    borderColor = 'border-blue-600';
-            }
-
-            notification.className += ` ${bgColor} ${textColor} border-l-4 ${borderColor}`;
-            notification.innerHTML = `
-                <div class="flex items-start space-x-3">
-                    <i class="${icon} text-lg mt-0.5"></i>
-                    <div class="flex-1">
-                        <p class="font-medium">${message}</p>
-                    </div>
-                    <button onclick="this.parentElement.parentElement.remove()" class="text-white hover:text-gray-200 transition-colors">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            `;
-
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                notification.classList.remove('translate-x-full');
-            }, 10);
-
-            setTimeout(() => {
-                notification.classList.add('translate-x-full');
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.remove();
-                    }
-                }, 300);
-            }, duration);
-        }
-
-        function getAntiForgeryToken() {
-            const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
-            return tokenElement ? tokenElement.value : '';
-        }
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function (e) {
-            // Only process shortcuts if not typing in input fields
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
-                return;
-            }
-
-            switch (e.key) {
-                case 'Escape':
-                    e.preventDefault();
-                    hideMenuModal();
-                    hideCategoryModal();
-                    break;
-                case 'n':
-                case 'N':
-                    if (e.ctrlKey) {
-                        e.preventDefault();
-                        showAddMenuModal();
-                    }
-                    break;
-                case 'c':
-                case 'C':
-                    if (e.ctrlKey) {
-                        e.preventDefault();
-                        showCategoryModal();
-                    }
-                    break;
-            }
-        });
-
-        // Modal click outside to close
-        document.addEventListener('click', function (e) {
-            const categoryModal = document.getElementById('categoryModal');
-            const menuModal = document.getElementById('menuModal');
-
-            if (e.target === categoryModal) {
-                hideCategoryModal();
-            }
-
-            if (e.target === menuModal) {
-                hideMenuModal();
-            }
+            // Ensure "Semua Kategori" tab is active by default
+            updateActiveCategoryTab(0);
         });
     </script>
-    <style>
-        .toggle-switch {
-            position: relative;
-        }
-
-        .toggle-dot {
-            position: absolute;
-            top: 0.125rem;
-            left: 0.125rem;
-        }
-
-        .line-clamp-2 {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .contents {
-            display: contents;
-        }
-    </style>
 }
 
 @{

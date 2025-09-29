@@ -17,8 +17,8 @@ namespace POSRestoran01.Services.Implementations
         public async Task<DashboardViewModel> GetDashboardDataAsync(DateTime date)
         {
             var stats = await GetDashboardStatsAsync(date);
-            var orderReports = await GetOrderReportsAsync(date, date, null, 1, 10);
-            var popularMenus = await GetPopularMenusAsync(date, date);
+            var orderReports = await GetOrderReportsAsync(date, date, null, 1, 50);
+            var popularMenus = await GetPopularMenusAsync(date, date, 10);
             var orderTypeStats = await GetOrderTypeStatsAsync(date, date);
 
             return new DashboardViewModel
@@ -27,7 +27,27 @@ namespace POSRestoran01.Services.Implementations
                 TotalRevenue = stats.TotalRevenue,
                 TotalOrders = stats.TotalOrders,
                 TotalCustomers = stats.TotalCustomers,
-                TotalMenusOrdered = stats.TotalMenusOrdered, // Tambahan untuk total menu yang dipesan
+                TotalMenusOrdered = stats.TotalMenusOrdered,
+                OrderReports = orderReports,
+                PopularMenus = popularMenus,
+                OrderTypeStats = orderTypeStats
+            };
+        }
+
+        public async Task<DashboardViewModel> GetDashboardDataRangeAsync(DateTime startDate, DateTime endDate)
+        {
+            var stats = await GetDashboardStatsRangeAsync(startDate, endDate);
+            var orderReports = await GetOrderReportsAsync(startDate, endDate, null, 1, 50);
+            var popularMenus = await GetPopularMenusAsync(startDate, endDate, 10);
+            var orderTypeStats = await GetOrderTypeStatsAsync(startDate, endDate);
+
+            return new DashboardViewModel
+            {
+                SelectedDate = endDate,
+                TotalRevenue = stats.TotalRevenue,
+                TotalOrders = stats.TotalOrders,
+                TotalCustomers = stats.TotalCustomers,
+                TotalMenusOrdered = stats.TotalMenusOrdered,
                 OrderReports = orderReports,
                 PopularMenus = popularMenus,
                 OrderTypeStats = orderTypeStats
@@ -64,7 +84,8 @@ namespace POSRestoran01.Services.Implementations
                     OrderId = o.OrderId,
                     OrderNumber = o.OrderNumber,
                     CustomerName = o.CustomerName,
-                    MenuSummary = string.Join(", ", o.OrderDetails.Select(od => $"{od.MenuItem?.ItemName} ({od.Quantity})")),
+                    MenuSummary = string.Join(", ", o.OrderDetails.Take(2).Select(od => $"{od.MenuItem?.ItemName} ({od.Quantity})")) +
+                                  (o.OrderDetails.Count > 2 ? $" +{o.OrderDetails.Count - 2} lainnya" : ""),
                     Total = o.Total,
                     Status = o.Status,
                     OrderType = o.OrderType,
@@ -76,12 +97,11 @@ namespace POSRestoran01.Services.Implementations
             }
             catch (Exception ex)
             {
-                // Log the exception
                 throw new Exception($"Error getting order reports: {ex.Message}", ex);
             }
         }
 
-        public async Task<List<PopularMenuViewModel>> GetPopularMenusAsync(DateTime? startDate, DateTime? endDate)
+        public async Task<List<PopularMenuViewModel>> GetPopularMenusAsync(DateTime? startDate, DateTime? endDate, int limit = 10)
         {
             try
             {
@@ -115,14 +135,13 @@ namespace POSRestoran01.Services.Implementations
                         ImagePath = g.Key.ImagePath
                     })
                     .OrderByDescending(p => p.TotalOrdered)
-                    .Take(10)
+                    .Take(limit)
                     .ToListAsync();
 
                 return popularMenus;
             }
             catch (Exception ex)
             {
-                // Log the exception
                 throw new Exception($"Error getting popular menus: {ex.Message}", ex);
             }
         }
@@ -165,7 +184,6 @@ namespace POSRestoran01.Services.Implementations
             }
             catch (Exception ex)
             {
-                // Log the exception
                 throw new Exception($"Error getting order type stats: {ex.Message}", ex);
             }
         }
@@ -179,38 +197,59 @@ namespace POSRestoran01.Services.Implementations
                     .Where(o => o.OrderDate == date)
                     .ToListAsync();
 
-                var completedOrders = orders.Where(o => o.Status == "Completed").ToList();
-                var totalRevenue = completedOrders.Sum(o => o.Total);
-                var totalOrders = orders.Count;
-
-                // Menghitung total menu yang dipesan (semua quantity dari OrderDetails)
-                var totalMenusOrdered = orders.Where(o => o.Status == "Completed")
-                                            .SelectMany(o => o.OrderDetails)
-                                            .Sum(od => od.Quantity);
-
-                // Menghitung total customer (semua order dihitung sebagai customer, baik ada nama atau tidak)
-                var totalCustomers = orders.Count;
-
-                return new DashboardStatsViewModel
-                {
-                    TotalRevenue = totalRevenue,
-                    TotalOrders = totalOrders,
-                    CompletedOrders = completedOrders.Count,
-                    CancelledOrders = orders.Count(o => o.Status == "Canceled"),
-                    PendingOrders = orders.Count(o => o.Status == "Pending" || o.Status == "Preparing"),
-                    AverageOrderValue = completedOrders.Any() ? completedOrders.Average(o => o.Total) : 0,
-                    TotalCustomers = totalCustomers,
-                    TotalMenusOrdered = totalMenusOrdered, // Tambahan property
-                    DineInOrders = orders.Count(o => o.OrderType == "Dine In"),
-                    TakeAwayOrders = orders.Count(o => o.OrderType == "Take Away"),
-                    TotalDiscount = completedOrders.Sum(o => o.Discount)
-                };
+                return CalculateStats(orders);
             }
             catch (Exception ex)
             {
-                // Log the exception
                 throw new Exception($"Error getting dashboard stats: {ex.Message}", ex);
             }
+        }
+
+        public async Task<DashboardStatsViewModel> GetDashboardStatsRangeAsync(DateTime startDate, DateTime endDate)
+        {
+            try
+            {
+                var orders = await _context.Orders
+                    .Include(o => o.OrderDetails)
+                    .Where(o => o.OrderDate >= startDate && o.OrderDate <= endDate)
+                    .ToListAsync();
+
+                return CalculateStats(orders);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting dashboard stats range: {ex.Message}", ex);
+            }
+        }
+
+        private DashboardStatsViewModel CalculateStats(List<POSRestoran01.Models.Order> orders)
+        {
+            var completedOrders = orders.Where(o => o.Status == "Completed").ToList();
+            var totalRevenue = completedOrders.Sum(o => o.Total);
+            var totalOrders = orders.Count;
+
+            // Menghitung total menu yang dipesan (semua quantity dari OrderDetails untuk completed orders)
+            var totalMenusOrdered = completedOrders
+                                    .SelectMany(o => o.OrderDetails)
+                                    .Sum(od => od.Quantity);
+
+            // Menghitung total customer (semua completed orders dihitung sebagai customer)
+            var totalCustomers = completedOrders.Count;
+
+            return new DashboardStatsViewModel
+            {
+                TotalRevenue = totalRevenue,
+                TotalOrders = totalOrders,
+                CompletedOrders = completedOrders.Count,
+                CancelledOrders = orders.Count(o => o.Status == "Canceled"),
+                PendingOrders = orders.Count(o => o.Status == "Pending" || o.Status == "Preparing"),
+                AverageOrderValue = completedOrders.Any() ? completedOrders.Average(o => o.Total) : 0,
+                TotalCustomers = totalCustomers,
+                TotalMenusOrdered = totalMenusOrdered,
+                DineInOrders = orders.Count(o => o.OrderType == "Dine In"),
+                TakeAwayOrders = orders.Count(o => o.OrderType == "Take Away"),
+                TotalDiscount = completedOrders.Sum(o => o.Discount)
+            };
         }
     }
 }

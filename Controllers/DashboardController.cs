@@ -38,7 +38,8 @@ namespace POSRestoran01.Controllers
         {
             try
             {
-                var reports = await _dashboardService.GetOrderReportsAsync(startDate, endDate, status, page, pageSize);
+                // Limit to show only 3 most recent orders for initial view
+                var reports = await _dashboardService.GetOrderReportsAsync(startDate, endDate, status, page, Math.Min(pageSize, 10));
                 return Json(new { success = true, data = reports });
             }
             catch (Exception ex)
@@ -94,7 +95,7 @@ namespace POSRestoran01.Controllers
                     OrderDate = order.OrderDate.ToString("yyyy-MM-dd"),
                     OrderTime = order.OrderTime.ToString(@"hh\:mm"),
                     Status = order.Status,
-                    Cashier = order.User?.FullName ?? "Unknown", // Tambahkan informasi kasir
+                    Cashier = order.User?.FullName ?? "Unknown",
                     Subtotal = order.Subtotal,
                     Discount = order.Discount,
                     PPN = order.PPN,
@@ -123,7 +124,8 @@ namespace POSRestoran01.Controllers
         {
             try
             {
-                var popularMenus = await _dashboardService.GetPopularMenusAsync(startDate, endDate);
+                // Limit to top 10 items
+                var popularMenus = await _dashboardService.GetPopularMenusAsync(startDate, endDate, 10);
                 return Json(new { success = true, data = popularMenus });
             }
             catch (Exception ex)
@@ -147,12 +149,16 @@ namespace POSRestoran01.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetDashboardData(DateTime date)
+        public async Task<IActionResult> GetDashboardData(DateTime? startDate, DateTime? endDate)
         {
             try
             {
-                var data = await _dashboardService.GetDashboardDataAsync(date);
-                return Json(new { success = true, data });
+                // If no date range provided, use today
+                var start = startDate ?? DateTime.Today;
+                var end = endDate ?? DateTime.Today;
+
+                var stats = await _dashboardService.GetDashboardStatsRangeAsync(start, end);
+                return Json(new { success = true, data = stats });
             }
             catch (Exception ex)
             {

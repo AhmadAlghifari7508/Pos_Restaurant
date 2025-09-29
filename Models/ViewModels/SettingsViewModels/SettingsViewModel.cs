@@ -9,6 +9,10 @@ namespace POSRestoran01.Models.ViewModels.SettingsViewModels
         public List<User> Users { get; set; } = new List<User>();
         public List<StockHistory> StockHistories { get; set; } = new List<StockHistory>();
         public List<UserActivity> UserActivities { get; set; } = new List<UserActivity>();
+
+        // TAMBAH: Cashier Dashboard
+        public CashierDashboardViewModel CashierDashboard { get; set; } = new CashierDashboardViewModel();
+        public User CurrentUser { get; set; } = new User();
     }
 
     public class CreateUserViewModel
@@ -108,5 +112,47 @@ namespace POSRestoran01.Models.ViewModels.SettingsViewModels
         public string? OrderNumber { get; set; }
         public DateTime ActivityTime { get; set; }
         public string FormattedActivityTime { get; set; } = string.Empty;
+    }
+
+    // TAMBAH: Cashier Dashboard ViewModels
+    public class CashierDashboardViewModel
+    {
+        public User CurrentUser { get; set; } = new User();
+        public List<UserActivityDetailViewModel> RecentActivities { get; set; } = new List<UserActivityDetailViewModel>();
+        public List<Order> TodayOrders { get; set; } = new List<Order>();
+        public CashierStatisticsViewModel Statistics { get; set; } = new CashierStatisticsViewModel();
+
+        // Filter properties
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+    }
+
+    public class CashierStatisticsViewModel
+    {
+        public decimal TotalRevenue { get; set; }
+        public int TotalMenusOrdered { get; set; }
+        public int TotalCustomers { get; set; }
+        public int TotalOrders { get; set; }
+        public DateTime? LastLogin { get; set; }
+        public DateTime? LastLogout { get; set; }
+        public TimeSpan? WorkingHours { get; set; }
+
+        // Today's statistics
+        public decimal TodayRevenue { get; set; }
+        public int TodayOrders { get; set; }
+        public int TodayCustomers { get; set; }
+        public int TodayMenusOrdered { get; set; }
+    }
+
+    public class UserActivityDetailViewModel
+    {
+        public int ActivityId { get; set; }
+        public string ActivityType { get; set; } = string.Empty;
+        public string? OrderNumber { get; set; }
+        public DateTime ActivityTime { get; set; }
+        public string FormattedActivityTime { get; set; } = string.Empty;
+        public decimal? OrderTotal { get; set; }
+        public string? CustomerName { get; set; }
+        public string? OrderType { get; set; }
     }
 }

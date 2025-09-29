@@ -29,7 +29,7 @@ namespace POSRestoran01.Controllers
                 var model = new ProductManagementViewModel
                 {
                     Categories = await _categoryService.GetActiveCategoriesAsync(),
-                    SelectedCategoryId = categoryId ?? 0
+                    SelectedCategoryId = categoryId ?? 0  // Default to 0 (Semua Kategori)
                 };
 
                 // Load menu items based on category
@@ -37,15 +37,11 @@ namespace POSRestoran01.Controllers
                 {
                     model.MenuItems = await _menuService.GetMenuItemsByCategoryAsync(categoryId.Value);
                 }
-                else if (model.Categories.Any())
-                {
-                    // Default to first category if no category selected
-                    model.SelectedCategoryId = model.Categories.First().CategoryId;
-                    model.MenuItems = await _menuService.GetMenuItemsByCategoryAsync(model.SelectedCategoryId);
-                }
                 else
                 {
-                    model.MenuItems = new List<MenuItem>();
+                    // Show all menu items when "Semua Kategori" is selected (categoryId = 0)
+                    model.MenuItems = await _menuService.GetAllMenuItemsAsync();
+                    model.SelectedCategoryId = 0;
                 }
 
                 return View(model);
@@ -62,7 +58,10 @@ namespace POSRestoran01.Controllers
         {
             try
             {
-                var menuItems = await _menuService.GetMenuItemsByCategoryAsync(categoryId);
+                var menuItems = categoryId == 0
+                    ? await _menuService.GetAllMenuItemsAsync()
+                    : await _menuService.GetMenuItemsByCategoryAsync(categoryId);
+
                 return PartialView("_ProductMenuItemsPartial", menuItems);
             }
             catch (Exception ex)
@@ -180,6 +179,28 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = string.Join(", ", errors) });
                 }
 
+                // Enhanced discount validation
+                if (model.IsDiscountActive)
+                {
+                    if (!model.DiscountPercentage.HasValue || model.DiscountPercentage <= 0)
+                    {
+                        return Json(new { success = false, message = "Persentase diskon harus lebih dari 0 jika diskon aktif" });
+                    }
+
+                    if (model.DiscountPercentage > 100)
+                    {
+                        return Json(new { success = false, message = "Persentase diskon tidak boleh lebih dari 100%" });
+                    }
+
+                    if (model.DiscountStartDate.HasValue && model.DiscountEndDate.HasValue)
+                    {
+                        if (model.DiscountEndDate < model.DiscountStartDate)
+                        {
+                            return Json(new { success = false, message = "Tanggal berakhir diskon harus setelah tanggal mulai" });
+                        }
+                    }
+                }
+
                 string imagePath = null;
                 if (model.ImageFile != null)
                 {
@@ -194,7 +215,12 @@ namespace POSRestoran01.Controllers
                     Price = model.Price,
                     Stock = model.Stock,
                     ImagePath = imagePath,
-                    IsActive = model.IsActive, // Fix: Ensure this properly maps the checkbox value
+                    IsActive = model.IsActive,
+                    // Enhanced discount properties
+                    DiscountPercentage = model.IsDiscountActive ? (model.DiscountPercentage ?? 0) : 0,
+                    DiscountStartDate = model.IsDiscountActive ? model.DiscountStartDate : null,
+                    DiscountEndDate = model.IsDiscountActive ? model.DiscountEndDate : null,
+                    IsDiscountActive = model.IsDiscountActive,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
                 };
@@ -211,7 +237,22 @@ namespace POSRestoran01.Controllers
                     $"Initial stock for new menu item: {menuItem.ItemName}"
                 );
 
-                return Json(new { success = true, message = "Menu item berhasil ditambahkan" });
+                var responseMessage = model.IsDiscountActive ?
+                    $"Menu item berhasil ditambahkan dengan diskon {model.DiscountPercentage}%" :
+                    "Menu item berhasil ditambahkan";
+
+                return Json(new
+                {
+                    success = true,
+                    message = responseMessage,
+                    hasDiscount = model.IsDiscountActive,
+                    discountInfo = model.IsDiscountActive ? new
+                    {
+                        percentage = model.DiscountPercentage,
+                        startDate = model.DiscountStartDate,
+                        endDate = model.DiscountEndDate
+                    } : null
+                });
             }
             catch (Exception ex)
             {
@@ -231,7 +272,7 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = "Menu item tidak ditemukan" });
                 }
 
-                // Return proper JSON structure with all needed fields
+                // Enhanced response with complete discount info
                 var result = new
                 {
                     success = true,
@@ -244,7 +285,17 @@ namespace POSRestoran01.Controllers
                         price = menuItem.Price,
                         stock = menuItem.Stock,
                         imagePath = menuItem.ImagePath ?? "",
-                        isActive = menuItem.IsActive
+                        isActive = menuItem.IsActive,
+                        // Enhanced discount properties
+                        discountPercentage = menuItem.DiscountPercentage ?? 0,
+                        discountStartDate = menuItem.DiscountStartDate?.ToString("yyyy-MM-ddTHH:mm") ?? "",
+                        discountEndDate = menuItem.DiscountEndDate?.ToString("yyyy-MM-ddTHH:mm") ?? "",
+                        isDiscountActive = menuItem.IsDiscountActive,
+                        // Additional discount info
+                        hasActiveDiscount = menuItem.HasActiveDiscount,
+                        finalPrice = menuItem.FinalPrice,
+                        discountAmount = menuItem.DiscountAmount,
+                        isDiscountValidNow = menuItem.IsDiscountValidForDate(DateTime.Now)
                     }
                 };
 
@@ -273,6 +324,28 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = string.Join(", ", errors) });
                 }
 
+                // Enhanced discount validation
+                if (model.IsDiscountActive)
+                {
+                    if (!model.DiscountPercentage.HasValue || model.DiscountPercentage <= 0)
+                    {
+                        return Json(new { success = false, message = "Persentase diskon harus lebih dari 0 jika diskon aktif" });
+                    }
+
+                    if (model.DiscountPercentage > 100)
+                    {
+                        return Json(new { success = false, message = "Persentase diskon tidak boleh lebih dari 100%" });
+                    }
+
+                    if (model.DiscountStartDate.HasValue && model.DiscountEndDate.HasValue)
+                    {
+                        if (model.DiscountEndDate < model.DiscountStartDate)
+                        {
+                            return Json(new { success = false, message = "Tanggal berakhir diskon harus setelah tanggal mulai" });
+                        }
+                    }
+                }
+
                 var menuItem = await _menuService.GetMenuItemByIdAsync(model.MenuItemId);
                 if (menuItem == null)
                 {
@@ -281,14 +354,22 @@ namespace POSRestoran01.Controllers
 
                 var oldStock = menuItem.Stock;
                 var stockChanged = oldStock != model.Stock;
+                var wasDiscountActive = menuItem.IsDiscountActive;
+                var oldDiscountPercentage = menuItem.DiscountPercentage;
 
-                // Update menu item
+                // Update menu item with enhanced discount handling
                 menuItem.CategoryId = model.CategoryId;
                 menuItem.ItemName = model.ItemName;
                 menuItem.Description = model.Description;
                 menuItem.Price = model.Price;
                 menuItem.Stock = model.Stock;
                 menuItem.IsActive = model.IsActive;
+
+                // Enhanced discount properties update
+                menuItem.DiscountPercentage = model.IsDiscountActive ? (model.DiscountPercentage ?? 0) : 0;
+                menuItem.DiscountStartDate = model.IsDiscountActive ? model.DiscountStartDate : null;
+                menuItem.DiscountEndDate = model.IsDiscountActive ? model.DiscountEndDate : null;
+                menuItem.IsDiscountActive = model.IsDiscountActive;
                 menuItem.UpdatedAt = DateTime.Now;
 
                 // Handle image update
@@ -317,7 +398,41 @@ namespace POSRestoran01.Controllers
                     );
                 }
 
-                return Json(new { success = true, message = "Menu item berhasil diperbarui" });
+                // Create enhanced response message
+                var responseMessage = "Menu item berhasil diperbarui";
+                var discountStatusChanged = wasDiscountActive != model.IsDiscountActive;
+
+                if (discountStatusChanged)
+                {
+                    if (model.IsDiscountActive)
+                    {
+                        responseMessage += $" dengan diskon {model.DiscountPercentage}%";
+                    }
+                    else
+                    {
+                        responseMessage += " (diskon dihapus)";
+                    }
+                }
+                else if (model.IsDiscountActive && oldDiscountPercentage != model.DiscountPercentage)
+                {
+                    responseMessage += $" (diskon diperbarui ke {model.DiscountPercentage}%)";
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    message = responseMessage,
+                    hasDiscount = model.IsDiscountActive,
+                    discountChanged = discountStatusChanged,
+                    discountInfo = model.IsDiscountActive ? new
+                    {
+                        percentage = model.DiscountPercentage,
+                        startDate = model.DiscountStartDate,
+                        endDate = model.DiscountEndDate,
+                        finalPrice = menuItem.FinalPrice,
+                        discountAmount = menuItem.DiscountAmount
+                    } : null
+                });
             }
             catch (Exception ex)
             {

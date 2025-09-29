@@ -1,0 +1,236 @@
+﻿@model POSRestoran01.Models.ViewModels.SettingsViewModels.CashierDashboardViewModel
+
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+    <!-- Total Pendapatan -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600 mb-1">Total Pendapatan</p>
+                <p class="text-2xl font-bold text-green-600">@Model.Statistics.TotalRevenue.ToString("C0")</p>
+                <p class="text-xs text-gray-500">Hari ini: @Model.Statistics.TodayRevenue.ToString("C0")</p>
+            </div>
+            <div class="p-3 bg-green-100 rounded-full">
+                <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Menu Dipesan -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600 mb-1">Total Menu Dipesan</p>
+                <p class="text-2xl font-bold text-blue-600">@Model.Statistics.TotalMenusOrdered</p>
+                <p class="text-xs text-gray-500">Hari ini: @Model.Statistics.TodayMenusOrdered</p>
+            </div>
+            <div class="p-3 bg-blue-100 rounded-full">
+                <i class="fas fa-utensils text-blue-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Pelanggan -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600 mb-1">Total Pelanggan</p>
+                <p class="text-2xl font-bold text-purple-600">@Model.Statistics.TotalCustomers</p>
+                <p class="text-xs text-gray-500">Hari ini: @Model.Statistics.TodayCustomers</p>
+            </div>
+            <div class="p-3 bg-purple-100 rounded-full">
+                <i class="fas fa-users text-purple-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Order -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600 mb-1">Total Order</p>
+                <p class="text-2xl font-bold text-orange-600">@Model.Statistics.TotalOrders</p>
+                <p class="text-xs text-gray-500">Hari ini: @Model.Statistics.TodayOrders</p>
+            </div>
+            <div class="p-3 bg-orange-100 rounded-full">
+                <i class="fas fa-shopping-cart text-orange-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Working Hours & Activity Info -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <!-- Work Session Info -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Informasi Sesi Kerja</h3>
+        <div class="space-y-3">
+            @if (Model.Statistics.LastLogin.HasValue)
+            {
+                <div class="flex items-center mb-3">
+                    <i class="fas fa-sign-in-alt text-green-500 mr-3"></i>
+                    <div>
+                        <p class="text-sm text-gray-600">Login Terakhir</p>
+                        <p class="font-medium">@Model.Statistics.LastLogin.Value.ToString("dd/MM/yyyy HH:mm")</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="flex items-center mb-3">
+                    <i class="fas fa-sign-in-alt text-gray-400 mr-3"></i>
+                    <div>
+                        <p class="text-sm text-gray-600">Login Terakhir</p>
+                        <p class="font-medium text-gray-400">Belum ada data</p>
+                    </div>
+                </div>
+            }
+
+            @if (Model.Statistics.LastLogout.HasValue)
+            {
+                <div class="flex items-center mb-3">
+                    <i class="fas fa-sign-out-alt text-red-500 mr-3"></i>
+                    <div>
+                        <p class="text-sm text-gray-600">Logout Terakhir</p>
+                        <p class="font-medium">@Model.Statistics.LastLogout.Value.ToString("dd/MM/yyyy HH:mm")</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="flex items-center mb-3">
+                    <i class="fas fa-sign-out-alt text-gray-400 mr-3"></i>
+                    <div>
+                        <p class="text-sm text-gray-600">Logout Terakhir</p>
+                        <p class="font-medium text-gray-400">Belum ada data</p>
+                    </div>
+                </div>
+            }
+
+            @if (Model.Statistics.WorkingHours.HasValue)
+            {
+                <div class="flex items-center">
+                    <i class="fas fa-clock text-blue-500 mr-3"></i>
+                    <div>
+                        <p class="text-sm text-gray-600">Waktu Kerja Hari Ini</p>
+                        <p class="font-medium">@($"{(int)Model.Statistics.WorkingHours.Value.TotalHours}h {Model.Statistics.WorkingHours.Value.Minutes}m")</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="lg:col-span-2 bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Aktivitas Terbaru</h3>
+        <div class="max-h-64 overflow-y-auto">
+            @if (Model.RecentActivities.Any())
+            {
+                <div class="space-y-3">
+                    @foreach (var activity in Model.RecentActivities.Take(10))
+                    {
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                @{
+                                    var activityIcon = activity.ActivityType switch
+                                    {
+                                        "Login" => "fas fa-sign-in-alt text-green-500",
+                                        "Logout" => "fas fa-sign-out-alt text-red-500",
+                                        "Create Order" => "fas fa-shopping-cart text-blue-500",
+                                        "Update Stock" => "fas fa-boxes text-yellow-500",
+                                        "Process Payment" => "fas fa-credit-card text-purple-500",
+                                        _ => "fas fa-circle text-gray-500"
+                                    };
+                                }
+                                <i class="@activityIcon"></i>
+                                <div>
+                                    <p class="font-medium text-sm">@activity.ActivityType</p>
+                                    @if (!string.IsNullOrEmpty(activity.OrderNumber))
+                                    {
+                                        <p class="text-xs text-gray-600">Order: @activity.OrderNumber</p>
+                                    }
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs text-gray-500">@activity.ActivityTime.ToString("HH:mm")</p>
+                                <p class="text-xs text-gray-400">@activity.ActivityTime.ToString("dd/MM")</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-8 text-gray-500">
+                    <i class="fas fa-clock text-2xl mb-2"></i>
+                    <p>Belum ada aktivitas</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Today's Orders -->
+<div class="bg-white rounded-lg shadow-md">
+    <div class="p-6 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-800">Order Hari Ini</h3>
+    </div>
+    <div class="p-6">
+        @if (Model.TodayOrders.Any())
+        {
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">No. Order</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Pelanggan</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Tipe</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Total</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Waktu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.TodayOrders.OrderByDescending(o => o.CreatedAt))
+                        {
+                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="py-3 px-4 font-medium text-blue-600">@order.OrderNumber</td>
+                                <td class="py-3 px-4">@(order.CustomerName ?? "Walk-in Customer")</td>
+                                <td class="py-3 px-4">
+                                    <span class="px-2 py-1 text-xs rounded-full @(order.OrderType == "Dine In" ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800")">
+                                        @order.OrderType
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 font-medium">@order.Total.ToString("C0")</td>
+                                <td class="py-3 px-4">
+                                    @{
+                                        var statusClass = order.Status switch
+                                        {
+                                            "Completed" => "bg-green-100 text-green-800",
+                                            "Pending" => "bg-yellow-100 text-yellow-800",
+                                            "Canceled" => "bg-red-100 text-red-800",
+                                            _ => "bg-gray-100 text-gray-800"
+                                        };
+                                    }
+                                    <span class="px-2 py-1 text-xs rounded-full @statusClass">
+                                        @order.Status
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-sm text-gray-600">
+                                    @order.CreatedAt.ToString("HH:mm")
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-shopping-cart text-4xl mb-4"></i>
+                <p>Belum ada order hari ini</p>
+            </div>
+        }
+    </div>
+</div>

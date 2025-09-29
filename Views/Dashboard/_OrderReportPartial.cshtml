@@ -3,32 +3,32 @@
 @if (Model.Any())
 {
     <table class="min-w-full">
-        <thead>
+        <thead class="sticky top-0 bg-white z-10">
             <tr class="border-b border-gray-200">
-                <th class="text-left py-3 px-2 font-semibold text-gray-700">Customer</th>
-                <th class="text-left py-3 px-2 font-semibold text-gray-700">Menu</th>
-                <th class="text-left py-3 px-2 font-semibold text-gray-700">Total</th>
-                <th class="text-left py-3 px-2 font-semibold text-gray-700">Status</th>
-                <th class="text-left py-3 px-2 font-semibold text-gray-700">Aksi</th>
+                <th class="text-left py-2 px-2 font-semibold text-gray-700 text-sm">Customer</th>
+                <th class="text-left py-2 px-2 font-semibold text-gray-700 text-sm">Menu</th>
+                <th class="text-left py-2 px-2 font-semibold text-gray-700 text-sm">Total</th>
+                <th class="text-left py-2 px-2 font-semibold text-gray-700 text-sm">Status</th>
+                <th class="text-left py-2 px-2 font-semibold text-gray-700 text-sm">Aksi</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var order in Model)
             {
                 <tr class="border-b border-gray-100 hover:bg-gray-50">
-                    <td class="py-3 px-2">
+                    <td class="py-2 px-2">
                         <div>
-                            <div class="font-medium">@(order.CustomerName ?? "Guest")</div>
-                            <div class="text-sm text-gray-500">@order.OrderNumber</div>
+                            <div class="font-medium text-sm">@(order.CustomerName ?? "Guest")</div>
+                            <div class="text-xs text-gray-500">@order.OrderNumber</div>
                             <div class="text-xs text-gray-400">@order.OrderDate.ToString("dd/MM/yyyy") @order.OrderTime.ToString(@"hh\:mm")</div>
                         </div>
                     </td>
-                    <td class="py-3 px-2">
-                        <div class="text-sm text-gray-600 truncate max-w-xs">@order.MenuSummary</div>
+                    <td class="py-2 px-2">
+                        <div class="text-xs text-gray-600 truncate max-w-xs">@order.MenuSummary</div>
                         <div class="text-xs text-gray-400">@order.OrderType @(order.TableNo.HasValue ? $"- Table {order.TableNo}" : "")</div>
                     </td>
-                    <td class="py-3 px-2 font-semibold">@order.Total.ToString("C", new System.Globalization.CultureInfo("id-ID"))</td>
-                    <td class="py-3 px-2">
+                    <td class="py-2 px-2 font-semibold text-sm">@order.Total.ToString("C", new System.Globalization.CultureInfo("id-ID"))</td>
+                    <td class="py-2 px-2">
                         @{
                             var statusClass = order.Status switch
                             {
@@ -41,10 +41,10 @@
                         }
                         <span class="px-2 py-1 text-xs rounded-full @statusClass">@order.Status</span>
                     </td>
-                    <td class="py-3 px-2">
-                        <div class="flex space-x-2">
-                            <select onchange="updateOrderStatus(@order.OrderId, this.value)" class="text-xs border rounded px-2 py-1">
-                                <option value="">Ubah Status</option>
+                    <td class="py-2 px-2">
+                        <div class="flex space-x-1">
+                            <select onchange="updateOrderStatus(@order.OrderId, this.value)" class="text-xs border rounded px-1 py-1" style="font-size:10px;">
+                                <option value="">Ubah</option>
                                 @if (order.Status != "Pending")
                                 {
                                     <option value="Pending">Pending</option>
@@ -63,7 +63,7 @@
                                 }
                             </select>
                             <button onclick="showOrderDetail(@order.OrderId)"
-                                    class="text-blue-600 hover:text-blue-800 text-sm">
+                                    class="text-blue-600 hover:text-blue-800 text-xs">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </div>
@@ -76,7 +76,7 @@
 else
 {
     <div class="text-center py-8 text-gray-500">
-        <i class="fas fa-receipt text-4xl mb-4"></i>
-        <p>Tidak ada data order</p>
+        <i class="fas fa-receipt text-2xl mb-2"></i>
+        <p class="text-sm">Tidak ada data order</p>
     </div>
 }

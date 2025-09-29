@@ -40,6 +40,22 @@ namespace POSRestoran01.Models.ViewModels.ProductViewModels
 
         [Display(Name = "Status Aktif")]
         public bool IsActive { get; set; } = true;
+
+        // Discount Properties
+        [Range(0, 100, ErrorMessage = "Persentase diskon harus antara 0 dan 100")]
+        [Display(Name = "Persentase Diskon (%)")]
+        public decimal? DiscountPercentage { get; set; } = 0;
+
+        [Display(Name = "Tanggal Mulai Diskon")]
+        [DataType(DataType.DateTime)]
+        public DateTime? DiscountStartDate { get; set; }
+
+        [Display(Name = "Tanggal Berakhir Diskon")]
+        [DataType(DataType.DateTime)]
+        public DateTime? DiscountEndDate { get; set; }
+
+        [Display(Name = "Aktifkan Diskon")]
+        public bool IsDiscountActive { get; set; } = false;
     }
 
     public class UpdateMenuItemViewModel
@@ -77,5 +93,35 @@ namespace POSRestoran01.Models.ViewModels.ProductViewModels
         public bool IsActive { get; set; } = true;
 
         public string? CurrentImagePath { get; set; }
+
+        // Discount Properties
+        [Range(0, 100, ErrorMessage = "Persentase diskon harus antara 0 dan 100")]
+        [Display(Name = "Persentase Diskon (%)")]
+        public decimal? DiscountPercentage { get; set; } = 0;
+
+        [Display(Name = "Tanggal Mulai Diskon")]
+        [DataType(DataType.DateTime)]
+        public DateTime? DiscountStartDate { get; set; }
+
+        [Display(Name = "Tanggal Berakhir Diskon")]
+        [DataType(DataType.DateTime)]
+        public DateTime? DiscountEndDate { get; set; }
+
+        [Display(Name = "Aktifkan Diskon")]
+        public bool IsDiscountActive { get; set; } = false;
+    }
+
+    public class MenuDiscountViewModel
+    {
+        public int MenuItemId { get; set; }
+        public string ItemName { get; set; } = string.Empty;
+        public decimal OriginalPrice { get; set; }
+        public decimal? DiscountPercentage { get; set; }
+        public decimal FinalPrice { get; set; }
+        public decimal DiscountAmount { get; set; }
+        public DateTime? DiscountStartDate { get; set; }
+        public DateTime? DiscountEndDate { get; set; }
+        public bool IsDiscountActive { get; set; }
+        public bool HasActiveDiscount { get; set; }
     }
 }
