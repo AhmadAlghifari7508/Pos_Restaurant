@@ -1,6 +1,6 @@
 ﻿// Product Management JavaScript Functions
 
-// Category Management Functions
+
 function loadCategories() {
     fetch('/Product/GetCategories')
         .then(response => {
@@ -93,7 +93,7 @@ function saveCategory(categoryId) {
     formData.append('categoryName', newName);
     formData.append('__RequestVerificationToken', getAntiForgeryToken());
 
-    // Show loading state on save button
+    
     const saveBtn = document.getElementById(`saveBtn_${categoryId}`);
     const originalContent = saveBtn.innerHTML;
     saveBtn.innerHTML = '<i class="fas fa-spinner animate-spin"></i>';

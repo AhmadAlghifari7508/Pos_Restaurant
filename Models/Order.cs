@@ -70,7 +70,7 @@ namespace POSRestoran01.Models
         [Display(Name = "User ID")]
         public int UserId { get; set; }
 
-        // Navigation Properties
+        
         [ForeignKey("UserId")]
         public virtual User User { get; set; } = null!;
 
@@ -78,7 +78,7 @@ namespace POSRestoran01.Models
 
         public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 
-        // Computed Properties
+        
         [NotMapped]
         [Display(Name = "Total Penghematan")]
         public decimal TotalSavings => MenuDiscountTotal;

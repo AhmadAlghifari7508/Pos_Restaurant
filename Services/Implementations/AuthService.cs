@@ -27,12 +27,12 @@ namespace POSRestoran01.Services.Implementations
 
             if (user != null && VerifyPassword(model.Password, user.Password))
             {
-                // Update last login
+                
                 user.LastLogin = DateTime.Now;
                 user.UpdatedAt = DateTime.Now;
                 await _context.SaveChangesAsync();
 
-                // Record login activity
+                
                 await _userActivityService.RecordLoginAsync(user.Id);
 
                 return user;
@@ -47,7 +47,7 @@ namespace POSRestoran01.Services.Implementations
             return user != null && VerifyPassword(password, user.Password);
         }
 
-        // Gunakan BCrypt yang lebih secure
+        
         public string HashPassword(string password)
         {
             return BCrypt.Net.BCrypt.HashPassword(password, BCrypt.Net.BCrypt.GenerateSalt(12));
@@ -65,7 +65,7 @@ namespace POSRestoran01.Services.Implementations
             }
         }
 
-        // Method untuk create user (hanya untuk admin)
+       
         public async Task<User> CreateUserAsync(string fullName, string username, string email, string password, string role = "Cashier")
         {
             var existingUser = await _context.Users
@@ -90,7 +90,7 @@ namespace POSRestoran01.Services.Implementations
             return user;
         }
 
-        // Method untuk change password
+        
         public async Task<bool> ChangePasswordAsync(int userId, string currentPassword, string newPassword)
         {
             var user = await _context.Users.FindAsync(userId);
@@ -103,27 +103,27 @@ namespace POSRestoran01.Services.Implementations
             return true;
         }
 
-        // Method untuk logout dengan activity recording
+       
         public async Task LogoutAsync(int userId)
         {
             await _userActivityService.RecordLogoutAsync(userId);
         }
 
-        // TAMBAH: Method untuk mendapatkan user by ID
+        
         public async Task<User?> GetUserByIdAsync(int userId)
         {
             return await _context.Users
                 .FirstOrDefaultAsync(u => u.Id == userId && u.IsActive);
         }
 
-        // TAMBAH: Method untuk update user profile
+        
         public async Task<bool> UpdateUserProfileAsync(int userId, string fullName, string email, string? newPassword = null)
         {
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
                 return false;
 
-            // Check if email is already used by another user
+            
             var existingUserWithEmail = await _context.Users
                 .FirstOrDefaultAsync(u => u.Email == email && u.Id != userId);
             if (existingUserWithEmail != null)
@@ -143,7 +143,7 @@ namespace POSRestoran01.Services.Implementations
             return true;
         }
 
-        // TAMBAH: Method untuk validasi password lama saat update current user
+        
         public async Task<bool> ValidateCurrentPasswordAsync(int userId, string currentPassword)
         {
             var user = await _context.Users.FindAsync(userId);

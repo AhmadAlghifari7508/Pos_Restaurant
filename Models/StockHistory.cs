@@ -31,7 +31,7 @@ namespace POSRestoran01.Models
         [Required]
         [StringLength(50)]
         [Display(Name = "Tipe Perubahan")]
-        public string ChangeType { get; set; } = string.Empty; // "Manual Update", "Order Reduction"
+        public string ChangeType { get; set; } = string.Empty; // "Manual Update", "Order Reduction", "Initial Stock"
 
         [StringLength(500)]
         [Display(Name = "Keterangan")]

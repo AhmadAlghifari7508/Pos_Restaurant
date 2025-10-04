@@ -38,7 +38,7 @@ namespace POSRestoran01.Controllers
         {
             try
             {
-                // Limit to show only 3 most recent orders for initial view
+               
                 var reports = await _dashboardService.GetOrderReportsAsync(startDate, endDate, status, page, Math.Min(pageSize, 10));
                 return Json(new { success = true, data = reports });
             }
@@ -124,7 +124,7 @@ namespace POSRestoran01.Controllers
         {
             try
             {
-                // Limit to top 10 items
+            
                 var popularMenus = await _dashboardService.GetPopularMenusAsync(startDate, endDate, 10);
                 return Json(new { success = true, data = popularMenus });
             }
@@ -153,7 +153,7 @@ namespace POSRestoran01.Controllers
         {
             try
             {
-                // If no date range provided, use today
+                
                 var start = startDate ?? DateTime.Today;
                 var end = endDate ?? DateTime.Today;
 
@@ -171,8 +171,7 @@ namespace POSRestoran01.Controllers
         {
             try
             {
-                // This would typically generate and return a file (CSV/Excel)
-                // For now, return success message
+                
                 return Json(new { success = true, message = "Export berhasil (fitur akan diimplementasi)" });
             }
             catch (Exception ex)

@@ -10,7 +10,7 @@
         public decimal PPN { get; set; }
         public decimal Total { get; set; }
 
-        // Computed Properties
+       
         public decimal TotalSavings => MenuDiscountTotal;
         public decimal TotalDiscountAmount => Discount + MenuDiscountTotal;
     }
@@ -25,13 +25,13 @@
         public decimal Subtotal { get; set; }
         public string? OrderNote { get; set; }
 
-        // Discount Properties
+      
         public decimal OriginalPrice { get; set; } = 0;
         public decimal DiscountPercentage { get; set; } = 0;
         public decimal DiscountAmount { get; set; } = 0;
         public bool HasDiscount { get; set; } = false;
 
-        // Computed Properties
+        
         public decimal TotalSavingsPerItem => DiscountAmount * Quantity;
         public string FormattedDiscountPercentage => HasDiscount ? $"-{DiscountPercentage:0}%" : "";
     }

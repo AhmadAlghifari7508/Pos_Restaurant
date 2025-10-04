@@ -30,7 +30,7 @@ namespace POSRestoran01.Services.Implementations
 
         public async Task SeedInitialDataAsync()
         {
-            // Seed Users
+            
             if (!await _context.Users.AnyAsync())
             {
                 var defaultUsers = new[]
@@ -59,7 +59,7 @@ namespace POSRestoran01.Services.Implementations
                 await _context.SaveChangesAsync();
             }
 
-            // Seed Categories
+       
             if (!await _context.Categories.AnyAsync())
             {
                 var categories = new[]
@@ -74,7 +74,6 @@ namespace POSRestoran01.Services.Implementations
                 await _context.SaveChangesAsync();
             }
 
-            // Seed Sample Menu Items
             if (!await _context.MenuItems.AnyAsync())
             {
                 var makananCategory = await _context.Categories.FirstAsync(c => c.CategoryName == "Makanan");

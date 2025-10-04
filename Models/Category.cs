@@ -21,7 +21,7 @@ namespace POSRestoran01.Models
         [Display(Name = "Diperbarui Pada")]
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
-        // Navigation Properties
+            
         public virtual ICollection<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
     }
 }

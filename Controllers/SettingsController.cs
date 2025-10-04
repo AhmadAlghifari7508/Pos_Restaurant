@@ -9,7 +9,7 @@ namespace POSRestoran01.Controllers
 {
     public class SettingsController : BaseController
     {
-        private readonly IUserService _userService;
+        
         private readonly IStockHistoryService _stockHistoryService;
         private readonly IUserActivityService _userActivityService;
         private readonly IOrderService _orderService;
@@ -17,14 +17,14 @@ namespace POSRestoran01.Controllers
         private readonly ApplicationDbContext _context; 
 
         public SettingsController(
-            IUserService userService,
+            
             IStockHistoryService stockHistoryService,
             IUserActivityService userActivityService,
             IOrderService orderService,
             IAuthService authService,
             ApplicationDbContext context)
         {
-            _userService = userService;
+           
             _stockHistoryService = stockHistoryService;
             _userActivityService = userActivityService;
             _orderService = orderService;
@@ -338,19 +338,7 @@ namespace POSRestoran01.Controllers
 
         #endregion
 
-        [HttpGet]
-        public async Task<IActionResult> GetUsers()
-        {
-            try
-            {
-                var users = await _userService.GetAllUsersAsync();
-                return PartialView("_UserManagementPartial", users);
-            }
-            catch (Exception)
-            {
-                return BadRequest("Terjadi kesalahan saat memuat data pengguna");
-            }
-        }
+        
 
         [HttpGet]
         public async Task<IActionResult> GetStockHistory(DateTime? startDate, DateTime? endDate, int? menuItemId)
@@ -380,13 +368,15 @@ namespace POSRestoran01.Controllers
             }
         }
 
+
+        // Update method signature di SettingsController
         [HttpGet]
-        public async Task<IActionResult> GetCashierDashboard(DateTime? startDate, DateTime? endDate)
+        public async Task<IActionResult> GetCashierDashboard(DateTime? selectedDate)
         {
             try
             {
                 var currentUserId = GetCurrentUserId();
-                var dashboardData = await GetCashierDashboardDataAsync(currentUserId, startDate, endDate);
+                var dashboardData = await GetCashierDashboardDataAsync(currentUserId, selectedDate);
 
                 return PartialView("_CashierDashboardPartial", dashboardData);
             }
@@ -396,64 +386,67 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        private async Task<CashierDashboardViewModel> GetCashierDashboardDataAsync(int userId, DateTime? startDate = null, DateTime? endDate = null)
+        private async Task<CashierDashboardViewModel> GetCashierDashboardDataAsync(int userId, DateTime? selectedDate = null)
         {
-            // Set default dates dengan benar
-            var start = startDate ?? DateTime.Today;
-            var end = endDate ?? DateTime.Today;
+            // Gunakan tanggal yang dipilih atau default ke hari ini
+            var targetDate = selectedDate ?? DateTime.Today;
+            var startOfDay = targetDate.Date;
+            var endOfDay = targetDate.Date.AddHours(23).AddMinutes(59).AddSeconds(59);
 
             // GUNAKAN AuthService untuk mendapatkan user
             var user = await _authService.GetUserByIdAsync(userId);
 
-            // Load activities dengan range yang lebih lebar untuk recent activities
+            // Load activities untuk tanggal yang dipilih
             var activities = await _userActivityService.GetUserActivitiesAsync(
-                startDate ?? DateTime.Today.AddDays(-30), // 30 hari terakhir jika tidak ada filter
-                endDate ?? DateTime.Today.AddHours(23).AddMinutes(59).AddSeconds(59),
+                startOfDay,
+                endOfDay,
                 userId
             );
 
-            var userOrders = await _orderService.GetOrdersByUserIdAsync(userId, start, end);
+            // Get orders untuk tanggal yang dipilih
+            var dateOrders = await _orderService.GetOrdersByUserIdAsync(userId, startOfDay, endOfDay);
+
+            // Get orders hari ini (untuk perbandingan)
             var todayOrders = await _orderService.GetOrdersByUserIdAsync(userId, DateTime.Today, DateTime.Today);
 
-            // Get last login dan logout dari semua activities
-            var allUserActivities = await _userActivityService.GetUserActivitiesAsync(null, null, userId);
+            // PERBAIKAN: Get LOGIN PERTAMA dari tanggal yang dipilih
+            var firstLoginOfDay = activities.Where(a => a.ActivityType == "Login")
+                                           .OrderBy(a => a.ActivityTime) // Urutkan ascending untuk dapat yang pertama
+                                           .FirstOrDefault()?.ActivityTime;
 
-            var lastLogin = allUserActivities.Where(a => a.ActivityType == "Login")
+            // PERBAIKAN: Get LOGOUT TERAKHIR dari tanggal yang dipilih (bukan dari semua waktu)
+            var lastLogoutOfDay = activities.Where(a => a.ActivityType == "Logout")
                                            .OrderByDescending(a => a.ActivityTime)
                                            .FirstOrDefault()?.ActivityTime;
 
-            var lastLogout = allUserActivities.Where(a => a.ActivityType == "Logout")
-                                            .OrderByDescending(a => a.ActivityTime)
-                                            .FirstOrDefault()?.ActivityTime;
-
-            // Calculate working hours berdasarkan login/logout hari ini
+            // PERBAIKAN: Calculate working hours dari LOGIN PERTAMA sampai LOGOUT TERAKHIR di hari yang dipilih
             TimeSpan? workingHours = null;
-            var todayActivities = allUserActivities.Where(a => a.ActivityTime.Date == DateTime.Today).ToList();
+            var selectedDayActivities = activities.ToList();
 
-            var todayLogin = todayActivities.Where(a => a.ActivityType == "Login")
-                                          .OrderBy(a => a.ActivityTime)
-                                          .FirstOrDefault();
+            var firstLogin = selectedDayActivities.Where(a => a.ActivityType == "Login")
+                                                .OrderBy(a => a.ActivityTime)
+                                                .FirstOrDefault();
 
-            var todayLogout = todayActivities.Where(a => a.ActivityType == "Logout")
-                                           .OrderByDescending(a => a.ActivityTime)
-                                           .FirstOrDefault();
+            var lastLogout = selectedDayActivities.Where(a => a.ActivityType == "Logout")
+                                                .OrderByDescending(a => a.ActivityTime)
+                                                .FirstOrDefault();
 
-            if (todayLogin != null)
+            // Hitung waktu kerja HANYA jika ada login DAN logout di tanggal tersebut
+            if (firstLogin != null && lastLogout != null)
             {
-                var endTime = todayLogout?.ActivityTime ?? DateTime.Now;
-                workingHours = endTime - todayLogin.ActivityTime;
+                workingHours = lastLogout.ActivityTime - firstLogin.ActivityTime;
             }
 
-            // Calculate statistics
+            // Calculate statistics untuk tanggal yang dipilih
             var statistics = new CashierStatisticsViewModel
             {
-                // Period statistics (berdasarkan filter tanggal)
-                TotalRevenue = await _orderService.GetTotalRevenueByUserIdAsync(userId, start, end),
-                TotalOrders = userOrders.Count(o => o.Status == "Completed"),
-                TotalCustomers = await _orderService.GetTotalCustomersByUserIdAsync(userId, start, end),
-                TotalMenusOrdered = await _orderService.GetTotalMenusOrderedByUserIdAsync(userId, start, end),
+                // Statistics untuk tanggal yang dipilih
+                TotalRevenue = await _orderService.GetTotalRevenueByUserIdAsync(userId, startOfDay, endOfDay),
+                TotalOrders = dateOrders.Count(o => o.Status == "Completed"),
+                TotalCustomers = await _orderService.GetTotalCustomersByUserIdAsync(userId, startOfDay, endOfDay),
+                TotalMenusOrdered = await _orderService.GetTotalMenusOrderedByUserIdAsync(userId, startOfDay, endOfDay),
 
-                // Today's statistics
+                // Today's statistics (untuk perbandingan)
                 TodayRevenue = todayOrders.Where(o => o.Status == "Completed").Sum(o => o.Total),
                 TodayOrders = todayOrders.Count(o => o.Status == "Completed"),
                 TodayCustomers = todayOrders.Count(o => o.Status == "Completed"),
@@ -461,14 +454,14 @@ namespace POSRestoran01.Controllers
                                               .SelectMany(o => o.OrderDetails)
                                               .Sum(od => od.Quantity),
 
-                // Activity info
-                LastLogin = lastLogin,
-                LastLogout = lastLogout,
+                // Activity info - PERBAIKAN: Gunakan firstLoginOfDay
+                LastLogin = firstLoginOfDay, // Ini sekarang adalah login PERTAMA
+                LastLogout = lastLogoutOfDay,
                 WorkingHours = workingHours
             };
 
-            // Convert activities to detailed view model - ambil 20 aktivitas terbaru
-            var detailedActivities = activities.Take(20).Select(a => new UserActivityDetailViewModel
+            // Convert activities to detailed view model - ambil semua aktivitas hari yang dipilih
+            var detailedActivities = activities.Select(a => new UserActivityDetailViewModel
             {
                 ActivityId = a.ActivityId,
                 ActivityType = a.ActivityType,
@@ -484,156 +477,22 @@ namespace POSRestoran01.Controllers
             {
                 CurrentUser = user ?? new Models.User(),
                 RecentActivities = detailedActivities,
-                TodayOrders = todayOrders,
+                TodayOrders = dateOrders,
                 Statistics = statistics,
-                StartDate = startDate,
-                EndDate = endDate
+                StartDate = selectedDate,
+                
             };
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetUser(int userId)
-        {
-            try
-            {
-                var user = await _userService.GetUserByIdAsync(userId);
-                if (user == null)
-                {
-                    return Json(new { success = false, message = "Pengguna tidak ditemukan" });
-                }
-
-                return Json(new
-                {
-                    success = true,
-                    data = new
-                    {
-                        Id = user.Id,
-                        FullName = user.FullName,
-                        Username = user.Username,
-                        Email = user.Email,
-                        Role = user.Role,
-                        IsActive = user.IsActive,
-                        LastLogin = user.LastLogin,
-                        CreatedAt = user.CreatedAt
-                    }
-                });
-            }
-            catch (Exception)
-            {
-                return Json(new { success = false, message = "Terjadi kesalahan saat memuat data pengguna" });
-            }
-        }
+       
 
         
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateUser(UpdateUserViewModel model)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    var errors = ModelState
-                        .Where(x => x.Value.Errors.Count > 0)
-                        .Select(x => x.Value.Errors.First().ErrorMessage)
-                        .ToList();
+        
 
-                    return Json(new { success = false, message = string.Join(", ", errors) });
-                }
+        
 
-                var user = await _userService.GetUserByIdAsync(model.Id);
-                if (user == null)
-                {
-                    return Json(new { success = false, message = "Pengguna tidak ditemukan" });
-                }
-
-                // Check if username is taken by another user
-                var existingUser = await _userService.GetUserByUsernameAsync(model.Username);
-                if (existingUser != null && existingUser.Id != model.Id)
-                {
-                    return Json(new { success = false, message = "Username sudah digunakan" });
-                }
-
-                // Check if email is taken by another user
-                var existingEmail = await _userService.GetUserByEmailAsync(model.Email);
-                if (existingEmail != null && existingEmail.Id != model.Id)
-                {
-                    return Json(new { success = false, message = "Email sudah digunakan" });
-                }
-
-                await _userService.UpdateUserAsync(model);
-
-                return Json(new { success = true, message = "Pengguna berhasil diperbarui" });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = $"Terjadi kesalahan: {ex.Message}" });
-            }
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ToggleUserStatus(int userId)
-        {
-            try
-            {
-                var user = await _userService.GetUserByIdAsync(userId);
-                if (user == null)
-                {
-                    return Json(new { success = false, message = "Pengguna tidak ditemukan" });
-                }
-
-                // Don't allow disabling current user
-                if (user.Id == GetCurrentUserId())
-                {
-                    return Json(new { success = false, message = "Tidak dapat menonaktifkan akun sendiri" });
-                }
-
-                user.IsActive = !user.IsActive;
-                await _userService.UpdateUserAsync(new UpdateUserViewModel
-                {
-                    Id = user.Id,
-                    FullName = user.FullName,
-                    Username = user.Username,
-                    Email = user.Email,
-                    Role = user.Role,
-                    IsActive = user.IsActive
-                });
-
-                var status = user.IsActive ? "diaktifkan" : "dinonaktifkan";
-                return Json(new { success = true, message = $"Pengguna berhasil {status}" });
-            }
-            catch (Exception)
-            {
-                return Json(new { success = false, message = "Terjadi kesalahan saat mengubah status pengguna" });
-            }
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteUser(int userId)
-        {
-            try
-            {
-                // Don't allow deleting current user
-                if (userId == GetCurrentUserId())
-                {
-                    return Json(new { success = false, message = "Tidak dapat menghapus akun sendiri" });
-                }
-
-                var success = await _userService.DeleteUserAsync(userId);
-                if (success)
-                {
-                    return Json(new { success = true, message = "Pengguna berhasil dihapus" });
-                }
-                return Json(new { success = false, message = "Pengguna tidak ditemukan" });
-            }
-            catch (Exception)
-            {
-                return Json(new { success = false, message = "Terjadi kesalahan saat menghapus pengguna" });
-            }
-        }
+        
 
         [HttpPost]
         [ValidateAntiForgeryToken]

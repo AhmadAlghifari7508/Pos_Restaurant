@@ -64,7 +64,7 @@ namespace POSRestoran01.Services.Implementations
             return false;
         }
 
-        // Method tambahan untuk mendukung fungsi HomeController
+        
         public async Task<bool> CategoryExistsAsync(int id)
         {
             return await _context.Categories.AnyAsync(c => c.CategoryId == id && c.IsActive);

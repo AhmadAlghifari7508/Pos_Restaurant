@@ -1,29 +1,20 @@
 ﻿// Enhanced POS System JavaScript Functions with Menu Discount Support and Slide Payment
 
-// Global variables
 let currentMenuItems = [];
 let currentOrder = {};
 let searchTimeout;
 
-// Initialize POS system
 document.addEventListener('DOMContentLoaded', function () {
     initializePOS();
 });
 
 function initializePOS() {
-    // Initialize order summary refresh
     refreshOrderSummary();
-
-    // Set up search functionality
     setupSearchFunctionality();
-
-    // Set up keyboard shortcuts
     setupKeyboardShortcuts();
-
     console.log('Enhanced POS System with Menu Discounts and Slide Payment initialized successfully');
 }
 
-// Search functionality
 function setupSearchFunctionality() {
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
@@ -55,7 +46,6 @@ function performSearch() {
             }
         }
 
-        // Show/hide clear button
         const clearBtn = document.getElementById('clearSearchBtn');
         if (clearBtn) {
             if (searchTerm.length > 0) {
@@ -79,7 +69,6 @@ function searchMenuItems(searchTerm) {
             const container = document.getElementById('menuItemsContainer');
             if (container) {
                 container.innerHTML = html;
-                // Update item count and check for discounted items
                 updateItemCountAndDiscountInfo(container);
             }
             hideLoading();
@@ -99,7 +88,6 @@ function clearSearch() {
     if (searchInput) searchInput.value = '';
     if (clearBtn) clearBtn.classList.add('hidden');
 
-    // Load all categories when clearing search
     loadAllCategories();
 }
 
@@ -113,7 +101,6 @@ function updateCategoryTabsForSearch(searchTerm) {
     });
 }
 
-// Enhanced function to update item count and show discount info
 function updateItemCountAndDiscountInfo(container) {
     const itemCountElement = document.getElementById('itemCount');
     if (itemCountElement) {
@@ -129,11 +116,9 @@ function updateItemCountAndDiscountInfo(container) {
     }
 }
 
-// Category functions with discount awareness
 function loadAllCategories() {
     showLoading();
 
-    // Clear search when switching to all categories
     const searchInput = document.getElementById('searchInput');
     const clearBtn = document.getElementById('clearSearchBtn');
 
@@ -154,8 +139,6 @@ function loadAllCategories() {
                 updateItemCountAndDiscountInfo(container);
             }
             hideLoading();
-
-            // Update active category tab
             updateActiveCategoryTab(0);
         })
         .catch(error => {
@@ -168,7 +151,6 @@ function loadAllCategories() {
 function loadCategory(categoryId) {
     showLoading();
 
-    // Clear search when switching categories
     const searchInput = document.getElementById('searchInput');
     const clearBtn = document.getElementById('clearSearchBtn');
 
@@ -187,8 +169,6 @@ function loadCategory(categoryId) {
                 updateItemCountAndDiscountInfo(container);
             }
             hideLoading();
-
-            // Update active category tab
             updateActiveCategoryTab(categoryId);
         })
         .catch(error => {
@@ -211,9 +191,7 @@ function updateActiveCategoryTab(categoryId) {
     });
 }
 
-// Enhanced order management functions with discount support
 function addToOrder(menuItemId, itemName, price, note = '') {
-    // Get discount info from menu item element
     const menuItem = document.querySelector(`[data-menu-id="${menuItemId}"]`);
     const hasDiscount = menuItem ? menuItem.getAttribute('data-has-discount') === 'true' : false;
     const originalPrice = menuItem ? parseFloat(menuItem.getAttribute('data-original-price')) || price : price;
@@ -235,7 +213,6 @@ function addToOrder(menuItemId, itemName, price, note = '') {
             if (data.success) {
                 refreshOrderSummary();
 
-                // Enhanced notification with discount info
                 let message = data.message;
                 if (data.hasDiscount && data.discountInfo) {
                     message += ` ${data.discountInfo}`;
@@ -244,8 +221,6 @@ function addToOrder(menuItemId, itemName, price, note = '') {
                 }
 
                 showNotification(message, 'success');
-
-                // Add enhanced visual feedback
                 addVisualFeedbackWithDiscount(menuItemId, hasDiscount);
             } else {
                 showNotification(data.message || 'Terjadi kesalahan', 'error');
@@ -276,7 +251,6 @@ function updateQuantity(menuItemId, newQuantity) {
         .then(data => {
             if (data.success) {
                 refreshOrderSummary();
-                // Only show notification for significant quantity changes
                 if (newQuantity > 5) {
                     showNotification(`Quantity diperbarui ke ${newQuantity}`, 'success', 1500);
                 }
@@ -363,13 +337,7 @@ function refreshOrderSummary() {
         });
 }
 
-// ===============================
-// SLIDE PAYMENT FUNCTIONS
-// ===============================
-
-// Show slide payment (replaces modal)
 function showSlidePayment() {
-    // First check if there's any order
     fetch('/Home/GetOrderSummaryData')
         .then(response => response.json())
         .then(data => {
@@ -378,15 +346,12 @@ function showSlidePayment() {
                 return;
             }
 
-            // Show slide effect
             const slideContainer = document.getElementById('slideContainer');
             if (slideContainer) {
                 slideContainer.classList.add('slide-left');
-                // Update payment summary after slide
                 setTimeout(updateSlidePaymentSummary, 300);
             }
 
-            // Show savings info if available
             if (data.data.totalSavings && data.data.totalSavings > 0) {
                 showNotification(`Total penghematan: Rp ${data.data.totalSavings.toLocaleString('id-ID')}`, 'discount', 5000);
             }
@@ -397,18 +362,14 @@ function showSlidePayment() {
         });
 }
 
-// Hide slide payment (back to order view)
 function hideSlidePayment() {
     const slideContainer = document.getElementById('slideContainer');
     if (slideContainer) {
         slideContainer.classList.remove('slide-left');
     }
-
-    // Reset payment form
     resetSlidePaymentForm();
 }
 
-// Update payment summary in slide payment
 function updateSlidePaymentSummary() {
     fetch('/Home/GetOrderSummaryData')
         .then(response => response.json())
@@ -427,7 +388,6 @@ function updateSlidePaymentSummary() {
         });
 }
 
-// Calculate change in slide payment
 function calculateSlideChange() {
     const cashInput = document.getElementById('slideCashAmount');
     const totalElement = document.getElementById('paymentTotalAmount');
@@ -440,7 +400,6 @@ function calculateSlideChange() {
 
     const change = Math.max(0, cash - total);
 
-    // Update displays
     const cashReceivedElement = document.getElementById('slideCashReceived');
     const paymentTotalElement = document.getElementById('slidePaymentTotal');
     const changeElement = document.getElementById('slideChange');
@@ -456,7 +415,6 @@ function calculateSlideChange() {
         changeElement.textContent = `Rp ${change.toLocaleString('id-ID')}`;
     }
 
-    // Update button state
     if (confirmBtn) {
         if (cash >= total && total > 0) {
             confirmBtn.disabled = false;
@@ -472,7 +430,6 @@ function calculateSlideChange() {
     }
 }
 
-// Toggle table number visibility in slide payment
 function toggleSlideTableNo() {
     const orderTypeRadios = document.querySelectorAll('input[name="slideOrderType"]');
     const checkedRadio = document.querySelector('input[name="slideOrderType"]:checked');
@@ -491,7 +448,6 @@ function toggleSlideTableNo() {
     }
 }
 
-// Process slide payment
 function processSlidePayment() {
     const customerName = document.getElementById('slideCustomerName')?.value || '';
     const orderTypeRadio = document.querySelector('input[name="slideOrderType"]:checked');
@@ -515,7 +471,6 @@ function processSlidePayment() {
         return;
     }
 
-    // Validate cash amount
     const totalElement = document.getElementById('paymentTotalAmount');
     if (totalElement) {
         const total = parseFloat(totalElement.textContent.replace(/[Rp.,\s]/g, '')) || 0;
@@ -549,14 +504,12 @@ function processSlidePayment() {
                 hideSlidePayment();
                 showNotification('Pembayaran berhasil diproses!', 'success');
 
-                // Show total savings if any
                 if (data.totalSavings && data.totalSavings > 0) {
                     setTimeout(() => {
                         showNotification(`Total penghematan: Rp ${data.totalSavings.toLocaleString('id-ID')}`, 'discount', 5000);
                     }, 2000);
                 }
 
-                // Refresh order summary after delay
                 setTimeout(() => {
                     refreshOrderSummary();
                 }, 1500);
@@ -571,7 +524,6 @@ function processSlidePayment() {
         });
 }
 
-// Reset slide payment form
 function resetSlidePaymentForm() {
     const customerNameInput = document.getElementById('slideCustomerName');
     const cashInput = document.getElementById('slideCashAmount');
@@ -587,11 +539,6 @@ function resetSlidePaymentForm() {
     calculateSlideChange();
 }
 
-// ===============================
-// LEGACY PAYMENT MODAL FUNCTIONS (untuk backward compatibility)
-// ===============================
-
-// Override showPaymentModal untuk menggunakan slide payment
 function showPaymentModal() {
     showSlidePayment();
 }
@@ -600,13 +547,11 @@ function hidePaymentModal() {
     hideSlidePayment();
 }
 
-// Enhanced visual feedback with discount awareness
 function addVisualFeedbackWithDiscount(menuItemId, hasDiscount) {
     const menuItem = document.querySelector(`[data-menu-id="${menuItemId}"]`);
     if (menuItem) {
         if (hasDiscount) {
             menuItem.classList.add('animate-pulse');
-            // Add special discount feedback
             menuItem.style.transform = 'scale(1.05)';
             menuItem.style.boxShadow = '0 0 15px rgba(239, 68, 68, 0.6)';
             setTimeout(() => {
@@ -623,12 +568,10 @@ function addVisualFeedbackWithDiscount(menuItemId, hasDiscount) {
     }
 }
 
-// Standard visual feedback (for backward compatibility)
 function addVisualFeedback(menuItemId) {
     addVisualFeedbackWithDiscount(menuItemId, false);
 }
 
-// Loading functions
 function showLoading() {
     const overlay = document.getElementById('loadingOverlay');
     if (overlay) {
@@ -645,9 +588,7 @@ function hideLoading() {
     }
 }
 
-// Enhanced notification system with discount support
 function showNotification(message, type = 'info', duration = 3000) {
-    // Remove existing notifications
     const existingNotifications = document.querySelectorAll('.notification');
     existingNotifications.forEach(notification => notification.remove());
 
@@ -692,12 +633,10 @@ function showNotification(message, type = 'info', duration = 3000) {
 
     document.body.appendChild(notification);
 
-    // Animate in
     setTimeout(() => {
         notification.classList.remove('translate-x-full');
     }, 10);
 
-    // Auto remove
     setTimeout(() => {
         notification.classList.add('translate-x-full');
         setTimeout(() => {
@@ -706,7 +645,6 @@ function showNotification(message, type = 'info', duration = 3000) {
     }, duration);
 }
 
-// Utility functions
 function getAntiForgeryToken() {
     const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
     return tokenElement ? tokenElement.value : '';
@@ -725,12 +663,9 @@ function formatNumber(number) {
     return new Intl.NumberFormat('id-ID').format(number);
 }
 
-// Enhanced keyboard shortcuts with slide payment support
 function setupKeyboardShortcuts() {
     document.addEventListener('keydown', function (e) {
-        // Only process shortcuts if not typing in input fields
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-            // Allow Escape in payment form to cancel
             if (e.key === 'Escape') {
                 const slideContainer = document.getElementById('slideContainer');
                 if (slideContainer && slideContainer.classList.contains('slide-left')) {
@@ -744,7 +679,6 @@ function setupKeyboardShortcuts() {
         switch (e.key) {
             case 'F1':
                 e.preventDefault();
-                // Focus on search
                 const searchInput = document.getElementById('searchInput');
                 if (searchInput) searchInput.focus();
                 break;
@@ -758,7 +692,6 @@ function setupKeyboardShortcuts() {
                 break;
             case 'F4':
                 e.preventDefault();
-                // Show discount items only
                 showDiscountedItems();
                 break;
             case 'Escape':
@@ -769,7 +702,6 @@ function setupKeyboardShortcuts() {
     });
 }
 
-// New function to show only discounted items
 function showDiscountedItems() {
     const menuItems = document.querySelectorAll('.menu-item');
     let hasDiscountItems = false;
@@ -786,7 +718,6 @@ function showDiscountedItems() {
 
     if (hasDiscountItems) {
         showNotification('Menampilkan hanya menu dengan diskon (tekan F4 lagi untuk reset)', 'discount', 4000);
-        // Add reset functionality
         const resetHandler = function (e) {
             if (e.key === 'F4') {
                 e.preventDefault();
@@ -803,7 +734,6 @@ function showDiscountedItems() {
     }
 }
 
-// Enhanced functions for discount-aware operations
 function getDiscountInfo(menuItemId) {
     const menuItem = document.querySelector(`[data-menu-id="${menuItemId}"]`);
     if (!menuItem) return null;
@@ -827,10 +757,9 @@ function highlightDiscountedItems() {
         discountedItems.forEach(item => {
             item.style.animation = '';
         });
-    }, 10000); // Stop highlighting after 10 seconds
+    }, 10000);
 }
 
-// Auto-highlight discounted items on page load
 document.addEventListener('DOMContentLoaded', function () {
     setTimeout(() => {
         const discountedItems = document.querySelectorAll('.menu-item[data-has-discount="true"]');
@@ -840,7 +769,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 2000);
 });
 
-// Export functions for global access
 window.POS = {
     addToOrder: addToOrder,
     updateQuantity: updateQuantity,
@@ -848,8 +776,8 @@ window.POS = {
     clearOrder: clearOrder,
     loadCategory: loadCategory,
     loadAllCategories: loadAllCategories,
-    showPaymentModal: showSlidePayment, // Updated to use slide payment
-    hidePaymentModal: hideSlidePayment, // Updated to use slide payment
+    showPaymentModal: showSlidePayment,
+    hidePaymentModal: hideSlidePayment,
     showSlidePayment: showSlidePayment,
     hideSlidePayment: hideSlidePayment,
     refreshOrderSummary: refreshOrderSummary,
@@ -857,27 +785,24 @@ window.POS = {
     searchMenuItems: searchMenuItems,
     clearSearch: clearSearch,
     performSearch: performSearch,
-    // New slide payment functions
     calculateSlideChange: calculateSlideChange,
     toggleSlideTableNo: toggleSlideTableNo,
     processSlidePayment: processSlidePayment,
     updateSlidePaymentSummary: updateSlidePaymentSummary,
     resetSlidePaymentForm: resetSlidePaymentForm,
-    // Discount-related functions
     showDiscountedItems: showDiscountedItems,
     highlightDiscountedItems: highlightDiscountedItems,
     getDiscountInfo: getDiscountInfo
 };
 
-// Make functions globally available (for backward compatibility)
 window.addToOrder = addToOrder;
 window.updateQuantity = updateQuantity;
 window.removeFromOrder = removeFromOrder;
 window.clearOrder = clearOrder;
 window.loadCategory = loadCategory;
 window.loadAllCategories = loadAllCategories;
-window.showPaymentModal = showSlidePayment; // Updated
-window.hidePaymentModal = hideSlidePayment; // Updated
+window.showPaymentModal = showSlidePayment;
+window.hidePaymentModal = hideSlidePayment;
 window.showSlidePayment = showSlidePayment;
 window.hideSlidePayment = hideSlidePayment;
 window.refreshOrderSummary = refreshOrderSummary;
@@ -893,7 +818,6 @@ window.processSlidePayment = processSlidePayment;
 window.updateSlidePaymentSummary = updateSlidePaymentSummary;
 window.resetSlidePaymentForm = resetSlidePaymentForm;
 
-// Add CSS for discount animations and slide effect
 const enhancedCSS = `
     @keyframes discount-highlight {
         from { box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
@@ -917,7 +841,6 @@ const enhancedCSS = `
         transform: translateX(-50%);
     }
 
-    /* Custom number input styling */
     input[type="number"]::-webkit-outer-spin-button,
     input[type="number"]::-webkit-inner-spin-button {
         -webkit-appearance: none;
@@ -928,19 +851,16 @@ const enhancedCSS = `
         -moz-appearance: textfield;
     }
 
-    /* Radio button styling */
     input[type="radio"]:checked {
         background-color: #3b82f6;
         border-color: #3b82f6;
     }
 
-    /* Smooth animations for slide payment */
     .slide-container * {
         transition: all 0.2s ease;
     }
 `;
 
-// Inject enhanced CSS
 const style = document.createElement('style');
 style.textContent = enhancedCSS;
 document.head.appendChild(style);

@@ -11,16 +11,17 @@ namespace POSRestoran01.Services.Implementations
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly IStockHistoryService _stockHistoryService;
-        private readonly decimal _ppnRate = 0.11m; // 11%
+        private readonly decimal _ppnRate = 0.11m; 
+
 
         public OrderService(ApplicationDbContext context, IConfiguration configuration, IStockHistoryService stockHistoryService) // TAMBAH PARAMETER
         {
             _context = context;
             _configuration = configuration;
-            _stockHistoryService = stockHistoryService; // TAMBAH INI
+            _stockHistoryService = stockHistoryService; 
         }
 
-        // Property untuk mengambil discount percentage dari konfigurasi dengan default 5%
+        
         private decimal DiscountPercentage =>
             _configuration.GetValue<decimal>("AppSettings:DiscountPercentage", 5m);
 
@@ -45,7 +46,7 @@ namespace POSRestoran01.Services.Implementations
 
             try
             {
-                // Validasi stok sebelum membuat order
+              
                 foreach (var item in paymentModel.Items)
                 {
                     var menuItem = await _context.MenuItems.FindAsync(item.MenuItemId);
@@ -75,7 +76,7 @@ namespace POSRestoran01.Services.Implementations
                     OrderTime = DateTime.Now.TimeOfDay,
                     Subtotal = paymentModel.Subtotal,
                     Discount = paymentModel.Discount,
-                    MenuDiscountTotal = menuDiscountTotal, // Set menu discount total
+                    MenuDiscountTotal = menuDiscountTotal, 
                     PPN = paymentModel.PPN,
                     Total = paymentModel.Total,
                     Status = "Completed",
@@ -87,7 +88,7 @@ namespace POSRestoran01.Services.Implementations
                 _context.Orders.Add(order);
                 await _context.SaveChangesAsync();
 
-                // Add order details dengan informasi diskon per menu
+                
                 foreach (var item in paymentModel.Items)
                 {
                     var orderDetail = new OrderDetail
@@ -95,7 +96,7 @@ namespace POSRestoran01.Services.Implementations
                         OrderId = order.OrderId,
                         MenuItemId = item.MenuItemId,
                         Quantity = item.Quantity,
-                        UnitPrice = item.UnitPrice, // Final price (after discount)
+                        UnitPrice = item.UnitPrice, 
                         OriginalPrice = item.OriginalPrice > 0 ? item.OriginalPrice : item.UnitPrice, // Store original price
                         DiscountPercentage = item.DiscountPercentage,
                         DiscountAmount = item.DiscountAmount,
@@ -105,14 +106,14 @@ namespace POSRestoran01.Services.Implementations
 
                     _context.OrderDetails.Add(orderDetail);
 
-                    // Update stock dengan stock history recording
+                    
                     var menuItem = await _context.MenuItems.FindAsync(item.MenuItemId);
                     if (menuItem != null)
                     {
                         var previousStock = menuItem.Stock;
                         var newStock = previousStock - item.Quantity;
 
-                        // Record stock history SEBELUM update stock
+                       
                         await _stockHistoryService.RecordStockChangeAsync(
                             item.MenuItemId,
                             userId,
@@ -122,7 +123,7 @@ namespace POSRestoran01.Services.Implementations
                             $"Order: {paymentModel.OrderNumber} - {item.ItemName} x{item.Quantity}"
                         );
 
-                        // Update stock
+                        
                         menuItem.Stock = newStock;
                         menuItem.UpdatedAt = DateTime.Now;
                     }
@@ -186,19 +187,19 @@ namespace POSRestoran01.Services.Implementations
             return items.Sum(item => item.UnitPrice * item.Quantity);
         }
 
-        // New method to calculate subtotal considering menu discounts are already applied
+       
         public decimal CalculateSubtotalWithMenuDiscount(List<OrderItemViewModel> items)
         {
-            return items.Sum(item => item.UnitPrice * item.Quantity); // UnitPrice is already the discounted price
+            return items.Sum(item => item.UnitPrice * item.Quantity); 
         }
 
-        // Calculate subtotal before any discounts (original prices)
+        
         public decimal CalculateOriginalSubtotal(List<OrderItemViewModel> items)
         {
             return items.Sum(item => (item.OriginalPrice > 0 ? item.OriginalPrice : item.UnitPrice) * item.Quantity);
         }
 
-        // Calculate total menu discount amount
+        
         public decimal CalculateMenuDiscountTotal(List<OrderItemViewModel> items)
         {
             return items.Where(item => item.HasDiscount)
@@ -216,7 +217,7 @@ namespace POSRestoran01.Services.Implementations
             return subtotal - discount + ppn;
         }
 
-        // Method untuk menghitung discount order berdasarkan subtotal dan discount yang diinginkan
+        
         public decimal CalculateDiscountAmount(decimal subtotal)
         {
             if (subtotal <= 0)
@@ -225,7 +226,7 @@ namespace POSRestoran01.Services.Implementations
             return Math.Round(subtotal * (DiscountPercentage / 100), 0, MidpointRounding.AwayFromZero);
         }
 
-        // Method untuk mengecek apakah discount bisa diterapkan
+        
         public bool IsDiscountApplicable(decimal subtotal, decimal minimumAmount = 50000m)
         {
             return subtotal >= minimumAmount;
@@ -251,7 +252,7 @@ namespace POSRestoran01.Services.Implementations
             return (subtotal, orderDiscount, menuDiscountTotal, ppn, total);
         }
 
-        // Method tambahan untuk mendukung HomeController
+    
         public async Task<bool> ValidateOrderNumberAsync(string orderNumber)
         {
             return !await _context.Orders.AnyAsync(o => o.OrderNumber == orderNumber);
@@ -314,7 +315,7 @@ namespace POSRestoran01.Services.Implementations
                 if (order == null || order.Status == "Canceled")
                     return false;
 
-                // Restore stock dengan stock history recording
+               
                 foreach (var detail in order.OrderDetails)
                 {
                     var menuItem = await _context.MenuItems.FindAsync(detail.MenuItemId);
@@ -323,7 +324,7 @@ namespace POSRestoran01.Services.Implementations
                         var previousStock = menuItem.Stock;
                         var newStock = previousStock + detail.Quantity;
 
-                        // Record stock history untuk restore
+                     
                         await _stockHistoryService.RecordStockChangeAsync(
                             detail.MenuItemId,
                             order.UserId,
@@ -387,7 +388,7 @@ namespace POSRestoran01.Services.Implementations
             return orderViewModel;
         }
 
-        // Helper methods tambahan
+
         public async Task<bool> IsOrderNumberExistsAsync(string orderNumber)
         {
             return await _context.Orders.AnyAsync(o => o.OrderNumber == orderNumber);
@@ -424,7 +425,7 @@ namespace POSRestoran01.Services.Implementations
             };
         }
 
-        // Method to get discount statistics including menu discounts
+        
         public async Task<Dictionary<string, object>> GetDiscountStatisticsAsync(DateTime startDate, DateTime endDate)
         {
             var orders = await _context.Orders
@@ -455,14 +456,14 @@ namespace POSRestoran01.Services.Implementations
             };
         }
 
-        // Method to validate discount eligibility
+        
         public bool ValidateDiscountEligibility(List<OrderItemViewModel> items, decimal minimumAmount = 50000m)
         {
             var subtotal = CalculateSubtotal(items);
             return IsDiscountApplicable(subtotal, minimumAmount);
         }
 
-        // Method to get available discounts
+
         public List<(string name, decimal percentage, decimal minimumAmount)> GetAvailableDiscounts()
         {
             return new List<(string, decimal, decimal)>
@@ -471,22 +472,19 @@ namespace POSRestoran01.Services.Implementations
             };
         }
 
-        // Method to calculate savings from discount
         public decimal CalculateSavings(decimal subtotal)
         {
             return CalculateDiscountAmount(subtotal);
         }
 
-        // Method to calculate total savings including menu discounts
+      
         public decimal CalculateTotalSavings(List<OrderItemViewModel> items, bool hasOrderDiscount = false)
         {
             var menuDiscountTotal = CalculateMenuDiscountTotal(items);
             var orderDiscountTotal = hasOrderDiscount ? CalculateDiscountAmount(CalculateSubtotal(items)) : 0;
             return menuDiscountTotal + orderDiscountTotal;
         }
-        // TAMBAH methods berikut di OrderService.cs:
 
-        // Method untuk mendapatkan orders berdasarkan user dan tanggal
         public async Task<List<Order>> GetOrdersByUserIdAsync(int userId, DateTime startDate, DateTime endDate)
         {
             return await _context.Orders
@@ -510,7 +508,7 @@ namespace POSRestoran01.Services.Implementations
                 .SumAsync(o => o.Total);
         }
 
-        // Method untuk mendapatkan total customers berdasarkan user dan tanggal
+ 
         public async Task<int> GetTotalCustomersByUserIdAsync(int userId, DateTime startDate, DateTime endDate)
         {
             return await _context.Orders
@@ -521,7 +519,7 @@ namespace POSRestoran01.Services.Implementations
                 .CountAsync();
         }
 
-        // Method untuk mendapatkan total menus ordered berdasarkan user dan tanggal
+        
         public async Task<int> GetTotalMenusOrderedByUserIdAsync(int userId, DateTime startDate, DateTime endDate)
         {
             return await _context.Orders

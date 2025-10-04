@@ -16,7 +16,7 @@ namespace POSRestoran01.Controllers
         [HttpGet]
         public IActionResult Login()
         {
-            // Jika sudah login, redirect ke home
+            
             if (!string.IsNullOrEmpty(HttpContext.Session.GetString("UserId")))
             {
                 return RedirectToAction("Index", "Home");
@@ -36,13 +36,13 @@ namespace POSRestoran01.Controllers
                     var user = await _authService.AuthenticateAsync(model);
                     if (user != null)
                     {
-                        // Set session
+                     
                         HttpContext.Session.SetString("UserId", user.Id.ToString());
                         HttpContext.Session.SetString("Username", user.Username);
                         HttpContext.Session.SetString("FullName", user.FullName);
                         HttpContext.Session.SetString("UserRole", user.Role);
 
-                        // Activity recording sudah dilakukan di AuthService
+                        
                         TempData["Success"] = $"Selamat datang, {user.FullName}!";
                         return RedirectToAction("Index", "Home");
                     }
@@ -69,14 +69,13 @@ namespace POSRestoran01.Controllers
                 var userIdString = HttpContext.Session.GetString("UserId");
                 if (!string.IsNullOrEmpty(userIdString) && int.TryParse(userIdString, out int userId))
                 {
-                    // Record logout activity
+                    
                     await _authService.LogoutAsync(userId);
                 }
             }
             catch (Exception ex)
             {
-                // Log error but continue with logout
-                // Logging dapat ditambahkan di sini
+                
             }
 
             HttpContext.Session.Clear();
@@ -92,7 +91,7 @@ namespace POSRestoran01.Controllers
                 var userIdString = HttpContext.Session.GetString("UserId");
                 if (!string.IsNullOrEmpty(userIdString) && int.TryParse(userIdString, out int userId))
                 {
-                    // Record logout activity
+                
                     await _authService.LogoutAsync(userId);
                 }
 
@@ -101,7 +100,7 @@ namespace POSRestoran01.Controllers
             }
             catch (Exception)
             {
-                // Even if there's an error, still logout
+                
                 HttpContext.Session.Clear();
                 return Json(new { success = true, redirectUrl = Url.Action("Login", "Account") });
             }

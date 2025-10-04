@@ -29,12 +29,8 @@
                 <i class="fas fa-user text-3xl text-white"></i>
             </div>
             <div class="text-white">
-                <h2 class="text-2xl font-bold mb-1" id="currentUserFullName">@ViewBag.CurrentUserFullName</h2>
-                <p class="text-blue-100 text-lg" id="currentUserRole">@ViewBag.CurrentUserRole</p>
-                <div class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-500 bg-opacity-90 text-white mt-2">
-                    <div class="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></div>
-                    <span class="font-medium">Aktif</span>
-                </div>
+                <h2 class="text-2xl font-bold mb-1" id="currentUserFullName">@Model.CurrentUser?.FullName</h2>
+                <p class="text-blue-100 text-lg" id="currentUserRole">@Model.CurrentUser?.Role</p>
             </div>
         </div>
     </div>
@@ -60,7 +56,7 @@
                 <div class="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-colors">
                     <div class="flex justify-between items-center">
                         <span class="text-gray-600 font-medium">Username</span>
-                        <span class="font-bold text-gray-800 bg-white px-3 py-1 rounded-lg shadow-sm" id="currentUserUsername">@ViewBag.CurrentUser</span>
+                        <span class="font-bold text-gray-800 bg-white px-3 py-1 rounded-lg shadow-sm" id="currentUserUsername">@Model.CurrentUser?.Username</span>
                     </div>
                 </div>
 
@@ -68,8 +64,7 @@
                     <div class="flex justify-between items-center">
                         <span class="text-gray-600 font-medium">Email</span>
                         <span class="font-bold text-gray-800 bg-white px-3 py-1 rounded-lg shadow-sm" id="currentUserEmail">
-                            <i class="fas fa-spinner fa-spin text-blue-500"></i>
-                            <span class="ml-2">Memuat...</span>
+                            @(Model.CurrentUser?.Email ?? "Tidak ada email")
                         </span>
                     </div>
                 </div>
@@ -81,8 +76,14 @@
                     <div class="flex justify-between items-center">
                         <span class="text-gray-600 font-medium">Login Terakhir</span>
                         <span class="font-bold text-gray-800 bg-white px-3 py-1 rounded-lg shadow-sm" id="currentUserLastLogin">
-                            <i class="fas fa-spinner fa-spin text-blue-500"></i>
-                            <span class="ml-2">Memuat...</span>
+                            @if (Model.CurrentUser?.LastLogin != null)
+                            {
+                                @Model.CurrentUser.LastLogin.Value.ToString("dd MMMM yyyy HH:mm", new System.Globalization.CultureInfo("id-ID")) <text> WIB</text>
+                            }
+                            else
+                            {
+                                <text>Belum pernah login</text>
+                            }
                         </span>
                     </div>
                 </div>
@@ -100,8 +101,14 @@
                     <div class="flex justify-between items-center">
                         <span class="text-gray-600 font-medium">Dibuat Pada</span>
                         <span class="font-bold text-gray-800 bg-white px-3 py-1 rounded-lg shadow-sm" id="currentUserCreatedAt">
-                            <i class="fas fa-spinner fa-spin text-blue-500"></i>
-                            <span class="ml-2">Memuat...</span>
+                            @if (Model.CurrentUser?.CreatedAt != null)
+                            {
+                                @Model.CurrentUser.CreatedAt.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("id-ID"))
+                            }
+                            else
+                            {
+                                <text>Data tidak tersedia</text>
+                            }
                         </span>
                     </div>
                 </div>

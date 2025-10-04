@@ -34,7 +34,7 @@ namespace POSRestoran01.Models
         [Display(Name = "Subtotal")]
         public decimal Subtotal { get; set; }
 
-        // Discount Properties untuk menyimpan info diskon saat order dibuat
+        
         [Column(TypeName = "decimal(10,2)")]
         [Display(Name = "Harga Asli")]
         public decimal OriginalPrice { get; set; } = 0;
@@ -47,14 +47,14 @@ namespace POSRestoran01.Models
         [Display(Name = "Jumlah Diskon")]
         public decimal DiscountAmount { get; set; } = 0;
 
-        // Navigation Properties
+        
         [ForeignKey("OrderId")]
         public virtual Order Order { get; set; } = null!;
 
         [ForeignKey("MenuItemId")]
         public virtual MenuItem MenuItem { get; set; } = null!;
 
-        // Computed Properties
+        
         [NotMapped]
         public bool HasDiscount => DiscountPercentage > 0 && DiscountAmount > 0;
 

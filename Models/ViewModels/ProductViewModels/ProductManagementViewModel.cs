@@ -41,7 +41,7 @@ namespace POSRestoran01.Models.ViewModels.ProductViewModels
         [Display(Name = "Status Aktif")]
         public bool IsActive { get; set; } = true;
 
-        // Discount Properties
+        
         [Range(0, 100, ErrorMessage = "Persentase diskon harus antara 0 dan 100")]
         [Display(Name = "Persentase Diskon (%)")]
         public decimal? DiscountPercentage { get; set; } = 0;
@@ -94,7 +94,7 @@ namespace POSRestoran01.Models.ViewModels.ProductViewModels
 
         public string? CurrentImagePath { get; set; }
 
-        // Discount Properties
+        
         [Range(0, 100, ErrorMessage = "Persentase diskon harus antara 0 dan 100")]
         [Display(Name = "Persentase Diskon (%)")]
         public decimal? DiscountPercentage { get; set; } = 0;

@@ -21,18 +21,18 @@ namespace POSRestoran01.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configure decimal precision for existing fields
+            
             modelBuilder.Entity<MenuItem>()
                 .Property(m => m.Price)
                 .HasColumnType("decimal(10,2)");
 
-            // Configure MenuItem discount properties
+            
             modelBuilder.Entity<MenuItem>()
                 .Property(m => m.DiscountPercentage)
                 .HasColumnType("decimal(5,2)")
                 .HasDefaultValue(0.00m);
 
-            // Configure Order properties
+            
             modelBuilder.Entity<Order>()
                 .Property(o => o.Subtotal)
                 .HasColumnType("decimal(10,2)");
@@ -41,7 +41,7 @@ namespace POSRestoran01.Data
                 .Property(o => o.Discount)
                 .HasColumnType("decimal(10,2)");
 
-            // Configure new MenuDiscountTotal property
+            
             modelBuilder.Entity<Order>()
                 .Property(o => o.MenuDiscountTotal)
                 .HasColumnType("decimal(10,2)")
@@ -55,7 +55,7 @@ namespace POSRestoran01.Data
                 .Property(o => o.Total)
                 .HasColumnType("decimal(10,2)");
 
-            // Configure OrderDetail properties
+            
             modelBuilder.Entity<OrderDetail>()
                 .Property(od => od.UnitPrice)
                 .HasColumnType("decimal(10,2)");
@@ -64,7 +64,7 @@ namespace POSRestoran01.Data
                 .Property(od => od.Subtotal)
                 .HasColumnType("decimal(10,2)");
 
-            // Configure new OrderDetail discount properties
+            
             modelBuilder.Entity<OrderDetail>()
                 .Property(od => od.OriginalPrice)
                 .HasColumnType("decimal(10,2)")
@@ -80,7 +80,7 @@ namespace POSRestoran01.Data
                 .HasColumnType("decimal(10,2)")
                 .HasDefaultValue(0.00m);
 
-            // Configure Payment properties
+           
             modelBuilder.Entity<Payment>()
                 .Property(p => p.AmountPaid)
                 .HasColumnType("decimal(10,2)");
@@ -89,7 +89,7 @@ namespace POSRestoran01.Data
                 .Property(p => p.ChangeAmount)
                 .HasColumnType("decimal(10,2)");
 
-            // Configure relationships
+            
             modelBuilder.Entity<MenuItem>()
                 .HasOne(m => m.Category)
                 .WithMany(c => c.MenuItems)
@@ -115,7 +115,8 @@ namespace POSRestoran01.Data
                 .WithMany(o => o.Payments)
                 .HasForeignKey(p => p.OrderId);
 
-            // Configure indexes for better performance
+            
+
             modelBuilder.Entity<MenuItem>()
                 .HasIndex(m => new { m.IsDiscountActive, m.DiscountStartDate, m.DiscountEndDate })
                 .HasDatabaseName("IX_MenuItems_Discount");

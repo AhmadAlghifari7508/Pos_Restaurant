@@ -40,7 +40,7 @@ namespace POSRestoran01.Models
         [Display(Name = "Status Aktif")]
         public bool IsActive { get; set; } = true;
 
-        // Discount Properties
+        
         [Column(TypeName = "decimal(5,2)")]
         [Display(Name = "Persentase Diskon")]
         [Range(0, 100, ErrorMessage = "Persentase diskon harus antara 0 dan 100")]
@@ -61,12 +61,12 @@ namespace POSRestoran01.Models
         [Display(Name = "Diperbarui Pada")]
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
-        // Navigation Properties
+        
         [ForeignKey("CategoryId")]
         public virtual Category Category { get; set; } = null!;
         public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 
-        // Computed Properties
+       
         [NotMapped]
         public bool HasActiveDiscount => IsDiscountActive &&
             DiscountPercentage > 0 &&

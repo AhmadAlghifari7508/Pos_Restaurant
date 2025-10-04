@@ -30,7 +30,7 @@ namespace POSRestoran01.Models
         [Display(Name = "Dibuat Pada")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-        // Navigation Properties
+        
         [ForeignKey("OrderId")]
         public virtual Order Order { get; set; } = null!;
     }

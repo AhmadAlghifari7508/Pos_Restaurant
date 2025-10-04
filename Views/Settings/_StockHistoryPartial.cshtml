@@ -1,72 +1,193 @@
 ﻿@model List<POSRestoran01.Models.StockHistory>
+@{
+    var totalRecords = Model?.Count ?? 0;
+    var increasedStock = Model?.Where(h => h.StockChange > 0).Count() ?? 0;
+    var decreasedStock = Model?.Where(h => h.StockChange < 0).Count() ?? 0;
+    var uniqueItems = Model?.Select(h => h.MenuItemId).Distinct().Count() ?? 0;
+}
 
-@if (Model.Any())
+<!-- Statistics Summary -->
+<div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
+    <div class="text-center">
+        <div class="text-2xl font-bold text-blue-600">@totalRecords</div>
+        <div class="text-sm text-gray-600">Total Perubahan</div>
+    </div>
+    <div class="text-center">
+        <div class="text-2xl font-bold text-green-600">@increasedStock</div>
+        <div class="text-sm text-gray-600">Penambahan</div>
+    </div>
+    <div class="text-center">
+        <div class="text-2xl font-bold text-red-600">@decreasedStock</div>
+        <div class="text-sm text-gray-600">Pengurangan</div>
+    </div>
+    <div class="text-center">
+        <div class="text-2xl font-bold text-purple-600">@uniqueItems</div>
+        <div class="text-sm text-gray-600">Item Berbeda</div>
+    </div>
+</div>
+
+@if (Model != null && Model.Any())
 {
-    <div class="overflow-x-auto">
-        <table class="min-w-full">
-            <thead>
-                <tr class="border-b border-gray-200">
-                    <th class="text-left py-3 px-4 font-semibold text-gray-700">ID</th>
-                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Kasir</th>
-                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Menu Item</th>
-                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Stok Sebelum</th>
-                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Stok Sesudah</th>
-                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Perubahan</th>
-                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Tipe</th>
-                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Tanggal</th>
-                    <th class="text-left py-3 px-4 font-semibold text-gray-700">Keterangan</th>
+    <div class="overflow-x-auto bg-white rounded-xl shadow-sm">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+                <tr>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <i class="fas fa-hashtag mr-2 text-gray-500"></i>ID
+                    </th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <i class="fas fa-user mr-2 text-gray-500"></i>Kasir
+                    </th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <i class="fas fa-utensils mr-2 text-gray-500"></i>Menu
+                    </th>
+                    <th class="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <i class="fas fa-box mr-2 text-gray-500"></i>Stok Awal
+                    </th>
+                    <th class="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <i class="fas fa-boxes mr-2 text-gray-500"></i>Stok Akhir
+                    </th>
+                    <th class="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <i class="fas fa-exchange-alt mr-2 text-gray-500"></i>Perubahan
+                    </th>
+                    <th class="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <i class="fas fa-tag mr-2 text-gray-500"></i>Jenis
+                    </th>
+                    <th class="px-6 py-4 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <i class="fas fa-clock mr-2 text-gray-500"></i>Waktu
+                    </th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        <i class="fas fa-sticky-note mr-2 text-gray-500"></i>Keterangan
+                    </th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="bg-white divide-y divide-gray-100">
                 @foreach (var history in Model)
                 {
-                    <tr class="border-b border-gray-100 hover:bg-gray-50">
-                        <td class="py-3 px-4">@history.StockHistoryId</td>
-                        <td class="py-3 px-4">
+                    <tr class="hover:bg-blue-50 transition-all duration-200 hover:shadow-sm hover:-translate-y-0.5">
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-700">
+                                #@history.StockHistoryId.ToString("000")
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
                             <div>
-                                <div class="font-medium">@history.User?.FullName</div>
-                                <div class="text-sm text-gray-500">@history.User?.Username</div>
+                                <div class="text-xs font-medium text-gray-900">@(history.User?.FullName ?? "Tidak Diketahui")</div>
+                                <div class="text-xs text-gray-500">@@@(history.User?.Username ?? "unknown")</div>
                             </div>
                         </td>
-                        <td class="py-3 px-4">
+                        <td class="px-4 py-3">
                             <div>
-                                <div class="font-medium">@history.MenuItem?.ItemName</div>
-                                <div class="text-sm text-gray-500">@history.MenuItem?.Category?.CategoryName</div>
+                                <div class="text-xs font-medium text-gray-900">@(history.MenuItem?.ItemName ?? "Item Tidak Diketahui")</div>
+                                <div class="text-xs text-gray-500">@(history.MenuItem?.Category?.CategoryName ?? "Kategori Tidak Diketahui")</div>
                             </div>
                         </td>
-                        <td class="py-3 px-4 text-center">@history.PreviousStock</td>
-                        <td class="py-3 px-4 text-center">@history.NewStock</td>
-                        <td class="py-3 px-4 text-center">
+                        <td class="px-4 py-3 text-center">
+                            <span class="text-sm font-semibold text-gray-900">@history.PreviousStock</span>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="text-sm font-semibold text-gray-900">@history.NewStock</span>
+                        </td>
+                        <td class="px-4 py-3 text-center">
                             @if (history.StockChange > 0)
                             {
-                                <span class="text-green-600">+@history.StockChange</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                    <i class="fas fa-arrow-up text-xs mr-1"></i>
+                                    +@history.StockChange
+                                </span>
                             }
                             else if (history.StockChange < 0)
                             {
-                                <span class="text-red-600">@history.StockChange</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                                    <i class="fas fa-arrow-down text-xs mr-1"></i>
+                                    @history.StockChange
+                                </span>
                             }
                             else
                             {
-                                <span class="text-gray-600">0</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                                    <i class="fas fa-minus text-xs mr-1"></i>
+                                    0
+                                </span>
                             }
                         </td>
-                        <td class="py-3 px-4">
-                            <span class="px-2 py-1 text-xs rounded-full @(history.ChangeType == "Manual Update" ? "bg-blue-100 text-blue-800" : "bg-orange-100 text-orange-800")">
-                                @history.ChangeType
+                        <td class="px-4 py-3 text-center">
+                            @{
+                                string badgeClass = "bg-blue-100 text-blue-700";
+                                string iconClass2 = "fas fa-edit";
+                                string typeText = history.ChangeType;
+
+                                switch (history.ChangeType?.ToLower())
+                                {
+                                    case "manual update":
+                                        badgeClass = "bg-blue-100 text-blue-700";
+                                        iconClass2 = "fas fa-edit";
+                                        typeText = "Manual";
+                                        break;
+                                    case "order reduction":
+                                        badgeClass = "bg-orange-100 text-orange-700";
+                                        iconClass2 = "fas fa-shopping-cart";
+                                        typeText = "Penjualan";
+                                        break;
+                                    default:
+                                        badgeClass = "bg-gray-100 text-gray-700";
+                                        iconClass2 = "fas fa-question";
+                                        break;
+                                }
+                            }
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium @badgeClass">
+                                <i class="@iconClass2 text-xs mr-1"></i>
+                                @typeText
                             </span>
                         </td>
-                        <td class="py-3 px-4 text-sm">@history.ChangedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                        <td class="py-3 px-4 text-sm text-gray-600">@(history.Notes ?? "-")</td>
+                        <td class="px-4 py-3 text-center">
+                            <div class="text-xs font-medium text-gray-900">
+                                @history.ChangedAt.ToString("dd/MM/yyyy", new System.Globalization.CultureInfo("id-ID"))
+                            </div>
+                            <div class="text-xs text-gray-500">
+                                @history.ChangedAt.ToString("HH:mm") WIB
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="max-w-xs">
+                                @if (!string.IsNullOrEmpty(history.Notes))
+                                {
+                                    <div class="text-xs text-gray-600 line-clamp-2" title="@history.Notes">
+                                        @history.Notes
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-xs text-gray-400">-</span>
+                                }
+                            </div>
+                        </td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
+
+    <!-- Pagination Info -->
+    <div class="mt-6 flex items-center justify-between bg-white rounded-lg px-6 py-4 shadow-sm">
+        <div class="text-sm text-gray-600">
+            Menampilkan <span class="font-semibold text-gray-900">@Model.Count</span> dari total data riwayat stok
+        </div>
+        <div class="text-xs text-gray-500">
+            Data diperbarui: @DateTime.Now.ToString("dd MMMM yyyy HH:mm", new System.Globalization.CultureInfo("id-ID")) WIB
+        </div>
+    </div>
 }
 else
 {
-    <div class="text-center py-8 text-gray-500">
-        <i class="fas fa-history text-4xl mb-4"></i>
-        <p>Tidak ada riwayat perubahan stok</p>
+    <!-- Empty State -->
+    <div class="text-center py-16 bg-white rounded-xl shadow-sm">
+        <div class="max-w-md mx-auto">
+            <div class="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-history text-3xl text-blue-500"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">Tidak Ada Data Riwayat Stok</h3>
+            
+        </div>
     </div>
 }

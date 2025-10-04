@@ -41,15 +41,15 @@ namespace POSRestoran01.Controllers
                     RestaurantName = _configuration["AppSettings:RestaurantName"] ?? "POS Restoran",
                     CurrentDate = DateTime.Now,
                     Categories = await _categoryService.GetActiveCategoriesAsync(),
-                    SelectedCategoryId = 0, // Default to "Semua Kategori" (0)
+                    SelectedCategoryId = 0, 
                     SearchTerm = searchTerm ?? string.Empty
                 };
 
-                // Load menu items based on search or category
+                
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
                     model.MenuItems = await _menuService.SearchMenuItemsAsync(searchTerm);
-                    model.SelectedCategoryId = 0; // Reset to show search results
+                    model.SelectedCategoryId = 0; 
                 }
                 else if (categoryId.HasValue && categoryId.Value > 0)
                 {
@@ -58,22 +58,22 @@ namespace POSRestoran01.Controllers
                 }
                 else
                 {
-                    // Default: Show all menu items (Semua Kategori)
+                  
                     model.MenuItems = await _menuService.GetAllMenuItemsAsync();
                     model.SelectedCategoryId = 0;
                 }
 
-                // Get or initialize current order from session
+               
                 var orderJson = HttpContext.Session.GetString("CurrentOrder");
                 if (!string.IsNullOrEmpty(orderJson))
                 {
                     try
                     {
-                        model.CurrentOrder = JsonSerializer.Deserialize<OrderViewModel>(orderJson) ?? new OrderViewModel();
+                        model.CurrentOrde = JsonSerializer.Deserialize<OrderViewModel>(orderJson) ?? new OrderViewModel();
                     }
                     catch (JsonException)
                     {
-                        // If deserialize fails, create new order
+                        
                         model.CurrentOrder = new OrderViewModel();
                         HttpContext.Session.Remove("CurrentOrder");
                     }

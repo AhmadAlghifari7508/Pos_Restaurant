@@ -10,7 +10,7 @@ namespace POSRestoran01.Models.ViewModels.SettingsViewModels
         public List<StockHistory> StockHistories { get; set; } = new List<StockHistory>();
         public List<UserActivity> UserActivities { get; set; } = new List<UserActivity>();
 
-        // TAMBAH: Cashier Dashboard
+        
         public CashierDashboardViewModel CashierDashboard { get; set; } = new CashierDashboardViewModel();
         public User CurrentUser { get; set; } = new User();
     }
@@ -114,7 +114,7 @@ namespace POSRestoran01.Models.ViewModels.SettingsViewModels
         public string FormattedActivityTime { get; set; } = string.Empty;
     }
 
-    // TAMBAH: Cashier Dashboard ViewModels
+    
     public class CashierDashboardViewModel
     {
         public User CurrentUser { get; set; } = new User();
@@ -122,22 +122,27 @@ namespace POSRestoran01.Models.ViewModels.SettingsViewModels
         public List<Order> TodayOrders { get; set; } = new List<Order>();
         public CashierStatisticsViewModel Statistics { get; set; } = new CashierStatisticsViewModel();
 
-        // Filter properties
+        
         public DateTime? StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
+
+      
+        public string SelectedDateDisplay => StartDate?.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("id-ID")) ?? "Hari Ini";
     }
 
     public class CashierStatisticsViewModel
     {
+       
         public decimal TotalRevenue { get; set; }
         public int TotalMenusOrdered { get; set; }
         public int TotalCustomers { get; set; }
         public int TotalOrders { get; set; }
-        public DateTime? LastLogin { get; set; }
-        public DateTime? LastLogout { get; set; }
+
+        
+        public DateTime? LastLogin { get; set; } 
+        public DateTime? LastLogout { get; set; } 
         public TimeSpan? WorkingHours { get; set; }
 
-        // Today's statistics
+        
         public decimal TodayRevenue { get; set; }
         public int TodayOrders { get; set; }
         public int TodayCustomers { get; set; }

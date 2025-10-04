@@ -20,14 +20,14 @@ namespace POSRestoran01.Services.Implementations
         {
             return await _context.MenuItems
                 .Include(m => m.Category)
-                .Where(m => m.IsActive) // Only active items
+                .Where(m => m.IsActive) 
                 .OrderBy(m => m.ItemName)
                 .ToListAsync();
         }
 
         public async Task<List<MenuItem>> GetMenuItemsByCategoryAsync(int categoryId)
         {
-            // If categoryId is 0, return all menu items
+            
             if (categoryId == 0)
             {
                 return await GetAllMenuItemsAsync();
@@ -79,7 +79,7 @@ namespace POSRestoran01.Services.Implementations
             menuItem.CreatedAt = DateTime.Now;
             menuItem.UpdatedAt = DateTime.Now;
 
-            // Ensure discount properties have default values
+           
             if (!menuItem.DiscountPercentage.HasValue)
                 menuItem.DiscountPercentage = 0.00m;
 
@@ -92,10 +92,9 @@ namespace POSRestoran01.Services.Implementations
         {
             menuItem.UpdatedAt = DateTime.Now;
 
-            // Validate discount settings
             if (menuItem.IsDiscountActive && menuItem.DiscountPercentage.HasValue && menuItem.DiscountPercentage > 0)
             {
-                // Ensure discount dates are valid
+                
                 if (menuItem.DiscountStartDate.HasValue && menuItem.DiscountEndDate.HasValue)
                 {
                     if (menuItem.DiscountEndDate < menuItem.DiscountStartDate)
@@ -131,10 +130,10 @@ namespace POSRestoran01.Services.Implementations
                 var previousStock = menuItem.Stock;
                 var newStock = previousStock - quantity;
 
-                // Record stock history
+                
                 await _stockHistoryService.RecordStockChangeAsync(
                     menuItemId,
-                    1, // Default user ID (sesuaikan dengan user yang login)
+                    1,
                     previousStock,
                     newStock,
                     "Manual Update",
@@ -157,7 +156,6 @@ namespace POSRestoran01.Services.Implementations
                 var previousStock = menuItem.Stock;
                 var newStock = previousStock + quantity;
 
-                // Record stock history
                 await _stockHistoryService.RecordStockChangeAsync(
                     menuItemId,
                     userId,
@@ -175,7 +173,7 @@ namespace POSRestoran01.Services.Implementations
             return false;
         }
 
-        // Method tambahan untuk mendukung HomeController
+        
         public async Task<bool> CheckStockAvailabilityAsync(int menuItemId, int requestedQuantity)
         {
             var menuItem = await _context.MenuItems.FindAsync(menuItemId);
@@ -205,7 +203,7 @@ namespace POSRestoran01.Services.Implementations
 
         public async Task<List<MenuItem>> GetPopularMenuItemsAsync(int count = 10)
         {
-            // Ambil menu items yang paling sering dipesan
+          
             return await _context.MenuItems
                 .Include(m => m.Category)
                 .Include(m => m.OrderDetails)
@@ -218,7 +216,7 @@ namespace POSRestoran01.Services.Implementations
         public async Task<decimal> GetMenuItemPriceAsync(int menuItemId)
         {
             var menuItem = await _context.MenuItems.FindAsync(menuItemId);
-            return menuItem?.FinalPrice ?? 0; // Use FinalPrice to include discount
+            return menuItem?.FinalPrice ?? 0; 
         }
 
         // New discount-related methods

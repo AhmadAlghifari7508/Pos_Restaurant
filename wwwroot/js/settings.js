@@ -1,4 +1,6 @@
-﻿// TAMBAH: Function untuk toggle password visibility
+﻿// Settings JavaScript Functions - Clean Version with Single Date for Cashier Dashboard
+
+// Toggle password visibility
 function togglePasswordVisibility(inputId, buttonElement) {
     const input = document.getElementById(inputId);
     const icon = buttonElement.querySelector('i');
@@ -12,199 +14,461 @@ function togglePasswordVisibility(inputId, buttonElement) {
     }
 }
 
-// Utility Functions// Settings JavaScript Functions - Updated for AuthService
-
-// Initialize settings page
+// Initialize settings page with proper date setup
 function initializeSettings() {
-    console.log('Settings page initialized');
+    console.log('Menginisialisasi halaman pengaturan...');
 
-    // Set default dates for filters
+    // Set default dates for all filters
+    setDefaultDates();
+
+    // NO NEED to load current user data - sudah ada di HTML dari server
+    // Data langsung ditampilkan dari Model/ViewBag
+
+    // Auto load sections based on URL (without notifications and loading)
+    const urlParams = new URLSearchParams(window.location.search);
+    const section = urlParams.get('section');
+
+    if (section === 'cashier-dashboard') {
+        setTimeout(() => {
+            filterCashierDashboard(false, false); // false = no notification, no loading
+        }, 500);
+    } else if (section === 'stock-history') {
+        setTimeout(() => {
+            filterStockHistory(false, false); // false = no notification, no loading
+        }, 500);
+    } else if (section === 'user-activity') {
+        setTimeout(() => {
+            filterUserActivity(false, false); // false = no notification, no loading
+        }, 500);
+    }
+}
+
+// Set default dates with proper Indonesian locale
+function setDefaultDates() {
     const today = new Date();
     const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    const stockStartDate = document.getElementById('stockStartDate');
-    const stockEndDate = document.getElementById('stockEndDate');
-    const activityStartDate = document.getElementById('activityStartDate');
-    const activityEndDate = document.getElementById('activityEndDate');
-    const cashierStartDate = document.getElementById('cashierStartDate');
-    const cashierEndDate = document.getElementById('cashierEndDate');
+    // Stock History - default 1 week
+    setDateValue('stockStartDate', today);
+    setDateValue('stockEndDate', today);
 
-    if (stockStartDate) stockStartDate.value = formatDate(oneWeekAgo);
-    if (stockEndDate) stockEndDate.value = formatDate(today);
-    if (activityStartDate) activityStartDate.value = formatDate(oneWeekAgo);
-    if (activityEndDate) activityEndDate.value = formatDate(today);
-    if (cashierStartDate) cashierStartDate.value = formatDate(today);
-    if (cashierEndDate) cashierEndDate.value = formatDate(today);
+    // User Activity - default 1 week  
+    setDateValue('activityStartDate', oneWeekAgo);
+    setDateValue('activityEndDate', today);
 
-    // Load current user data if on account page
-    if (window.location.search.includes('section=account') || window.location.search === '' || !window.location.search.includes('section=')) {
-        setTimeout(() => {
-            loadCurrentUserData();
-        }, 500);
-    }
+    // Cashier Dashboard - default today (single date)
+    setDateValue('cashierSelectedDate', today);
 
-    // Auto load cashier dashboard jika di halaman tersebut
-    if (window.location.search.includes('cashier-dashboard')) {
-        setTimeout(() => {
-            filterCashierDashboard();
-        }, 500);
+    console.log('Tanggal default berhasil diatur');
+}
+
+// Helper function to set date value safely
+function setDateValue(elementId, date) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.value = formatDateForInput(date);
+        console.log(`${elementId} diatur ke: ${element.value}`);
     }
 }
 
-// Utility function to format date
-function formatDate(date) {
+// Format date untuk input type="date" (YYYY-MM-DD)
+function formatDateForInput(date) {
     return date.toISOString().split('T')[0];
 }
 
-// Load current user data - MENGGUNAKAN AuthService
-function loadCurrentUserData() {
-    console.log('Loading current user data...');
+// Format date untuk display Indonesia
+function formatDateIndonesian(dateString) {
+    if (!dateString) return '';
+
+    const date = new Date(dateString);
+    const options = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        timeZone: 'Asia/Jakarta'
+    };
+
+    return date.toLocaleDateString('id-ID', options);
+}
+
+// Check if current section is account
+function isAccountSection() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const section = urlParams.get('section');
+    return section === 'account' || !section;
+}
+
+// Load current user data with better error handling
+function loadCurrentUserData(showNotificationOnSuccess = true) {
+    console.log('Memuat data pengguna saat ini...');
 
     fetch('/Settings/GetCurrentUser')
         .then(response => {
-            console.log('Response status:', response.status);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
         })
         .then(data => {
-            console.log('Response data:', data);
-
             if (data.success) {
-                const user = data.data;
-                console.log('User data:', user);
-
-                // Update UI elements
-                const emailElement = document.getElementById('currentUserEmail');
-                const lastLoginElement = document.getElementById('currentUserLastLogin');
-                const createdAtElement = document.getElementById('currentUserCreatedAt');
-
-                if (emailElement) {
-                    emailElement.innerHTML = `<span class="font-bold text-gray-800 bg-white px-3 py-1 rounded-lg shadow-sm">${user.email || 'Tidak ada email'}</span>`;
-                    console.log('Email updated to:', user.email);
-                }
-
-                if (lastLoginElement) {
-                    const lastLoginText = user.lastLogin ?
-                        new Date(user.lastLogin).toLocaleDateString('id-ID', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        }) : 'Belum pernah';
-                    lastLoginElement.innerHTML = `<span class="font-bold text-gray-800 bg-white px-3 py-1 rounded-lg shadow-sm">${lastLoginText}</span>`;
-                    console.log('Last login updated to:', lastLoginText);
-                }
-
-                // TAMBAH: Update Created At
-                if (createdAtElement) {
-                    const createdAtText = user.createdAt ?
-                        new Date(user.createdAt).toLocaleDateString('id-ID', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                        }) : 'Data tidak tersedia';
-                    createdAtElement.innerHTML = `<span class="font-bold text-gray-800 bg-white px-3 py-1 rounded-lg shadow-sm">${createdAtText}</span>`;
-                    console.log('Created at updated to:', createdAtText);
+                updateCurrentUserUI(data.data);
+                if (showNotificationOnSuccess) {
+                    showNotification('Data pengguna berhasil dimuat', 'success');
                 }
             } else {
-                console.error('Error from server:', data.message);
-                showNotification('Error loading user data: ' + data.message, 'error');
+                throw new Error(data.message || 'Gagal memuat data pengguna');
             }
         })
         .catch(error => {
-            console.error('Fetch error:', error);
-            showNotification('Network error loading user data', 'error');
-
-            // Update UI dengan error state
-            const emailElement = document.getElementById('currentUserEmail');
-            const lastLoginElement = document.getElementById('currentUserLastLogin');
-            const createdAtElement = document.getElementById('currentUserCreatedAt');
-
-            if (emailElement) {
-                emailElement.innerHTML = '<span class="text-red-600 bg-red-50 px-3 py-1 rounded-lg">Error memuat</span>';
-            }
-            if (lastLoginElement) {
-                lastLoginElement.innerHTML = '<span class="text-red-600 bg-red-50 px-3 py-1 rounded-lg">Error memuat</span>';
-            }
-            if (createdAtElement) {
-                createdAtElement.innerHTML = '<span class="text-red-600 bg-red-50 px-3 py-1 rounded-lg">Error memuat</span>';
-            }
+            console.error('Error loading user data:', error);
+            showNotification('Gagal memuat data pengguna: ' + error.message, 'error');
+            updateCurrentUserUIError();
         });
 }
 
-// Show edit current user modal - MENGGUNAKAN AuthService
+// Update current user UI elements
+function updateCurrentUserUI(user) {
+    const elements = [
+        { id: 'currentUserEmail', content: user.email || 'Tidak ada email' },
+        { id: 'currentUserLastLogin', content: formatLoginTime(user.lastLogin) },
+        { id: 'currentUserCreatedAt', content: formatCreatedTime(user.createdAt) }
+    ];
+
+    elements.forEach(({ id, content }) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.innerHTML = `<span class="font-semibold text-gray-800 bg-white px-4 py-2 rounded-lg shadow-sm border">${content}</span>`;
+        }
+    });
+}
+
+// Format login time in Indonesian
+function formatLoginTime(lastLogin) {
+    if (!lastLogin) return 'Belum pernah login';
+
+    const date = new Date(lastLogin);
+    return date.toLocaleDateString('id-ID', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Asia/Jakarta'
+    }) + ' WIB';
+}
+
+// Format created time in Indonesian
+function formatCreatedTime(createdAt) {
+    if (!createdAt) return 'Data tidak tersedia';
+
+    const date = new Date(createdAt);
+    return date.toLocaleDateString('id-ID', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        timeZone: 'Asia/Jakarta'
+    });
+}
+
+// Update UI when error loading user data
+function updateCurrentUserUIError() {
+    const errorElements = ['currentUserEmail', 'currentUserLastLogin', 'currentUserCreatedAt'];
+    errorElements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.innerHTML = '<span class="text-red-600 bg-red-50 px-3 py-2 rounded-lg border border-red-200">Gagal memuat data</span>';
+        }
+    });
+}
+
+// STOCK HISTORY FUNCTIONS WITH DATE RANGE
+function filterStockHistory(showNotificationOnSuccess = true, showLoadingIndicator = true) {
+    const startDate = document.getElementById('stockStartDate')?.value;
+    const endDate = document.getElementById('stockEndDate')?.value;
+
+    // Validate date range
+    if (!validateDateRange(startDate, endDate, 'Filter Riwayat Stok')) {
+        return;
+    }
+
+    if (showLoadingIndicator) {
+        showLoading();
+    }
+    console.log(`Filtering stock history: ${startDate} to ${endDate}`);
+
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+
+    fetch(`/Settings/GetStockHistory?${params.toString()}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.text();
+        })
+        .then(html => {
+            if (showLoadingIndicator) {
+                hideLoading();
+            }
+            const container = document.getElementById('stockHistoryContainer');
+            if (container) {
+                container.innerHTML = html;
+                if (showNotificationOnSuccess) {
+                    showNotification(
+                        `Data riwayat stok berhasil difilter periode ${formatDateIndonesian(startDate)} - ${formatDateIndonesian(endDate)}`,
+                        'success'
+                    );
+                }
+            }
+        })
+        .catch(error => {
+            if (showLoadingIndicator) {
+                hideLoading();
+            }
+            console.error('Error loading stock history:', error);
+            showNotification('Gagal memuat riwayat stok: ' + error.message, 'error');
+        });
+}
+
+// USER ACTIVITY FUNCTIONS WITH DATE RANGE
+function filterUserActivity(showNotificationOnSuccess = true, showLoadingIndicator = true) {
+    const startDate = document.getElementById('activityStartDate')?.value;
+    const endDate = document.getElementById('activityEndDate')?.value;
+
+    if (!validateDateRange(startDate, endDate, 'Filter Aktivitas Pengguna')) {
+        return;
+    }
+
+    if (showLoadingIndicator) {
+        showLoading();
+    }
+    console.log(`Filtering user activity: ${startDate} to ${endDate}`);
+
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+
+    fetch(`/Settings/GetUserActivity?${params.toString()}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.text();
+        })
+        .then(html => {
+            if (showLoadingIndicator) {
+                hideLoading();
+            }
+            const container = document.getElementById('userActivityContainer');
+            if (container) {
+                container.innerHTML = html;
+                if (showNotificationOnSuccess) {
+                    showNotification(
+                        `Data aktivitas pengguna berhasil difilter periode ${formatDateIndonesian(startDate)} - ${formatDateIndonesian(endDate)}`,
+                        'success'
+                    );
+                }
+            }
+        })
+        .catch(error => {
+            if (showLoadingIndicator) {
+                hideLoading();
+            }
+            console.error('Error loading user activity:', error);
+            showNotification('Gagal memuat aktivitas pengguna: ' + error.message, 'error');
+        });
+}
+
+// CASHIER DASHBOARD FUNCTIONS WITH SINGLE DATE PICKER
+function filterCashierDashboard(showNotificationOnSuccess = true, showLoadingIndicator = true) {
+    console.log('=== filterCashierDashboard dipanggil ===');
+
+    const selectedDate = document.getElementById('cashierSelectedDate')?.value;
+    console.log('Tanggal yang dipilih:', selectedDate);
+
+    // Validasi tanggal
+    if (!selectedDate || selectedDate.trim() === '') {
+        console.log('Validasi gagal: Tanggal kosong');
+        showNotification('Silakan pilih tanggal', 'warning');
+        return;
+    }
+
+    // Validasi format tanggal
+    const selected = new Date(selectedDate);
+    if (isNaN(selected.getTime())) {
+        console.log('Validasi gagal: Format tanggal tidak valid');
+        showNotification('Format tanggal tidak valid', 'error');
+        return;
+    }
+
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+
+    // Peringatan jika tanggal masa depan
+    if (selected > today) {
+        console.log('Peringatan: Tanggal masa depan dipilih');
+        showNotification('Peringatan: Tanggal yang dipilih di masa depan', 'warning');
+    }
+
+    if (showLoadingIndicator) {
+        showLoading();
+    }
+    console.log(`Memfilter dashboard kasir untuk: ${selectedDate}`);
+
+    const params = new URLSearchParams();
+    params.append('selectedDate', selectedDate);
+
+    fetch(`/Settings/GetCashierDashboard?${params.toString()}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.text();
+        })
+        .then(html => {
+            if (showLoadingIndicator) {
+                hideLoading();
+            }
+            const container = document.getElementById('cashierDashboardContainer');
+            if (container) {
+                container.innerHTML = html;
+                if (showNotificationOnSuccess) {
+                    showNotification(
+                        `Dashboard kasir berhasil dimuat untuk tanggal ${formatDateIndonesian(selectedDate)}`,
+                        'success'
+                    );
+                }
+            }
+        })
+        .catch(error => {
+            if (showLoadingIndicator) {
+                hideLoading();
+            }
+            console.error('Error loading cashier dashboard:', error);
+            showNotification('Gagal memuat dashboard kasir: ' + error.message, 'error');
+        });
+}
+
+// Reset cashier dashboard to today
+function resetCashierDashboard() {
+    console.log('Reset dashboard kasir ke hari ini');
+    const today = new Date();
+    setDateValue('cashierSelectedDate', today);
+
+    setTimeout(() => {
+        filterCashierDashboard();
+    }, 300);
+}
+
+// Validate date range (untuk Stock History dan User Activity)
+function validateDateRange(startDate, endDate, context = 'Filter') {
+    if (!startDate || !endDate) {
+        showNotification('Silakan pilih tanggal mulai dan tanggal akhir', 'warning');
+        return false;
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const today = new Date();
+
+    if (start > end) {
+        showNotification('Tanggal mulai tidak boleh lebih besar dari tanggal akhir', 'error');
+        return false;
+    }
+
+    // Check if date range is too large (more than 1 year)
+    const diffTime = Math.abs(end - start);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays > 365) {
+        showNotification('Rentang tanggal terlalu besar. Maksimal 1 tahun.', 'warning');
+        return false;
+    }
+
+    // Warn if future date selected
+    if (end > today) {
+        showNotification('Peringatan: Tanggal akhir di masa depan dipilih', 'warning');
+    }
+
+    return true;
+}
+
+// Reset all filters to default
+function resetAllFilters() {
+    setDefaultDates();
+
+    // Trigger appropriate filter function based on current section
+    const urlParams = new URLSearchParams(window.location.search);
+    const section = urlParams.get('section');
+
+    switch (section) {
+        case 'stock-history':
+            setTimeout(() => filterStockHistory(), 300);
+            break;
+        case 'user-activity':
+            setTimeout(() => filterUserActivity(), 300);
+            break;
+        case 'cashier-dashboard':
+            setTimeout(() => filterCashierDashboard(), 300);
+            break;
+        default:
+            showNotification('Filter berhasil direset ke default', 'success');
+    }
+}
+
+// MODAL FUNCTIONS
 function showEditCurrentUserModal() {
-    console.log('Opening edit current user modal...');
+    console.log('Membuka modal edit pengguna...');
     showLoading();
 
     fetch('/Settings/GetCurrentUser')
-        .then(response => {
-            console.log('Edit modal - Response status:', response.status);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
             hideLoading();
-            console.log('Edit modal - Response data:', data);
-
             if (data.success) {
-                const user = data.data;
-                console.log('Edit modal - User data:', user);
-
-                // Update form fields
-                const fullNameField = document.getElementById('editCurrentUserFullName');
-                const usernameField = document.getElementById('editCurrentUserUsername');
-                const emailField = document.getElementById('editCurrentUserEmail');
-
-                if (fullNameField) {
-                    fullNameField.value = user.fullName || '';
-                    console.log('Full name field updated');
-                }
-
-                if (usernameField) {
-                    usernameField.value = user.username || '';
-                    console.log('Username field updated');
-                }
-
-                if (emailField) {
-                    emailField.value = user.email || '';
-                    console.log('Email field updated');
-                }
-
-                // Clear password fields
-                document.getElementById('editCurrentUserCurrentPassword').value = '';
-                document.getElementById('editCurrentUserNewPassword').value = '';
-                document.getElementById('editCurrentUserConfirmPassword').value = '';
-
+                populateEditUserForm(data.data);
                 showModal('editCurrentUserModal');
             } else {
-                showNotification(data.message || 'Terjadi kesalahan', 'error');
+                showNotification(data.message || 'Gagal memuat data pengguna', 'error');
             }
         })
         .catch(error => {
             hideLoading();
-            console.error('Error loading current user:', error);
+            console.error('Error:', error);
             showNotification('Terjadi kesalahan saat memuat data pengguna', 'error');
         });
 }
 
-// Hide edit current user modal
+function populateEditUserForm(user) {
+    const fields = {
+        'editCurrentUserFullName': user.fullName || '',
+        'editCurrentUserUsername': user.username || '',
+        'editCurrentUserEmail': user.email || ''
+    };
+
+    Object.entries(fields).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) element.value = value;
+    });
+
+    // Clear password fields
+    ['editCurrentUserCurrentPassword', 'editCurrentUserNewPassword', 'editCurrentUserConfirmPassword'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.value = '';
+    });
+}
+
 function hideEditCurrentUserModal() {
     hideModal('editCurrentUserModal');
 }
 
-// Validate current user form
 function validateCurrentUserForm() {
-    const fullName = document.getElementById('editCurrentUserFullName').value.trim();
-    const email = document.getElementById('editCurrentUserEmail').value.trim();
-    const currentPassword = document.getElementById('editCurrentUserCurrentPassword').value;
-    const newPassword = document.getElementById('editCurrentUserNewPassword').value;
-    const confirmPassword = document.getElementById('editCurrentUserConfirmPassword').value;
+    const fullName = document.getElementById('editCurrentUserFullName')?.value.trim();
+    const email = document.getElementById('editCurrentUserEmail')?.value.trim();
+    const currentPassword = document.getElementById('editCurrentUserCurrentPassword')?.value;
+    const newPassword = document.getElementById('editCurrentUserNewPassword')?.value;
+    const confirmPassword = document.getElementById('editCurrentUserConfirmPassword')?.value;
 
     if (!fullName) {
         showNotification('Nama lengkap tidak boleh kosong', 'warning');
@@ -216,14 +480,13 @@ function validateCurrentUserForm() {
         return false;
     }
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
         showNotification('Format email tidak valid', 'warning');
         return false;
     }
 
-    // Password validation (only if changing password)
+    // Password validation only if user wants to change password
     if (newPassword || confirmPassword || currentPassword) {
         if (!currentPassword) {
             showNotification('Password lama harus diisi untuk mengubah password', 'warning');
@@ -249,39 +512,14 @@ function validateCurrentUserForm() {
     return true;
 }
 
-// Cashier Dashboard Functions
-function filterCashierDashboard() {
-    const startDate = document.getElementById('cashierStartDate').value;
-    const endDate = document.getElementById('cashierEndDate').value;
-
-    if (startDate && endDate && startDate > endDate) {
-        showNotification('Tanggal mulai tidak boleh lebih besar dari tanggal akhir', 'warning');
-        return;
-    }
-
-    showLoading();
-
-    const params = new URLSearchParams();
-    if (startDate) params.append('startDate', startDate);
-    if (endDate) params.append('endDate', endDate);
-
-    fetch(`/Settings/GetCashierDashboard?${params.toString()}`)
-        .then(response => response.text())
-        .then(html => {
-            hideLoading();
-            document.getElementById('cashierDashboardContainer').innerHTML = html;
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Error loading cashier dashboard:', error);
-            showNotification('Terjadi kesalahan saat memuat dashboard kasir', 'error');
-        });
-}
-
-// Create User Functions
+// CREATE USER FUNCTIONS
 function showCreateUserModal() {
-    document.getElementById('createUserForm').reset();
-    document.getElementById('newUserRole').value = 'Cashier'; // Default to Cashier
+    const form = document.getElementById('createUserForm');
+    if (form) form.reset();
+
+    const roleSelect = document.getElementById('newUserRole');
+    if (roleSelect) roleSelect.value = 'Cashier';
+
     showModal('createUserModal');
 }
 
@@ -290,45 +528,46 @@ function hideCreateUserModal() {
 }
 
 function validateCreateUserForm() {
-    const fullName = document.getElementById('newUserFullName').value.trim();
-    const username = document.getElementById('newUserUsername').value.trim();
-    const email = document.getElementById('newUserEmail').value.trim();
-    const password = document.getElementById('newUserPassword').value;
-    const confirmPassword = document.getElementById('newUserConfirmPassword').value;
+    const fields = {
+        fullName: document.getElementById('newUserFullName')?.value.trim(),
+        username: document.getElementById('newUserUsername')?.value.trim(),
+        email: document.getElementById('newUserEmail')?.value.trim(),
+        password: document.getElementById('newUserPassword')?.value,
+        confirmPassword: document.getElementById('newUserConfirmPassword')?.value
+    };
 
-    if (!fullName) {
+    if (!fields.fullName) {
         showNotification('Nama lengkap tidak boleh kosong', 'warning');
         return false;
     }
 
-    if (!username) {
+    if (!fields.username) {
         showNotification('Username tidak boleh kosong', 'warning');
         return false;
     }
 
-    if (!email) {
+    if (!fields.email) {
         showNotification('Email tidak boleh kosong', 'warning');
         return false;
     }
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(fields.email)) {
         showNotification('Format email tidak valid', 'warning');
         return false;
     }
 
-    if (!password) {
+    if (!fields.password) {
         showNotification('Password tidak boleh kosong', 'warning');
         return false;
     }
 
-    if (password.length < 6) {
+    if (fields.password.length < 6) {
         showNotification('Password minimal 6 karakter', 'warning');
         return false;
     }
 
-    if (password !== confirmPassword) {
+    if (fields.password !== fields.confirmPassword) {
         showNotification('Password dan konfirmasi password tidak cocok', 'warning');
         return false;
     }
@@ -336,67 +575,9 @@ function validateCreateUserForm() {
     return true;
 }
 
-// Stock History Functions
-function filterStockHistory() {
-    const startDate = document.getElementById('stockStartDate').value;
-    const endDate = document.getElementById('stockEndDate').value;
-
-    if (startDate && endDate && startDate > endDate) {
-        showNotification('Tanggal mulai tidak boleh lebih besar dari tanggal akhir', 'warning');
-        return;
-    }
-
-    showLoading();
-
-    const params = new URLSearchParams();
-    if (startDate) params.append('startDate', startDate);
-    if (endDate) params.append('endDate', endDate);
-
-    fetch(`/Settings/GetStockHistory?${params.toString()}`)
-        .then(response => response.text())
-        .then(html => {
-            hideLoading();
-            document.getElementById('stockHistoryContainer').innerHTML = html;
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Error loading stock history:', error);
-            showNotification('Terjadi kesalahan saat memuat riwayat stok', 'error');
-        });
-}
-
-// User Activity Functions
-function filterUserActivity() {
-    const startDate = document.getElementById('activityStartDate').value;
-    const endDate = document.getElementById('activityEndDate').value;
-
-    if (startDate && endDate && startDate > endDate) {
-        showNotification('Tanggal mulai tidak boleh lebih besar dari tanggal akhir', 'warning');
-        return;
-    }
-
-    showLoading();
-
-    const params = new URLSearchParams();
-    if (startDate) params.append('startDate', startDate);
-    if (endDate) params.append('endDate', endDate);
-
-    fetch(`/Settings/GetUserActivity?${params.toString()}`)
-        .then(response => response.text())
-        .then(html => {
-            hideLoading();
-            document.getElementById('userActivityContainer').innerHTML = html;
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Error loading user activity:', error);
-            showNotification('Terjadi kesalahan saat memuat aktivitas pengguna', 'error');
-        });
-}
-
-// Logout function - FIXED
+// LOGOUT FUNCTION
 function logout() {
-    if (!confirm('Apakah Anda yakin ingin logout?')) {
+    if (!confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
         return;
     }
 
@@ -413,24 +594,22 @@ function logout() {
         .then(data => {
             hideLoading();
             if (data.success && data.redirectUrl) {
-                showNotification('Logout berhasil', 'success');
+                showNotification('Berhasil keluar dari sistem', 'success');
                 setTimeout(() => {
                     window.location.href = data.redirectUrl;
                 }, 1000);
             } else {
-                // Fallback redirect
                 window.location.href = '/Account/Login';
             }
         })
         .catch(error => {
             hideLoading();
             console.error('Error during logout:', error);
-            // Even if there's an error, redirect to login
             window.location.href = '/Account/Login';
         });
 }
 
-// Utility Functions
+// UTILITY FUNCTIONS
 function showModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
@@ -465,42 +644,55 @@ function hideLoading() {
     }
 }
 
-function showNotification(message, type = 'info', duration = 3000) {
+function showNotification(message, type = 'info', duration = 4000) {
     // Remove existing notifications
     const existingNotifications = document.querySelectorAll('.notification');
     existingNotifications.forEach(notification => notification.remove());
 
     const notification = document.createElement('div');
-    notification.className = `notification fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full`;
+    notification.className = 'notification fixed top-4 right-4 px-6 py-4 rounded-xl shadow-2xl z-50 transform transition-all duration-300 translate-x-full max-w-md';
 
-    let bgColor, textColor, icon;
-    switch (type) {
-        case 'success':
-            bgColor = 'bg-green-500';
-            textColor = 'text-white';
-            icon = 'fas fa-check-circle';
-            break;
-        case 'error':
-            bgColor = 'bg-red-500';
-            textColor = 'text-white';
-            icon = 'fas fa-exclamation-circle';
-            break;
-        case 'warning':
-            bgColor = 'bg-yellow-500';
-            textColor = 'text-white';
-            icon = 'fas fa-exclamation-triangle';
-            break;
-        default:
-            bgColor = 'bg-blue-500';
-            textColor = 'text-white';
-            icon = 'fas fa-info-circle';
-    }
+    const configs = {
+        success: {
+            bgColor: 'bg-gradient-to-r from-green-500 to-green-600',
+            textColor: 'text-white',
+            icon: 'fas fa-check-circle',
+            borderColor: 'border-l-4 border-green-700'
+        },
+        error: {
+            bgColor: 'bg-gradient-to-r from-red-500 to-red-600',
+            textColor: 'text-white',
+            icon: 'fas fa-exclamation-circle',
+            borderColor: 'border-l-4 border-red-700'
+        },
+        warning: {
+            bgColor: 'bg-gradient-to-r from-yellow-500 to-yellow-600',
+            textColor: 'text-white',
+            icon: 'fas fa-exclamation-triangle',
+            borderColor: 'border-l-4 border-yellow-700'
+        },
+        info: {
+            bgColor: 'bg-gradient-to-r from-blue-500 to-blue-600',
+            textColor: 'text-white',
+            icon: 'fas fa-info-circle',
+            borderColor: 'border-l-4 border-blue-700'
+        }
+    };
 
-    notification.className += ` ${bgColor} ${textColor}`;
+    const config = configs[type] || configs.info;
+    notification.className += ` ${config.bgColor} ${config.textColor} ${config.borderColor}`;
+
     notification.innerHTML = `
-        <div class="flex items-center space-x-2">
-            <i class="${icon}"></i>
-            <span>${message}</span>
+        <div class="flex items-center space-x-3">
+            <div class="flex-shrink-0">
+                <i class="${config.icon} text-2xl"></i>
+            </div>
+            <div class="flex-1">
+                <p class="font-semibold text-sm">${message}</p>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" class="flex-shrink-0 ml-4 text-white hover:text-gray-200 transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
     `;
 
@@ -525,7 +717,7 @@ function getAntiForgeryToken() {
     return tokenElement ? tokenElement.value : '';
 }
 
-// Event Listeners
+// EVENT LISTENERS
 document.addEventListener('DOMContentLoaded', function () {
     // Initialize settings
     initializeSettings();
@@ -535,7 +727,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (createUserForm) {
         createUserForm.addEventListener('submit', function (e) {
             e.preventDefault();
-            console.log('Create user form submitted');
 
             if (!validateCreateUserForm()) {
                 return;
@@ -549,61 +740,30 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.append('role', document.getElementById('newUserRole').value);
             formData.append('__RequestVerificationToken', getAntiForgeryToken());
 
-            // Debug: Log form data
-            console.log('Form data being sent:');
-            for (let [key, value] of formData.entries()) {
-                if (key !== 'password' && key !== '__RequestVerificationToken') {
-                    console.log(`${key}: ${value}`);
-                }
-            }
-
-            console.log('Sending create user request...');
             showLoading();
 
             fetch('/Settings/CreateUser', {
                 method: 'POST',
                 body: formData
             })
-                .then(response => {
-                    console.log('Create user response status:', response.status);
-                    console.log('Create user response headers:', response.headers);
-
-                    // Check if response is JSON
-                    const contentType = response.headers.get('content-type');
-                    if (contentType && contentType.includes('application/json')) {
-                        return response.json();
-                    } else {
-                        // If not JSON, get text to see what's returned
-                        return response.text().then(text => {
-                            console.error('Non-JSON response:', text);
-                            throw new Error('Server returned non-JSON response: ' + text.substring(0, 200));
-                        });
-                    }
-                })
+                .then(response => response.json())
                 .then(data => {
                     hideLoading();
-                    console.log('Create user response data:', data);
-
                     if (data.success) {
                         showNotification(data.message || 'Pengguna berhasil dibuat', 'success');
                         hideCreateUserModal();
-                        // Reset form
                         createUserForm.reset();
                         document.getElementById('newUserRole').value = 'Cashier';
                     } else {
-                        console.error('Server error:', data);
-                        showNotification(data.message || 'Terjadi kesalahan pada server', 'error');
+                        showNotification(data.message || 'Gagal membuat pengguna', 'error');
                     }
                 })
                 .catch(error => {
                     hideLoading();
-                    console.error('Error creating user:', error);
-                    console.error('Error stack:', error.stack);
-                    showNotification('Terjadi kesalahan saat membuat pengguna: ' + error.message, 'error');
+                    console.error('Error:', error);
+                    showNotification('Terjadi kesalahan saat membuat pengguna', 'error');
                 });
         });
-    } else {
-        console.error('Create user form not found!');
     }
 
     // Edit Current User form submit handler
@@ -635,20 +795,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (data.success) {
                         showNotification(data.message, 'success');
                         hideEditCurrentUserModal();
-                        // Reload current user data to reflect changes
                         setTimeout(() => {
                             loadCurrentUserData();
-                            // Update the profile card display
-                            document.getElementById('currentUserFullName').textContent =
-                                document.getElementById('editCurrentUserFullName').value;
                         }, 500);
                     } else {
-                        showNotification(data.message || 'Terjadi kesalahan', 'error');
+                        showNotification(data.message || 'Gagal mengupdate akun', 'error');
                     }
                 })
                 .catch(error => {
                     hideLoading();
-                    console.error('Error updating current user:', error);
+                    console.error('Error:', error);
                     showNotification('Terjadi kesalahan saat mengupdate akun', 'error');
                 });
         });
@@ -656,56 +812,61 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Modal click outside to close
     document.addEventListener('click', function (e) {
-        const createUserModal = document.getElementById('createUserModal');
-        const editCurrentUserModal = document.getElementById('editCurrentUserModal');
-
-        if (e.target === createUserModal) {
+        if (e.target.id === 'createUserModal') {
             hideCreateUserModal();
         }
-        if (e.target === editCurrentUserModal) {
+        if (e.target.id === 'editCurrentUserModal') {
             hideEditCurrentUserModal();
         }
     });
 
     // Keyboard shortcuts
     document.addEventListener('keydown', function (e) {
-        // Only process shortcuts if not typing in input fields
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
             return;
         }
 
-        switch (e.key) {
-            case 'Escape':
-                e.preventDefault();
-                hideCreateUserModal();
-                hideEditCurrentUserModal();
-                break;
-            case 'n':
-            case 'N':
-                if (e.ctrlKey) {
-                    e.preventDefault();
-                    showCreateUserModal();
-                }
-                break;
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            hideCreateUserModal();
+            hideEditCurrentUserModal();
         }
     });
 
     // Auto-filter on Enter key press for date inputs
-    const dateInputs = ['stockStartDate', 'stockEndDate', 'activityStartDate', 'activityEndDate', 'cashierStartDate', 'cashierEndDate'];
-    dateInputs.forEach(inputId => {
-        const input = document.getElementById(inputId);
-        if (input) {
-            input.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') {
-                    if (inputId.startsWith('stock')) {
-                        filterStockHistory();
-                    } else if (inputId.startsWith('activity')) {
-                        filterUserActivity();
-                    } else if (inputId.startsWith('cashier')) {
-                        filterCashierDashboard();
-                    }
-                }
-            });
-        }
-    });
-});
+    const stockStartDate = document.getElementById('stockStartDate');
+    const stockEndDate = document.getElementById('stockEndDate');
+    if (stockStartDate) {
+        stockStartDate.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') filterStockHistory(true, true); // true = show notification and loading when manually triggered
+        });
+    }
+    if (stockEndDate) {
+        stockEndDate.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') filterStockHistory(true, true);
+        });
+    }
+
+    const activityStartDate = document.getElementById('activityStartDate');
+    const activityEndDate = document.getElementById('activityEndDate');
+    if (activityStartDate) {
+        activityStartDate.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') filterUserActivity(true, true);
+        });
+    }
+    if (activityEndDate) {
+        activityEndDate.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') filterUserActivity(true, true);
+        });
+    }
+
+    // Cashier dashboard single date - Event listener yang BENAR
+    const cashierSelectedDate = document.getElementById('cashierSelectedDate');
+    if (cashierSelectedDate) {
+        cashierSelectedDate.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                filterCashierDashboard(true, true); // true = show notification and loading when manually triggered
+            }
+        });
+    }
+}); 

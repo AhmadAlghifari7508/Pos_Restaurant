@@ -228,12 +228,12 @@ namespace POSRestoran01.Services.Implementations
             var totalRevenue = completedOrders.Sum(o => o.Total);
             var totalOrders = orders.Count;
 
-            // Menghitung total menu yang dipesan (semua quantity dari OrderDetails untuk completed orders)
+           
             var totalMenusOrdered = completedOrders
                                     .SelectMany(o => o.OrderDetails)
                                     .Sum(od => od.Quantity);
 
-            // Menghitung total customer (semua completed orders dihitung sebagai customer)
+            
             var totalCustomers = completedOrders.Count;
 
             return new DashboardStatsViewModel
