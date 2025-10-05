@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore; 
+using Microsoft.EntityFrameworkCore;
 using POSRestoran01.Data;
 using POSRestoran01.Models.ViewModels.SettingsViewModels;
 using POSRestoran01.Services.Interfaces;
@@ -9,27 +9,39 @@ namespace POSRestoran01.Controllers
 {
     public class SettingsController : BaseController
     {
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 2a958b7 (update project)
         private readonly IStockHistoryService _stockHistoryService;
         private readonly IUserActivityService _userActivityService;
         private readonly IOrderService _orderService;
         private readonly IAuthService _authService;
-        private readonly ApplicationDbContext _context; 
+        private readonly ApplicationDbContext _context;
 
         public SettingsController(
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> 2a958b7 (update project)
             IStockHistoryService stockHistoryService,
             IUserActivityService userActivityService,
             IOrderService orderService,
             IAuthService authService,
             ApplicationDbContext context)
         {
+<<<<<<< HEAD
            
+=======
+
+>>>>>>> 2a958b7 (update project)
             _stockHistoryService = stockHistoryService;
             _userActivityService = userActivityService;
             _orderService = orderService;
             _authService = authService;
-            _context = context; 
+            _context = context;
         }
 
         public async Task<IActionResult> Index(string section = "account")
@@ -37,7 +49,6 @@ namespace POSRestoran01.Controllers
             try
             {
                 var currentUserId = GetCurrentUserId();
-                // GUNAKAN AuthService untuk mendapatkan current user
                 var currentUser = await _authService.GetUserByIdAsync(currentUserId);
 
                 var model = new SettingsViewModel
@@ -46,7 +57,6 @@ namespace POSRestoran01.Controllers
                     CurrentUser = currentUser ?? new Models.User()
                 };
 
-                // Set ViewBag data for current user - PASTIKAN DATA ADA
                 ViewBag.CurrentUserFullName = currentUser?.FullName ?? "User Tidak Ditemukan";
                 ViewBag.CurrentUserRole = currentUser?.Role ?? "Role Tidak Ditemukan";
                 ViewBag.UserId = currentUserId.ToString();
@@ -55,7 +65,6 @@ namespace POSRestoran01.Controllers
                 switch (section.ToLower())
                 {
                     case "account":
-                        // Untuk account section, hanya load current user data (sudah ada di model.CurrentUser)
                         break;
                     case "stock-history":
                         model.StockHistories = await _stockHistoryService.GetRecentStockHistoryAsync(50);
@@ -72,13 +81,11 @@ namespace POSRestoran01.Controllers
             }
             catch (Exception ex)
             {
-                // Log error untuk debugging
                 Console.WriteLine($"Error in Settings Index: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
 
                 TempData["Error"] = "Terjadi kesalahan saat memuat halaman settings.";
 
-                // Return model dengan data minimal
                 var fallbackModel = new SettingsViewModel { ActiveSection = section };
                 ViewBag.CurrentUserFullName = "User Tidak Ditemukan";
                 ViewBag.CurrentUserRole = "Role Tidak Ditemukan";
@@ -89,7 +96,7 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        #region Current User Account Management - GUNAKAN AuthService
+        #region Current User Account Management
 
         [HttpGet]
         public async Task<IActionResult> GetCurrentUser()
@@ -103,7 +110,6 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = "User tidak valid - tidak ada session" });
                 }
 
-                // GUNAKAN AuthService
                 var user = await _authService.GetUserByIdAsync(currentUserId);
 
                 if (user == null)
@@ -123,7 +129,7 @@ namespace POSRestoran01.Controllers
                         role = user.Role,
                         isActive = user.IsActive,
                         lastLogin = user.LastLogin?.ToString("yyyy-MM-dd HH:mm:ss"),
-                        createdAt = user.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss") // TAMBAH CreatedAt
+                        createdAt = user.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")
                     }
                 });
             }
@@ -150,7 +156,6 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = "Nama lengkap dan email harus diisi" });
                 }
 
-                // Jika ada password baru, validate password lama
                 if (!string.IsNullOrEmpty(newPassword))
                 {
                     if (string.IsNullOrEmpty(currentPassword))
@@ -163,7 +168,6 @@ namespace POSRestoran01.Controllers
                         return Json(new { success = false, message = "Password baru minimal 6 karakter" });
                     }
 
-                    // Validasi password lama menggunakan AuthService
                     var isValidPassword = await _authService.ValidateCurrentPasswordAsync(currentUserId, currentPassword);
                     if (!isValidPassword)
                     {
@@ -171,12 +175,10 @@ namespace POSRestoran01.Controllers
                     }
                 }
 
-                // GUNAKAN AuthService untuk update profile
                 var success = await _authService.UpdateUserProfileAsync(currentUserId, fullName, email, newPassword);
 
                 if (success)
                 {
-                    // Update session dengan data terbaru
                     HttpContext.Session.SetString("FullName", fullName);
 
                     return Json(new { success = true, message = "Profile berhasil diupdate" });
@@ -195,10 +197,7 @@ namespace POSRestoran01.Controllers
         #endregion
 
 
-        #region Create New User - GUNAKAN AuthService
-
-        // HAPUS method CreateUser dengan CreateUserViewModel yang ada di bawah ini
-        // Pastikan hanya ada SATU method CreateUser dengan parameter string
+        #region Create New User
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -206,7 +205,6 @@ namespace POSRestoran01.Controllers
         {
             try
             {
-                // Enhanced logging untuk debugging
                 Console.WriteLine("=== CreateUser Method Called ===");
                 Console.WriteLine($"FullName: '{fullName}' (Length: {fullName?.Length ?? 0})");
                 Console.WriteLine($"Username: '{username}' (Length: {username?.Length ?? 0})");
@@ -215,7 +213,6 @@ namespace POSRestoran01.Controllers
                 Console.WriteLine($"Role: '{role}'");
                 Console.WriteLine($"Current User ID: {GetCurrentUserId()}");
 
-                // Test database connection
                 try
                 {
                     var userCount = await _context.Users.CountAsync();
@@ -227,7 +224,6 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = $"Database connection error: {dbEx.Message}" });
                 }
 
-                // Validation dengan logging detail
                 if (string.IsNullOrEmpty(fullName) || string.IsNullOrWhiteSpace(fullName))
                 {
                     Console.WriteLine("Validation failed: FullName is empty");
@@ -258,7 +254,6 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = "Password minimal 6 karakter" });
                 }
 
-                // Email validation
                 if (!IsValidEmail(email))
                 {
                     Console.WriteLine($"Validation failed: Invalid email format: {email}");
@@ -267,14 +262,12 @@ namespace POSRestoran01.Controllers
 
                 Console.WriteLine("All validations passed, calling AuthService.CreateUserAsync...");
 
-                // Check if AuthService is null
                 if (_authService == null)
                 {
                     Console.WriteLine("ERROR: AuthService is null!");
                     return Json(new { success = false, message = "Service tidak tersedia (AuthService null)" });
                 }
 
-                // Check if context is null
                 if (_context == null)
                 {
                     Console.WriteLine("ERROR: ApplicationDbContext is null!");
@@ -283,7 +276,6 @@ namespace POSRestoran01.Controllers
 
                 Console.WriteLine("Dependencies check passed, creating user...");
 
-                // GUNAKAN AuthService langsung - method ini sudah handle checking duplicate
                 var user = await _authService.CreateUserAsync(fullName, username, email, password, role);
 
                 Console.WriteLine($"User created successfully with ID: {user.Id}");
@@ -293,25 +285,21 @@ namespace POSRestoran01.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                // Ini akan catch error dari AuthService untuk username/email duplicate
                 Console.WriteLine($"Business logic error in CreateUser: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return Json(new { success = false, message = ex.Message });
             }
             catch (ArgumentException ex)
             {
-                // Catch argument validation errors
                 Console.WriteLine($"Argument error in CreateUser: {ex.Message}");
                 return Json(new { success = false, message = $"Data tidak valid: {ex.Message}" });
             }
             catch (Exception ex)
             {
-                // Catch semua error lainnya
                 Console.WriteLine($"Unexpected error in CreateUser: {ex.Message}");
                 Console.WriteLine($"Exception type: {ex.GetType().Name}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
 
-                // Check inner exception
                 if (ex.InnerException != null)
                 {
                     Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
@@ -322,7 +310,6 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // Helper method untuk validasi email
         private bool IsValidEmail(string email)
         {
             try
@@ -338,7 +325,11 @@ namespace POSRestoran01.Controllers
 
         #endregion
 
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 2a958b7 (update project)
 
         [HttpGet]
         public async Task<IActionResult> GetStockHistory(DateTime? startDate, DateTime? endDate, int? menuItemId)
@@ -369,7 +360,10 @@ namespace POSRestoran01.Controllers
         }
 
 
+<<<<<<< HEAD
         // Update method signature di SettingsController
+=======
+>>>>>>> 2a958b7 (update project)
         [HttpGet]
         public async Task<IActionResult> GetCashierDashboard(DateTime? selectedDate)
         {
@@ -388,21 +382,27 @@ namespace POSRestoran01.Controllers
 
         private async Task<CashierDashboardViewModel> GetCashierDashboardDataAsync(int userId, DateTime? selectedDate = null)
         {
+<<<<<<< HEAD
             // Gunakan tanggal yang dipilih atau default ke hari ini
+=======
+>>>>>>> 2a958b7 (update project)
             var targetDate = selectedDate ?? DateTime.Today;
             var startOfDay = targetDate.Date;
             var endOfDay = targetDate.Date.AddHours(23).AddMinutes(59).AddSeconds(59);
 
-            // GUNAKAN AuthService untuk mendapatkan user
             var user = await _authService.GetUserByIdAsync(userId);
 
+<<<<<<< HEAD
             // Load activities untuk tanggal yang dipilih
+=======
+>>>>>>> 2a958b7 (update project)
             var activities = await _userActivityService.GetUserActivitiesAsync(
                 startOfDay,
                 endOfDay,
                 userId
             );
 
+<<<<<<< HEAD
             // Get orders untuk tanggal yang dipilih
             var dateOrders = await _orderService.GetOrdersByUserIdAsync(userId, startOfDay, endOfDay);
 
@@ -415,11 +415,24 @@ namespace POSRestoran01.Controllers
                                            .FirstOrDefault()?.ActivityTime;
 
             // PERBAIKAN: Get LOGOUT TERAKHIR dari tanggal yang dipilih (bukan dari semua waktu)
+=======
+            var dateOrders = await _orderService.GetOrdersByUserIdAsync(userId, startOfDay, endOfDay);
+
+            var todayOrders = await _orderService.GetOrdersByUserIdAsync(userId, DateTime.Today, DateTime.Today);
+
+            var firstLoginOfDay = activities.Where(a => a.ActivityType == "Login")
+                                           .OrderBy(a => a.ActivityTime)
+                                           .FirstOrDefault()?.ActivityTime;
+
+>>>>>>> 2a958b7 (update project)
             var lastLogoutOfDay = activities.Where(a => a.ActivityType == "Logout")
                                            .OrderByDescending(a => a.ActivityTime)
                                            .FirstOrDefault()?.ActivityTime;
 
+<<<<<<< HEAD
             // PERBAIKAN: Calculate working hours dari LOGIN PERTAMA sampai LOGOUT TERAKHIR di hari yang dipilih
+=======
+>>>>>>> 2a958b7 (update project)
             TimeSpan? workingHours = null;
             var selectedDayActivities = activities.ToList();
 
@@ -431,22 +444,33 @@ namespace POSRestoran01.Controllers
                                                 .OrderByDescending(a => a.ActivityTime)
                                                 .FirstOrDefault();
 
+<<<<<<< HEAD
             // Hitung waktu kerja HANYA jika ada login DAN logout di tanggal tersebut
+=======
+>>>>>>> 2a958b7 (update project)
             if (firstLogin != null && lastLogout != null)
             {
                 workingHours = lastLogout.ActivityTime - firstLogin.ActivityTime;
             }
 
+<<<<<<< HEAD
             // Calculate statistics untuk tanggal yang dipilih
             var statistics = new CashierStatisticsViewModel
             {
                 // Statistics untuk tanggal yang dipilih
+=======
+            var statistics = new CashierStatisticsViewModel
+            {
+>>>>>>> 2a958b7 (update project)
                 TotalRevenue = await _orderService.GetTotalRevenueByUserIdAsync(userId, startOfDay, endOfDay),
                 TotalOrders = dateOrders.Count(o => o.Status == "Completed"),
                 TotalCustomers = await _orderService.GetTotalCustomersByUserIdAsync(userId, startOfDay, endOfDay),
                 TotalMenusOrdered = await _orderService.GetTotalMenusOrderedByUserIdAsync(userId, startOfDay, endOfDay),
 
+<<<<<<< HEAD
                 // Today's statistics (untuk perbandingan)
+=======
+>>>>>>> 2a958b7 (update project)
                 TodayRevenue = todayOrders.Where(o => o.Status == "Completed").Sum(o => o.Total),
                 TodayOrders = todayOrders.Count(o => o.Status == "Completed"),
                 TodayCustomers = todayOrders.Count(o => o.Status == "Completed"),
@@ -454,13 +478,20 @@ namespace POSRestoran01.Controllers
                                               .SelectMany(o => o.OrderDetails)
                                               .Sum(od => od.Quantity),
 
+<<<<<<< HEAD
                 // Activity info - PERBAIKAN: Gunakan firstLoginOfDay
                 LastLogin = firstLoginOfDay, // Ini sekarang adalah login PERTAMA
+=======
+                LastLogin = firstLoginOfDay,
+>>>>>>> 2a958b7 (update project)
                 LastLogout = lastLogoutOfDay,
                 WorkingHours = workingHours
             };
 
+<<<<<<< HEAD
             // Convert activities to detailed view model - ambil semua aktivitas hari yang dipilih
+=======
+>>>>>>> 2a958b7 (update project)
             var detailedActivities = activities.Select(a => new UserActivityDetailViewModel
             {
                 ActivityId = a.ActivityId,
@@ -480,6 +511,7 @@ namespace POSRestoran01.Controllers
                 TodayOrders = dateOrders,
                 Statistics = statistics,
                 StartDate = selectedDate,
+<<<<<<< HEAD
                 
             };
         }
@@ -494,6 +526,12 @@ namespace POSRestoran01.Controllers
 
         
 
+=======
+
+            };
+        }
+
+>>>>>>> 2a958b7 (update project)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
@@ -502,17 +540,14 @@ namespace POSRestoran01.Controllers
             {
                 var currentUserId = GetCurrentUserId();
 
-                // Record logout activity menggunakan AuthService
                 await _authService.LogoutAsync(currentUserId);
 
-                // Clear session
                 HttpContext.Session.Clear();
 
                 return Json(new { success = true, redirectUrl = "/Account/Login" });
             }
             catch (Exception ex)
             {
-                // Even if recording activity fails, still logout
                 HttpContext.Session.Clear();
                 return Json(new { success = true, redirectUrl = "/Account/Login" });
             }

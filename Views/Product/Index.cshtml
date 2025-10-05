@@ -278,7 +278,7 @@
 @section Scripts {
     <script src="~/js/product-management.js"></script>
     <script>
-        // Scroll functionality
+    
         function scrollToTop() {
             document.querySelector('.h-screen.overflow-y-auto').scrollTo({
                 top: 0,
@@ -286,7 +286,7 @@
             });
         }
 
-        // Show/hide scroll to top button
+    
         document.querySelector('.h-screen.overflow-y-auto').addEventListener('scroll', function() {
             const scrollToTopBtn = document.getElementById('scrollToTop');
             if (this.scrollTop > 300) {
@@ -305,7 +305,7 @@
             setupToggleSwitch();
             setupDiscountFeatures();
 
-            // Ensure "Semua Kategori" tab is active by default
+            
             updateActiveCategoryTab(0);
         });
     </script>

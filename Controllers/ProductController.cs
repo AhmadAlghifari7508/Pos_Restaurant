@@ -29,17 +29,15 @@ namespace POSRestoran01.Controllers
                 var model = new ProductManagementViewModel
                 {
                     Categories = await _categoryService.GetActiveCategoriesAsync(),
-                    SelectedCategoryId = categoryId ?? 0  // Default to 0 (Semua Kategori)
+                    SelectedCategoryId = categoryId ?? 0
                 };
 
-                // Load menu items based on category
                 if (categoryId.HasValue && categoryId.Value > 0)
                 {
                     model.MenuItems = await _menuService.GetMenuItemsByCategoryAsync(categoryId.Value);
                 }
                 else
                 {
-                    // Show all menu items when "Semua Kategori" is selected (categoryId = 0)
                     model.MenuItems = await _menuService.GetAllMenuItemsAsync();
                     model.SelectedCategoryId = 0;
                 }
@@ -66,7 +64,6 @@ namespace POSRestoran01.Controllers
             }
             catch (Exception ex)
             {
-                // Log the error for debugging
                 Console.WriteLine($"Error in GetMenuByCategory: {ex.Message}");
                 return BadRequest("Terjadi kesalahan saat memuat menu");
             }
@@ -179,7 +176,6 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = string.Join(", ", errors) });
                 }
 
-                // Enhanced discount validation
                 if (model.IsDiscountActive)
                 {
                     if (!model.DiscountPercentage.HasValue || model.DiscountPercentage <= 0)
@@ -216,7 +212,6 @@ namespace POSRestoran01.Controllers
                     Stock = model.Stock,
                     ImagePath = imagePath,
                     IsActive = model.IsActive,
-                    // Enhanced discount properties
                     DiscountPercentage = model.IsDiscountActive ? (model.DiscountPercentage ?? 0) : 0,
                     DiscountStartDate = model.IsDiscountActive ? model.DiscountStartDate : null,
                     DiscountEndDate = model.IsDiscountActive ? model.DiscountEndDate : null,
@@ -227,7 +222,6 @@ namespace POSRestoran01.Controllers
 
                 await _menuService.CreateMenuItemAsync(menuItem);
 
-                // Record stock history
                 await _stockHistoryService.RecordStockChangeAsync(
                     menuItem.MenuItemId,
                     GetCurrentUserId(),
@@ -272,7 +266,6 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = "Menu item tidak ditemukan" });
                 }
 
-                // Enhanced response with complete discount info
                 var result = new
                 {
                     success = true,
@@ -286,12 +279,10 @@ namespace POSRestoran01.Controllers
                         stock = menuItem.Stock,
                         imagePath = menuItem.ImagePath ?? "",
                         isActive = menuItem.IsActive,
-                        // Enhanced discount properties
                         discountPercentage = menuItem.DiscountPercentage ?? 0,
                         discountStartDate = menuItem.DiscountStartDate?.ToString("yyyy-MM-ddTHH:mm") ?? "",
                         discountEndDate = menuItem.DiscountEndDate?.ToString("yyyy-MM-ddTHH:mm") ?? "",
                         isDiscountActive = menuItem.IsDiscountActive,
-                        // Additional discount info
                         hasActiveDiscount = menuItem.HasActiveDiscount,
                         finalPrice = menuItem.FinalPrice,
                         discountAmount = menuItem.DiscountAmount,
@@ -324,7 +315,6 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = string.Join(", ", errors) });
                 }
 
-                // Enhanced discount validation
                 if (model.IsDiscountActive)
                 {
                     if (!model.DiscountPercentage.HasValue || model.DiscountPercentage <= 0)
@@ -357,7 +347,6 @@ namespace POSRestoran01.Controllers
                 var wasDiscountActive = menuItem.IsDiscountActive;
                 var oldDiscountPercentage = menuItem.DiscountPercentage;
 
-                // Update menu item with enhanced discount handling
                 menuItem.CategoryId = model.CategoryId;
                 menuItem.ItemName = model.ItemName;
                 menuItem.Description = model.Description;
@@ -365,17 +354,14 @@ namespace POSRestoran01.Controllers
                 menuItem.Stock = model.Stock;
                 menuItem.IsActive = model.IsActive;
 
-                // Enhanced discount properties update
                 menuItem.DiscountPercentage = model.IsDiscountActive ? (model.DiscountPercentage ?? 0) : 0;
                 menuItem.DiscountStartDate = model.IsDiscountActive ? model.DiscountStartDate : null;
                 menuItem.DiscountEndDate = model.IsDiscountActive ? model.DiscountEndDate : null;
                 menuItem.IsDiscountActive = model.IsDiscountActive;
                 menuItem.UpdatedAt = DateTime.Now;
 
-                // Handle image update
                 if (model.ImageFile != null)
                 {
-                    // Delete old image if exists
                     if (!string.IsNullOrEmpty(menuItem.ImagePath))
                     {
                         DeleteImage(menuItem.ImagePath);
@@ -385,7 +371,6 @@ namespace POSRestoran01.Controllers
 
                 await _menuService.UpdateMenuItemAsync(menuItem);
 
-                // Record stock history if stock changed
                 if (stockChanged)
                 {
                     await _stockHistoryService.RecordStockChangeAsync(
@@ -398,7 +383,6 @@ namespace POSRestoran01.Controllers
                     );
                 }
 
-                // Create enhanced response message
                 var responseMessage = "Menu item berhasil diperbarui";
                 var discountStatusChanged = wasDiscountActive != model.IsDiscountActive;
 

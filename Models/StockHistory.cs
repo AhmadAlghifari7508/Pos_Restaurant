@@ -40,7 +40,7 @@ namespace POSRestoran01.Models
         [Display(Name = "Tanggal Perubahan")]
         public DateTime ChangedAt { get; set; } = DateTime.Now;
 
-        // Navigation Properties
+
         [ForeignKey("MenuItemId")]
         public virtual MenuItem MenuItem { get; set; } = null!;
 

@@ -12,9 +12,13 @@ namespace POSRestoran01.Services.Implementations
         private readonly IConfiguration _configuration;
         private readonly IStockHistoryService _stockHistoryService;
         private readonly decimal _ppnRate = 0.11m; 
+<<<<<<< HEAD
+
+=======
+>>>>>>> 2a958b7 (update project)
 
 
-        public OrderService(ApplicationDbContext context, IConfiguration configuration, IStockHistoryService stockHistoryService) // TAMBAH PARAMETER
+        public OrderService(ApplicationDbContext context, IConfiguration configuration, IStockHistoryService stockHistoryService) 
         {
             _context = context;
             _configuration = configuration;
@@ -97,7 +101,11 @@ namespace POSRestoran01.Services.Implementations
                         MenuItemId = item.MenuItemId,
                         Quantity = item.Quantity,
                         UnitPrice = item.UnitPrice, 
+<<<<<<< HEAD
                         OriginalPrice = item.OriginalPrice > 0 ? item.OriginalPrice : item.UnitPrice, // Store original price
+=======
+                        OriginalPrice = item.OriginalPrice > 0 ? item.OriginalPrice : item.UnitPrice, 
+>>>>>>> 2a958b7 (update project)
                         DiscountPercentage = item.DiscountPercentage,
                         DiscountAmount = item.DiscountAmount,
                         OrderNote = item.OrderNote,
@@ -232,13 +240,13 @@ namespace POSRestoran01.Services.Implementations
             return subtotal >= minimumAmount;
         }
 
-        // Method untuk mendapatkan discount percentage dari konfigurasi
+
         public decimal GetCurrentDiscountPercentage()
         {
             return DiscountPercentage;
         }
 
-        // Method to calculate order totals with discount including menu discounts
+    
         public (decimal subtotal, decimal discount, decimal menuDiscount, decimal ppn, decimal total) CalculateOrderTotalsWithMenuDiscount(
             List<OrderItemViewModel> items,
             bool applyOrderDiscount = false)
@@ -497,7 +505,7 @@ namespace POSRestoran01.Services.Implementations
                 .ToListAsync();
         }
 
-        // Method untuk mendapatkan total revenue berdasarkan user dan tanggal
+
         public async Task<decimal> GetTotalRevenueByUserIdAsync(int userId, DateTime startDate, DateTime endDate)
         {
             return await _context.Orders

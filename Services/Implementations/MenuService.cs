@@ -219,7 +219,8 @@ namespace POSRestoran01.Services.Implementations
             return menuItem?.FinalPrice ?? 0; 
         }
 
-        // New discount-related methods
+    
+
         public async Task<List<MenuItem>> GetMenuItemsWithActiveDiscountAsync()
         {
             return await _context.MenuItems

@@ -47,7 +47,7 @@ namespace POSRestoran01.Models
         [Display(Name = "Diperbarui Pada")]
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
-        // Navigation Properties
+  
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
     }
 }

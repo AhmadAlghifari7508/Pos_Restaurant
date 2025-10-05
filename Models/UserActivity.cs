@@ -18,12 +18,12 @@ namespace POSRestoran01.Models
         public string ActivityType { get; set; } = string.Empty; // "Login", "Logout", "Create Order", "Update Stock", "Process Payment"
 
         [Display(Name = "Order ID")]
-        public int? OrderId { get; set; } // Nullable, hanya diisi jika aktivitas terkait order
+        public int? OrderId { get; set; } 
 
         [Display(Name = "Waktu Aktivitas")]
         public DateTime ActivityTime { get; set; } = DateTime.Now;
 
-        // Navigation Properties
+    
         [ForeignKey("UserId")]
         public virtual User User { get; set; } = null!;
 

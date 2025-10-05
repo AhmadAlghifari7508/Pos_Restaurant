@@ -9,7 +9,6 @@ namespace POSRestoran01.Services.Interfaces
         Task<Payment?> GetPaymentByOrderIdAsync(int orderId);
         decimal CalculateChange(decimal amountPaid, decimal total);
 
-        // Method tambahan
         Task<List<Payment>> GetPaymentsByDateAsync(DateTime date);
         Task<decimal> GetTotalPaymentsAsync(DateTime? startDate = null, DateTime? endDate = null);
         Task<List<Payment>> GetPaymentsByMethodAsync(string paymentMethod);
@@ -21,7 +20,7 @@ namespace POSRestoran01.Services.Interfaces
         decimal CalculateTip(decimal total, decimal tipPercentage);
         Task<Payment> UpdatePaymentStatusAsync(int paymentId, string status);
 
-        // Helper methods
+ 
         Task<bool> ProcessCashPaymentAsync(decimal amount, decimal total);
         Task<bool> ProcessCardPaymentAsync(decimal amount, string cardNumber = "");
         Task<List<Payment>> GetTodayPaymentsAsync();

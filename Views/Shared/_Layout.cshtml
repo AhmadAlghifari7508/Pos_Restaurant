@@ -10,39 +10,39 @@
 </head>
 <body class="bg-gray-100">
     <div class="flex h-screen">
-        <!-- Sidebar -->
+        
         <div class="w-20 bg-blue-900 text-white flex flex-col items-center py-4 space-y-8">
-            <!-- Top Icon - Dynamic based on current page -->
+           
             <div class="p-3 bg-blue-800 rounded-lg mb-4">
                 <i id="sidebarTopIcon" class="fas fa-utensils text-xl"></i>
             </div>
 
-            <!-- Home -->
+            
             <a href="@Url.Action("Index", "Home")"
                class="p-3 rounded-lg hover:bg-blue-800 transition-colors @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" ? "bg-blue-800" : "")"
                data-page="home" data-icon="fas fa-utensils" data-title="POS Kasir">
                 <i class="fas fa-home text-xl"></i>
             </a>
-            <!-- Product Management -->
+         
             <a href="@Url.Action("Index", "Product")"
                class="p-3 rounded-lg hover:bg-blue-800 transition-colors @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Menu" ? "bg-blue-800" : "")"
                data-page="product" data-icon="fas fa-shopping-bag" data-title="Manajemen Produk">
                 <i class="fas fa-box text-xl"></i>
             </a>
-            <!-- Dashboard -->
+          
             <a href="@Url.Action("Index", "Dashboard")"
                class="p-3 rounded-lg hover:bg-blue-800 transition-colors @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Dashboard" ? "bg-blue-800" : "")"
                data-page="dashboard" data-icon="fas fa-chart-line" data-title="Dashboard">
                 <i class="fas fa-chart-bar text-xl"></i>
             </a>
-            <!-- Settings -->
+     
             <a href="@Url.Action("Index", "Settings")"
                class="p-3 rounded-lg hover:bg-blue-800 transition-colors @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Settings" ? "bg-blue-800" : "")"
                data-page="settings" data-icon="fas fa-sliders-h" data-title="Pengaturan">
                 <i class="fas fa-cog text-xl"></i>
             </a>
         </div>
-        <!-- Main Content -->
+
         <div class="flex-1 overflow-hidden">
             @RenderBody()
         </div>
@@ -50,12 +50,12 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        // Update sidebar icon when clicking sidebar links
+
         document.addEventListener('DOMContentLoaded', function() {
             const currentController = '@ViewContext.RouteData.Values["Controller"]?.ToString()';
             const sidebarTopIcon = document.getElementById('sidebarTopIcon');
 
-            // Find the active sidebar link
+    
             const activeLink = document.querySelector('.bg-blue-800');
             if (activeLink) {
                 const icon = activeLink.getAttribute('data-icon');
@@ -66,7 +66,7 @@
             }
         });
 
-        // Update sidebar icon when clicking sidebar links
+     
         document.querySelectorAll('[data-page]').forEach(link => {
             link.addEventListener('click', function() {
                 const icon = this.getAttribute('data-icon');

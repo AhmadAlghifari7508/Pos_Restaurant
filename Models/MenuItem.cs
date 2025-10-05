@@ -85,7 +85,7 @@ namespace POSRestoran01.Models
             ? Price * (DiscountPercentage.Value / 100)
             : 0;
 
-        // Helper methods
+ 
         public bool IsDiscountValidForDate(DateTime? checkDate = null)
         {
             var dateToCheck = checkDate ?? DateTime.Now;
@@ -93,11 +93,11 @@ namespace POSRestoran01.Models
             if (!IsDiscountActive || !DiscountPercentage.HasValue || DiscountPercentage <= 0)
                 return false;
 
-            // Check start date
+     
             if (DiscountStartDate.HasValue && dateToCheck < DiscountStartDate.Value)
                 return false;
 
-            // Check end date
+        
             if (DiscountEndDate.HasValue && dateToCheck > DiscountEndDate.Value)
                 return false;
 

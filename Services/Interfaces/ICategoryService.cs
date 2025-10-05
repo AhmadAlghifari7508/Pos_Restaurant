@@ -11,7 +11,7 @@ namespace POSRestoran01.Services.Interfaces
         Task<Category> UpdateCategoryAsync(Category category);
         Task<bool> DeleteCategoryAsync(int id);
 
-        // Method tambahan
+    
         Task<bool> CategoryExistsAsync(int id);
         Task<int> GetTotalCategoriesAsync();
         Task<List<Category>> GetCategoriesWithMenuCountAsync();

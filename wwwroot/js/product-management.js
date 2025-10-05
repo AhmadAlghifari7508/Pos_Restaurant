@@ -1,7 +1,11 @@
+<<<<<<< HEAD
 ﻿// Product Management JavaScript Functions
 
 
 function loadCategories() {
+=======
+﻿function loadCategories() {
+>>>>>>> 2a958b7 (update project)
     fetch('/Product/GetCategories')
         .then(response => {
             if (!response.ok) {
@@ -93,7 +97,10 @@ function saveCategory(categoryId) {
     formData.append('categoryName', newName);
     formData.append('__RequestVerificationToken', getAntiForgeryToken());
 
+<<<<<<< HEAD
     
+=======
+>>>>>>> 2a958b7 (update project)
     const saveBtn = document.getElementById(`saveBtn_${categoryId}`);
     const originalContent = saveBtn.innerHTML;
     saveBtn.innerHTML = '<i class="fas fa-spinner animate-spin"></i>';
@@ -116,7 +123,6 @@ function saveCategory(categoryId) {
             if (data.success) {
                 showNotification(data.message, 'success');
                 cancelEditCategory(categoryId, newName);
-                // Refresh category tabs after a short delay
                 setTimeout(() => location.reload(), 1000);
             } else {
                 showNotification(data.message || 'Terjadi kesalahan', 'error');
@@ -146,7 +152,6 @@ function cancelEditCategory(categoryId, originalName) {
 }
 
 function deleteCategory(categoryId, categoryName) {
-    // Create custom confirmation dialog
     const confirmDialog = document.createElement('div');
     confirmDialog.className = 'fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50';
     confirmDialog.innerHTML = `
@@ -191,7 +196,6 @@ function confirmDeleteCategory(categoryId) {
             if (data.success) {
                 showNotification(data.message, 'success');
                 loadCategories();
-                // Refresh page to update category tabs
                 setTimeout(() => location.reload(), 1000);
             } else {
                 showNotification(data.message || 'Terjadi kesalahan', 'error');
@@ -203,7 +207,6 @@ function confirmDeleteCategory(categoryId) {
         });
 }
 
-// Product Category Loading
 function loadProductCategory(categoryId) {
     showLoading();
 
@@ -239,7 +242,6 @@ function updateActiveCategoryTab(categoryId) {
     });
 }
 
-// Modal Functions
 function showCategoryModal() {
     document.getElementById('categoryModal').classList.remove('hidden');
     document.getElementById('categoryModal').classList.add('flex');
@@ -257,10 +259,8 @@ function showAddMenuModal() {
     document.getElementById('menuForm').reset();
     document.getElementById('menuItemId').value = '';
 
-    // Set default active status to true
     setActiveStatus(true);
 
-    // Set default discount status to false
     setDiscountStatus(false);
 
     document.getElementById('currentImagePreview').classList.add('hidden');
@@ -269,7 +269,6 @@ function showAddMenuModal() {
     document.getElementById('menuModal').classList.remove('hidden');
     document.getElementById('menuModal').classList.add('flex');
 
-    // Clear price preview
     updatePricePreview();
 }
 
@@ -279,7 +278,6 @@ function showEditMenuModal(menuItemId) {
 
     showLoading();
 
-    // Load menu data
     fetch(`/Product/GetMenuItem?menuItemId=${menuItemId}`)
         .then(response => {
             if (!response.ok) {
@@ -298,18 +296,14 @@ function showEditMenuModal(menuItemId) {
                 document.getElementById('menuPrice').value = menu.price;
                 document.getElementById('menuStock').value = menu.stock;
 
-                // Set discount fields
                 document.getElementById('menuDiscountPercentage').value = menu.discountPercentage || 0;
                 document.getElementById('menuDiscountStartDate').value = menu.discountStartDate || '';
                 document.getElementById('menuDiscountEndDate').value = menu.discountEndDate || '';
 
-                // Set discount status
                 setDiscountStatus(menu.isDiscountActive);
 
-                // Set active status properly
                 setActiveStatus(menu.isActive);
 
-                // Show current image if exists
                 if (menu.imagePath) {
                     document.getElementById('currentImage').src = menu.imagePath;
                     document.getElementById('currentImagePreview').classList.remove('hidden');
@@ -321,7 +315,6 @@ function showEditMenuModal(menuItemId) {
                 document.getElementById('menuModal').classList.remove('hidden');
                 document.getElementById('menuModal').classList.add('flex');
 
-                // Update price preview
                 updatePricePreview();
             } else {
                 showNotification(data.message || 'Terjadi kesalahan saat memuat data menu', 'error');
@@ -339,14 +332,13 @@ function hideMenuModal() {
     document.getElementById('menuModal').classList.remove('flex');
 }
 
-// Discount Toggle Functions
 function toggleDiscountStatus() {
     const checkbox = document.getElementById('menuDiscountActive');
     const currentState = checkbox.checked;
     const newState = !currentState;
 
     setDiscountStatus(newState);
-    updatePricePreview(); // Update preview when toggling
+    updatePricePreview();
 }
 
 function setDiscountStatus(isActive) {
@@ -368,7 +360,6 @@ function setDiscountStatus(isActive) {
         toggleDot.classList.add('translate-x-5');
         fieldsContainer.classList.remove('hidden');
 
-        // Set default dates if empty with current time
         const startDate = document.getElementById('menuDiscountStartDate');
         const endDate = document.getElementById('menuDiscountEndDate');
 
@@ -386,7 +377,6 @@ function setDiscountStatus(isActive) {
         toggleDot.classList.add('translate-x-0.5');
         fieldsContainer.classList.add('hidden');
 
-        // Clear discount fields when deactivated
         const discountPercentage = document.getElementById('menuDiscountPercentage');
         if (discountPercentage) discountPercentage.value = 0;
     }
@@ -429,7 +419,6 @@ function updatePricePreview() {
     }
 }
 
-// Toggle Switch Functions for Active Status
 function toggleActiveStatus() {
     const checkbox = document.getElementById('menuIsActive');
     const currentState = checkbox.checked;
@@ -463,16 +452,12 @@ function setActiveStatus(isActive) {
 }
 
 function setupToggleSwitch() {
-    // Set default state to active (true) for new menu
     setActiveStatus(true);
 }
 
-// Setup discount features
 function setupDiscountFeatures() {
-    // Set default discount status to false for new menu
     setDiscountStatus(false);
 
-    // Add event listeners for price preview
     const priceInput = document.getElementById('menuPrice');
     const discountPercentageInput = document.getElementById('menuDiscountPercentage');
     const discountStartDate = document.getElementById('menuDiscountStartDate');
@@ -484,7 +469,6 @@ function setupDiscountFeatures() {
 
     if (discountPercentageInput) {
         discountPercentageInput.addEventListener('input', function () {
-            // Validate percentage range
             let value = parseFloat(this.value);
             if (value < 0) this.value = 0;
             if (value > 100) this.value = 100;
@@ -492,7 +476,6 @@ function setupDiscountFeatures() {
         });
     }
 
-    // Date validation
     if (discountStartDate && discountEndDate) {
         discountStartDate.addEventListener('change', validateDiscountDates);
         discountEndDate.addEventListener('change', validateDiscountDates);
@@ -510,14 +493,12 @@ function validateDiscountDates() {
 
     if (end <= start) {
         showNotification('Tanggal berakhir harus setelah tanggal mulai', 'warning');
-        // Set end date to one day after start date
         const nextDay = new Date(start);
         nextDay.setDate(nextDay.getDate() + 1);
         endDate.value = nextDay.toISOString().slice(0, 16);
     }
 }
 
-// Image preview functions
 function setupImagePreview() {
     const imageInput = document.getElementById('menuImage');
     const preview = document.getElementById('imagePreview');
@@ -528,14 +509,12 @@ function setupImagePreview() {
     imageInput.addEventListener('change', function (e) {
         const file = e.target.files[0];
         if (file) {
-            // Validate file type
             if (!file.type.startsWith('image/')) {
                 showNotification('File yang dipilih bukan gambar', 'warning');
                 imageInput.value = '';
                 return;
             }
 
-            // Validate file size (max 5MB)
             if (file.size > 5 * 1024 * 1024) {
                 showNotification('Ukuran file tidak boleh lebih dari 5MB', 'warning');
                 imageInput.value = '';
@@ -599,7 +578,6 @@ function validateMenuForm() {
         return false;
     }
 
-    // Validate discount settings
     if (discountActive) {
         if (!discountPercentage || parseFloat(discountPercentage) <= 0) {
             showNotification('Persentase diskon harus lebih dari 0 jika diskon aktif', 'warning');
@@ -625,7 +603,6 @@ function validateMenuForm() {
         }
     }
 
-    // Validate image file if selected
     const imageFile = document.getElementById('menuImage').files[0];
     if (imageFile) {
         if (!imageFile.type.startsWith('image/')) {
@@ -644,7 +621,6 @@ function validateMenuForm() {
     return true;
 }
 
-// Add Category Form Handler
 document.addEventListener('DOMContentLoaded', function () {
     const addCategoryForm = document.getElementById('addCategoryForm');
     if (addCategoryForm) {
@@ -670,7 +646,6 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.append('categoryName', categoryName);
             formData.append('__RequestVerificationToken', getAntiForgeryToken());
 
-            // Show loading state
             const submitButton = addCategoryForm.querySelector('button[type="submit"]');
             const originalContent = submitButton.innerHTML;
             submitButton.innerHTML = '<i class="fas fa-spinner animate-spin"></i>';
@@ -694,7 +669,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         showNotification(data.message, 'success');
                         categoryNameInput.value = '';
                         loadCategories();
-                        // Refresh page to update category tabs
                         setTimeout(() => location.reload(), 1000);
                     } else {
                         showNotification(data.message || 'Terjadi kesalahan', 'error');
@@ -709,28 +683,23 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Menu Form Handler
     const menuForm = document.getElementById('menuForm');
     if (menuForm) {
         menuForm.addEventListener('submit', function (e) {
             e.preventDefault();
 
-            // Validate form
             if (!validateMenuForm()) {
                 return;
             }
 
             const formData = new FormData(menuForm);
 
-            // Ensure IsActive value is properly set
             const isActiveCheckbox = document.getElementById('menuIsActive');
             const hiddenIsActive = document.getElementById('hiddenIsActive');
 
-            // Remove any existing IsActive from formData and add the correct value
             formData.delete('IsActive');
             formData.append('IsActive', isActiveCheckbox.checked);
 
-            // Ensure discount values are properly set
             const isDiscountActiveCheckbox = document.getElementById('menuDiscountActive');
             formData.delete('IsDiscountActive');
             formData.append('IsDiscountActive', isDiscountActiveCheckbox.checked);
@@ -742,7 +711,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const url = isEdit ? '/Product/UpdateMenuItem' : '/Product/CreateMenuItem';
 
-            // Show loading state
             const submitButton = document.getElementById('menuSubmitBtn');
             const originalContent = submitButton.innerHTML;
             submitButton.innerHTML = '<i class="fas fa-spinner animate-spin mr-2"></i>Memproses...';
@@ -769,13 +737,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         showNotification(data.message, 'success');
                         hideMenuModal();
 
-                        // Reload current category
                         const activeTab = document.querySelector('.category-tab.border-b-2');
                         if (activeTab) {
                             const categoryId = parseInt(activeTab.getAttribute('data-category-id'));
                             setTimeout(() => loadProductCategory(categoryId), 500);
                         } else {
-                            // Load first category if no active tab
                             const firstTab = document.querySelector('.category-tab');
                             if (firstTab) {
                                 const categoryId = parseInt(firstTab.getAttribute('data-category-id'));
@@ -797,7 +763,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-// Initialize everything when document is ready
 document.addEventListener('DOMContentLoaded', function () {
     initializeProductManagement();
     loadCategories();
@@ -810,11 +775,8 @@ function initializeProductManagement() {
     console.log('Product Management with Discount Features initialized');
 }
 
-// Keyboard shortcuts
 document.addEventListener('keydown', function (e) {
-    // Only process shortcuts if not typing in input fields
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
-        // Allow Escape key even in input fields to close modals
         if (e.key === 'Escape') {
             e.preventDefault();
             hideMenuModal();
@@ -846,7 +808,6 @@ document.addEventListener('keydown', function (e) {
     }
 });
 
-// Modal click outside to close
 document.addEventListener('click', function (e) {
     const categoryModal = document.getElementById('categoryModal');
     const menuModal = document.getElementById('menuModal');
@@ -860,7 +821,6 @@ document.addEventListener('click', function (e) {
     }
 });
 
-// Utility Functions
 function getAntiForgeryToken() {
     const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
     return tokenElement ? tokenElement.value : '';
@@ -883,7 +843,6 @@ function hideLoading() {
 }
 
 function showNotification(message, type = 'info', duration = 4000) {
-    // Remove existing notifications
     const existingNotifications = document.querySelectorAll('.notification');
     existingNotifications.forEach(notification => notification.remove());
 

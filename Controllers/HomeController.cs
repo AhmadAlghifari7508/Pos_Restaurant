@@ -83,7 +83,7 @@ namespace POSRestoran01.Controllers
                     model.CurrentOrder = new OrderViewModel();
                 }
 
-                // Generate order number if not exists
+              
                 if (string.IsNullOrEmpty(model.CurrentOrder.OrderNumber))
                 {
                     model.CurrentOrder.OrderNumber = await _orderService.GenerateOrderNumberAsync();
@@ -93,13 +93,13 @@ namespace POSRestoran01.Controllers
             }
             catch (Exception ex)
             {
-                // Log error (implement your logging here)
+          
                 TempData["Error"] = "Terjadi kesalahan saat memuat halaman.";
                 return View(new POSViewModel());
             }
         }
 
-        // Add new action for getting menu by category via AJAX
+        
         [HttpGet]
         public async Task<IActionResult> GetMenuByCategory(int categoryId)
         {
@@ -107,7 +107,7 @@ namespace POSRestoran01.Controllers
             {
                 var menuItems = categoryId > 0
                     ? await _menuService.GetMenuItemsByCategoryAsync(categoryId)
-                    : await _menuService.GetAllMenuItemsAsync(); // Show all items when categoryId is 0
+                    : await _menuService.GetAllMenuItemsAsync(); 
 
                 return PartialView("_MenuItemsPartial", menuItems);
             }
@@ -117,7 +117,6 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // Add new action for searching menu items via AJAX
         [HttpGet]
         public async Task<IActionResult> SearchMenuItems(string searchTerm)
         {
@@ -125,7 +124,7 @@ namespace POSRestoran01.Controllers
             {
                 var menuItems = !string.IsNullOrEmpty(searchTerm)
                     ? await _menuService.SearchMenuItemsAsync(searchTerm)
-                    : await _menuService.GetAllMenuItemsAsync(); // Show all items when search is empty
+                    : await _menuService.GetAllMenuItemsAsync(); 
 
                 return PartialView("_MenuItemsPartial", menuItems);
             }
@@ -135,7 +134,7 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // Add new action for getting current order via AJAX
+        
         [HttpGet]
         public IActionResult GetCurrentOrder()
         {
@@ -150,10 +149,9 @@ namespace POSRestoran01.Controllers
                     {
                         order = JsonSerializer.Deserialize<OrderViewModel>(orderJson) ?? new OrderViewModel();
 
-                        // Ensure all notes are preserved and not auto-filled
                         foreach (var item in order.Items)
                         {
-                            // Keep existing note as is - don't replace with default values
+                            
                             item.OrderNote = item.OrderNote ?? "";
                         }
                     }
@@ -182,7 +180,7 @@ namespace POSRestoran01.Controllers
         {
             try
             {
-                // Validate input
+          
                 if (quantity <= 0)
                 {
                     return Json(new { success = false, message = "Quantity harus lebih dari 0" });
@@ -204,7 +202,7 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = $"Stok tidak mencukupi. Tersisa {menuItem.Stock}" });
                 }
 
-                // Get current order from session
+                
                 var orderJson = HttpContext.Session.GetString("CurrentOrder");
                 OrderViewModel order;
 
@@ -230,11 +228,11 @@ namespace POSRestoran01.Controllers
                     }
                 }
 
-                // Check if item already exists in order
+             
                 var existingItem = order.Items.FirstOrDefault(i => i.MenuItemId == menuItemId);
                 if (existingItem != null)
                 {
-                    // Check total quantity doesn't exceed stock
+        
                     var newQuantity = existingItem.Quantity + quantity;
                     if (newQuantity > menuItem.Stock)
                     {
@@ -265,10 +263,9 @@ namespace POSRestoran01.Controllers
                     order.Items.Add(orderItem);
                 }
 
-                // Recalculate totals with menu discounts
+         
                 RecalculateOrderTotals(order);
 
-                // Save to session
                 var updatedOrderJson = JsonSerializer.Serialize(order);
                 HttpContext.Session.SetString("CurrentOrder", updatedOrderJson);
 
@@ -283,12 +280,12 @@ namespace POSRestoran01.Controllers
             }
             catch (Exception ex)
             {
-                // Log error
+              
                 return Json(new { success = false, message = "Terjadi kesalahan saat menambahkan item" });
             }
         }
 
-        // Add new action for clearing order
+  
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult ClearOrder()
@@ -330,21 +327,19 @@ namespace POSRestoran01.Controllers
 
                 if (quantity <= 0)
                 {
-                    // Remove item if quantity is 0 or less
+                    
                     order.Items.Remove(item);
                 }
                 else
                 {
-                    // Update quantity - preserve existing note, don't auto-fill
+                    
                     item.Quantity = quantity;
                     item.Subtotal = item.Quantity * item.UnitPrice;
-                    // Keep OrderNote as is - don't change it or auto-fill
+                   
                 }
 
-                // Recalculate totals
                 RecalculateOrderTotals(order);
 
-                // Save to session
                 HttpContext.Session.SetString("CurrentOrder", JsonSerializer.Serialize(order));
 
                 return Json(new { success = true, totalItems = order.Items.Sum(i => i.Quantity) });
@@ -379,13 +374,13 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = "Item tidak ditemukan dalam order" });
                 }
 
-                // Update note and persist it - allow empty notes
+ 
                 item.OrderNote = note ?? "";
 
-                // Save to session immediately
+ 
                 HttpContext.Session.SetString("CurrentOrder", JsonSerializer.Serialize(order));
 
-                // Return success without notification message for silent save
+         
                 return Json(new { success = true });
             }
             catch (Exception ex)
@@ -412,7 +407,7 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = "Order kosong" });
                 }
 
-                // Apply atau remove order discount (not menu discount)
+            
                 if (applyDiscount)
                 {
                     order.Discount = _orderService.CalculateDiscountAmount(order.Subtotal);
@@ -422,10 +417,10 @@ namespace POSRestoran01.Controllers
                     order.Discount = 0m;
                 }
 
-                // Recalculate totals (menu discount total remains unchanged)
+               
                 RecalculateOrderTotals(order);
 
-                // Save to session
+   
                 HttpContext.Session.SetString("CurrentOrder", JsonSerializer.Serialize(order));
 
                 var discountPercentage = _orderService.GetCurrentDiscountPercentage();
@@ -461,7 +456,7 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = string.Join(", ", errors) });
                 }
 
-                // Get current order from session
+    
                 var orderJson = HttpContext.Session.GetString("CurrentOrder");
                 if (string.IsNullOrEmpty(orderJson))
                 {
@@ -474,48 +469,44 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = "Order kosong" });
                 }
 
-                // Set payment data from current order with proper calculations including menu discounts
+               
                 model.Items = order.Items;
                 model.OrderNumber = order.OrderNumber;
                 model.Subtotal = _orderService.CalculateSubtotalWithMenuDiscount(order.Items);
-                model.Discount = order.Discount; // Order discount
+                model.Discount = order.Discount; 
                 model.PPN = _orderService.CalculatePPN(model.Subtotal, model.Discount);
                 model.Total = _orderService.CalculateTotal(model.Subtotal, model.Discount, model.PPN);
                 model.Change = _paymentService.CalculateChange(model.Cash, model.Total);
 
-                // Validate cash amount
+
                 if (model.Cash < model.Total)
                 {
                     return Json(new { success = false, message = "Jumlah cash tidak mencukupi" });
                 }
 
-                // Validate table number for dine in
+          
                 if (model.OrderType == "Dine In" && (!model.TableNo.HasValue || model.TableNo <= 0))
                 {
                     return Json(new { success = false, message = "Nomor meja harus diisi untuk Dine In" });
                 }
 
-                // Get user ID from session
+              
                 var userIdString = HttpContext.Session.GetString("UserId");
                 if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
                 {
                     return Json(new { success = false, message = "Session tidak valid. Silakan login ulang." });
                 }
 
-                // Create order with menu discount information
-                // Stock history akan otomatis tercatat di dalam method ini
+    
                 var createdOrder = await _orderService.CreateOrderWithMenuDiscountAsync(model, userId, order.MenuDiscountTotal);
 
-                // TAMBAH: Record user activity untuk Create Order
                 await _userActivityService.RecordActivityAsync(userId, "Create Order", createdOrder.OrderId);
 
-                // Process payment
+
                 await _paymentService.ProcessPaymentAsync(model, createdOrder.OrderId);
 
-                // TAMBAH: Record user activity untuk Process Payment
                 await _userActivityService.RecordActivityAsync(userId, "Process Payment", createdOrder.OrderId);
 
-                // Clear session
                 HttpContext.Session.Remove("CurrentOrder");
 
                 return Json(new
@@ -529,30 +520,29 @@ namespace POSRestoran01.Controllers
             }
             catch (Exception ex)
             {
-                // Log error
+
                 return Json(new { success = false, message = $"Terjadi kesalahan: {ex.Message}" });
             }
         }
 
-        // Helper method to recalculate order totals with menu discount support
+        
         private void RecalculateOrderTotals(OrderViewModel order)
         {
-            // Calculate subtotal from individual items (already using discounted prices)
+
             order.Subtotal = order.Items.Sum(item => item.UnitPrice * item.Quantity);
 
-            // Calculate total menu discount savings
+           
             order.MenuDiscountTotal = order.Items
                 .Where(item => item.HasDiscount)
                 .Sum(item => item.DiscountAmount * item.Quantity);
 
-            // Calculate PPN on subtotal minus order discount (menu discount already applied in subtotal)
+           
             order.PPN = _orderService.CalculatePPN(order.Subtotal, order.Discount);
 
-            // Calculate final total
             order.Total = _orderService.CalculateTotal(order.Subtotal, order.Discount, order.PPN);
         }
 
-        // API endpoint for getting order summary data (for AJAX calls)
+     
         [HttpGet]
         public IActionResult GetOrderSummaryData()
         {
