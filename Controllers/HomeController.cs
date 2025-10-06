@@ -69,7 +69,7 @@ namespace POSRestoran01.Controllers
                 {
                     try
                     {
-                        model.CurrentOrde = JsonSerializer.Deserialize<OrderViewModel>(orderJson) ?? new OrderViewModel();
+                        model.CurrentOrder = JsonSerializer.Deserialize<OrderViewModel>(orderJson) ?? new OrderViewModel();
                     }
                     catch (JsonException)
                     {
@@ -327,15 +327,15 @@ namespace POSRestoran01.Controllers
 
                 if (quantity <= 0)
                 {
-                    
+
                     order.Items.Remove(item);
                 }
                 else
                 {
-                    
+
                     item.Quantity = quantity;
                     item.Subtotal = item.Quantity * item.UnitPrice;
-                   
+
                 }
 
                 RecalculateOrderTotals(order);
@@ -347,6 +347,52 @@ namespace POSRestoran01.Controllers
             catch (Exception ex)
             {
                 return Json(new { success = false, message = "Terjadi kesalahan saat mengupdate quantity" });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult RemoveFromOrder(int menuItemId)
+        {
+            try
+            {
+                var orderJson = HttpContext.Session.GetString("CurrentOrder");
+                if (string.IsNullOrEmpty(orderJson))
+                {
+                    return Json(new { success = false, message = "Order tidak ditemukan" });
+                }
+
+                var order = JsonSerializer.Deserialize<OrderViewModel>(orderJson);
+                if (order == null)
+                {
+                    return Json(new { success = false, message = "Order tidak valid" });
+                }
+
+                var item = order.Items.FirstOrDefault(i => i.MenuItemId == menuItemId);
+                if (item == null)
+                {
+                    return Json(new { success = false, message = "Item tidak ditemukan dalam order" });
+                }
+
+         
+                order.Items.Remove(item);
+
+       
+                RecalculateOrderTotals(order);
+
+      
+                HttpContext.Session.SetString("CurrentOrder", JsonSerializer.Serialize(order));
+
+                return Json(new
+                {
+                    success = true,
+                    message = $"{item.ItemName} berhasil dihapus dari order",
+                    totalItems = order.Items.Sum(i => i.Quantity)
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Terjadi kesalahan saat menghapus item" });
             }
         }
 
@@ -407,20 +453,20 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = "Order kosong" });
                 }
 
-            
+         
                 if (applyDiscount)
                 {
-                    order.Discount = _orderService.CalculateDiscountAmount(order.Subtotal);
+                    var currentSubtotal = order.Items.Sum(item => item.UnitPrice * item.Quantity);
+                    order.Discount = _orderService.CalculateDiscountAmount(currentSubtotal);
                 }
                 else
                 {
                     order.Discount = 0m;
                 }
 
-               
+          
                 RecalculateOrderTotals(order);
 
-   
                 HttpContext.Session.SetString("CurrentOrder", JsonSerializer.Serialize(order));
 
                 var discountPercentage = _orderService.GetCurrentDiscountPercentage();
@@ -430,8 +476,11 @@ namespace POSRestoran01.Controllers
                     message = applyDiscount ? $"Diskon order {discountPercentage}% berhasil diterapkan" : "Diskon order berhasil dihapus",
                     discount = order.Discount,
                     discountPercentage = discountPercentage,
+                    subtotal = order.Subtotal,
+                    ppn = order.PPN,
                     total = order.Total,
-                    menuDiscountTotal = order.MenuDiscountTotal
+                    menuDiscountTotal = order.MenuDiscountTotal,
+                    totalSavings = order.MenuDiscountTotal + order.Discount
                 });
             }
             catch (Exception ex)
@@ -525,24 +574,23 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        
+
         private void RecalculateOrderTotals(OrderViewModel order)
         {
-
+  
             order.Subtotal = order.Items.Sum(item => item.UnitPrice * item.Quantity);
 
-           
+
             order.MenuDiscountTotal = order.Items
                 .Where(item => item.HasDiscount)
                 .Sum(item => item.DiscountAmount * item.Quantity);
 
-           
             order.PPN = _orderService.CalculatePPN(order.Subtotal, order.Discount);
-
+            
             order.Total = _orderService.CalculateTotal(order.Subtotal, order.Discount, order.PPN);
         }
 
-     
+
         [HttpGet]
         public IActionResult GetOrderSummaryData()
         {

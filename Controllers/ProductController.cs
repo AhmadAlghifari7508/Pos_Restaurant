@@ -2,7 +2,6 @@
 using POSRestoran01.Models;
 using POSRestoran01.Models.ViewModels.ProductViewModels;
 using POSRestoran01.Services.Interfaces;
-using System.Text.Json;
 
 namespace POSRestoran01.Controllers
 {
@@ -22,6 +21,7 @@ namespace POSRestoran01.Controllers
             _stockHistoryService = stockHistoryService;
         }
 
+        // GET: Product/Index
         public async Task<IActionResult> Index(int? categoryId)
         {
             try
@@ -32,6 +32,7 @@ namespace POSRestoran01.Controllers
                     SelectedCategoryId = categoryId ?? 0
                 };
 
+                // Show ALL menus (Active and Inactive) in Product Management
                 if (categoryId.HasValue && categoryId.Value > 0)
                 {
                     model.MenuItems = await _menuService.GetMenuItemsByCategoryAsync(categoryId.Value);
@@ -46,16 +47,19 @@ namespace POSRestoran01.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error in Product/Index: {ex.Message}");
                 TempData["Error"] = "Terjadi kesalahan saat memuat halaman Product Management.";
                 return View(new ProductManagementViewModel());
             }
         }
 
+        // GET: Product/GetMenuByCategory
         [HttpGet]
         public async Task<IActionResult> GetMenuByCategory(int categoryId)
         {
             try
             {
+                // Show ALL menus (Active and Inactive)
                 var menuItems = categoryId == 0
                     ? await _menuService.GetAllMenuItemsAsync()
                     : await _menuService.GetMenuItemsByCategoryAsync(categoryId);
@@ -69,6 +73,7 @@ namespace POSRestoran01.Controllers
             }
         }
 
+        // GET: Product/GetCategories
         [HttpGet]
         public async Task<IActionResult> GetCategories()
         {
@@ -84,6 +89,7 @@ namespace POSRestoran01.Controllers
             }
         }
 
+        // POST: Product/CreateCategory
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateCategory(string categoryName)
@@ -111,6 +117,7 @@ namespace POSRestoran01.Controllers
             }
         }
 
+        // POST: Product/UpdateCategory
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateCategory(int categoryId, string categoryName)
@@ -140,6 +147,7 @@ namespace POSRestoran01.Controllers
             }
         }
 
+        // POST: Product/DeleteCategory
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteCategory(int categoryId)
@@ -160,6 +168,7 @@ namespace POSRestoran01.Controllers
             }
         }
 
+        // POST: Product/CreateMenuItem
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateMenuItem(CreateMenuItemViewModel model)
@@ -176,6 +185,7 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = string.Join(", ", errors) });
                 }
 
+                // Validate discount settings
                 if (model.IsDiscountActive)
                 {
                     if (!model.DiscountPercentage.HasValue || model.DiscountPercentage <= 0)
@@ -197,6 +207,7 @@ namespace POSRestoran01.Controllers
                     }
                 }
 
+                // Handle image upload
                 string imagePath = null;
                 if (model.ImageFile != null)
                 {
@@ -222,6 +233,7 @@ namespace POSRestoran01.Controllers
 
                 await _menuService.CreateMenuItemAsync(menuItem);
 
+                // Record initial stock
                 await _stockHistoryService.RecordStockChangeAsync(
                     menuItem.MenuItemId,
                     GetCurrentUserId(),
@@ -231,9 +243,9 @@ namespace POSRestoran01.Controllers
                     $"Initial stock for new menu item: {menuItem.ItemName}"
                 );
 
-                var responseMessage = model.IsDiscountActive ?
-                    $"Menu item berhasil ditambahkan dengan diskon {model.DiscountPercentage}%" :
-                    "Menu item berhasil ditambahkan";
+                var responseMessage = model.IsDiscountActive
+                    ? $"Menu '{menuItem.ItemName}' berhasil ditambahkan dengan diskon {model.DiscountPercentage}%"
+                    : $"Menu '{menuItem.ItemName}' berhasil ditambahkan";
 
                 return Json(new
                 {
@@ -255,6 +267,7 @@ namespace POSRestoran01.Controllers
             }
         }
 
+        // GET: Product/GetMenuItem
         [HttpGet]
         public async Task<IActionResult> GetMenuItem(int menuItemId)
         {
@@ -299,6 +312,7 @@ namespace POSRestoran01.Controllers
             }
         }
 
+        // POST: Product/UpdateMenuItem
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateMenuItem(UpdateMenuItemViewModel model)
@@ -315,6 +329,7 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = string.Join(", ", errors) });
                 }
 
+                // Validate discount settings
                 if (model.IsDiscountActive)
                 {
                     if (!model.DiscountPercentage.HasValue || model.DiscountPercentage <= 0)
@@ -347,6 +362,7 @@ namespace POSRestoran01.Controllers
                 var wasDiscountActive = menuItem.IsDiscountActive;
                 var oldDiscountPercentage = menuItem.DiscountPercentage;
 
+                // Update menu item properties
                 menuItem.CategoryId = model.CategoryId;
                 menuItem.ItemName = model.ItemName;
                 menuItem.Description = model.Description;
@@ -360,6 +376,7 @@ namespace POSRestoran01.Controllers
                 menuItem.IsDiscountActive = model.IsDiscountActive;
                 menuItem.UpdatedAt = DateTime.Now;
 
+                // Handle image update
                 if (model.ImageFile != null)
                 {
                     if (!string.IsNullOrEmpty(menuItem.ImagePath))
@@ -371,6 +388,7 @@ namespace POSRestoran01.Controllers
 
                 await _menuService.UpdateMenuItemAsync(menuItem);
 
+                // Record stock changes
                 if (stockChanged)
                 {
                     await _stockHistoryService.RecordStockChangeAsync(
@@ -383,7 +401,8 @@ namespace POSRestoran01.Controllers
                     );
                 }
 
-                var responseMessage = "Menu item berhasil diperbarui";
+                // Build response message
+                var responseMessage = $"Menu '{menuItem.ItemName}' berhasil diperbarui";
                 var discountStatusChanged = wasDiscountActive != model.IsDiscountActive;
 
                 if (discountStatusChanged)
@@ -402,12 +421,18 @@ namespace POSRestoran01.Controllers
                     responseMessage += $" (diskon diperbarui ke {model.DiscountPercentage}%)";
                 }
 
+                if (!model.IsActive && wasDiscountActive != model.IsDiscountActive)
+                {
+                    responseMessage += " - Menu dinonaktifkan";
+                }
+
                 return Json(new
                 {
                     success = true,
                     message = responseMessage,
                     hasDiscount = model.IsDiscountActive,
                     discountChanged = discountStatusChanged,
+                    isActive = model.IsActive,
                     discountInfo = model.IsDiscountActive ? new
                     {
                         percentage = model.DiscountPercentage,
@@ -425,26 +450,49 @@ namespace POSRestoran01.Controllers
             }
         }
 
+        // POST: Product/DeleteMenuItem - HARD DELETE (Permanent)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteMenuItem(int menuItemId)
         {
             try
             {
+                var menuItem = await _menuService.GetMenuItemByIdAsync(menuItemId);
+                if (menuItem == null)
+                {
+                    return Json(new { success = false, message = "Menu item tidak ditemukan" });
+                }
+
+                var menuName = menuItem.ItemName;
+
+                // Delete image file if exists
+                if (!string.IsNullOrEmpty(menuItem.ImagePath))
+                {
+                    DeleteImage(menuItem.ImagePath);
+                }
+
+                // HARD DELETE - permanently remove from database
                 var success = await _menuService.DeleteMenuItemAsync(menuItemId);
+
                 if (success)
                 {
-                    return Json(new { success = true, message = "Menu item berhasil dihapus" });
+                    return Json(new
+                    {
+                        success = true,
+                        message = $"Menu '{menuName}' berhasil dihapus PERMANENT dari database"
+                    });
                 }
-                return Json(new { success = false, message = "Menu item tidak ditemukan" });
+
+                return Json(new { success = false, message = "Gagal menghapus menu" });
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in DeleteMenuItem: {ex.Message}");
-                return Json(new { success = false, message = "Terjadi kesalahan saat menghapus menu item" });
+                return Json(new { success = false, message = $"Terjadi kesalahan: {ex.Message}" });
             }
         }
 
+        // Private Helper Methods
         private async Task<string> SaveImageAsync(IFormFile imageFile)
         {
             if (imageFile == null || imageFile.Length == 0)
@@ -453,7 +501,7 @@ namespace POSRestoran01.Controllers
             var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "menu");
             Directory.CreateDirectory(uploadsFolder);
 
-            var uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
+            var uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(imageFile.FileName);
             var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
             using (var fileStream = new FileStream(filePath, FileMode.Create))
@@ -469,10 +517,17 @@ namespace POSRestoran01.Controllers
             if (string.IsNullOrEmpty(imagePath))
                 return;
 
-            var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", imagePath.TrimStart('/'));
-            if (System.IO.File.Exists(fullPath))
+            try
             {
-                System.IO.File.Delete(fullPath);
+                var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", imagePath.TrimStart('/'));
+                if (System.IO.File.Exists(fullPath))
+                {
+                    System.IO.File.Delete(fullPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting image: {ex.Message}");
             }
         }
     }

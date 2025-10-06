@@ -16,32 +16,38 @@ namespace POSRestoran01.Services.Implementations
             _stockHistoryService = stockHistoryService;
         }
 
+        // ============ UPDATED METHODS FOR PRODUCT MANAGEMENT ============
+
         public async Task<List<MenuItem>> GetAllMenuItemsAsync()
         {
+            // For PRODUCT MANAGEMENT - Show ALL menus (Active & Inactive)
             return await _context.MenuItems
                 .Include(m => m.Category)
-                .Where(m => m.IsActive) 
-                .OrderBy(m => m.ItemName)
+                // NO IsActive filter - shows everything
+                .OrderByDescending(m => m.IsActive) // Active items first
+                .ThenBy(m => m.ItemName)
                 .ToListAsync();
         }
 
         public async Task<List<MenuItem>> GetMenuItemsByCategoryAsync(int categoryId)
         {
-            
             if (categoryId == 0)
             {
                 return await GetAllMenuItemsAsync();
             }
 
+            // For PRODUCT MANAGEMENT - Show ALL menus in category
             return await _context.MenuItems
                 .Include(m => m.Category)
-                .Where(m => m.CategoryId == categoryId && m.IsActive)
-                .OrderBy(m => m.ItemName)
+                .Where(m => m.CategoryId == categoryId) // NO IsActive filter
+                .OrderByDescending(m => m.IsActive) // Active items first
+                .ThenBy(m => m.ItemName)
                 .ToListAsync();
         }
 
         public async Task<List<MenuItem>> GetActiveMenuItemsAsync()
         {
+            // For HOME/POS PAGE - Only show active items
             return await _context.MenuItems
                 .Include(m => m.Category)
                 .Where(m => m.IsActive)
@@ -53,12 +59,12 @@ namespace POSRestoran01.Services.Implementations
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
             {
-                return await GetAllMenuItemsAsync();
+                return await GetActiveMenuItemsAsync(); // For HOME - only active
             }
 
             return await _context.MenuItems
                 .Include(m => m.Category)
-                .Where(m => m.IsActive && (
+                .Where(m => m.IsActive && ( // For HOME - only active
                     m.ItemName.Contains(searchTerm) ||
                     m.Description.Contains(searchTerm) ||
                     m.Category.CategoryName.Contains(searchTerm)
@@ -69,9 +75,10 @@ namespace POSRestoran01.Services.Implementations
 
         public async Task<MenuItem?> GetMenuItemByIdAsync(int id)
         {
+            // Get any menu item by ID (for editing), regardless of IsActive status
             return await _context.MenuItems
                 .Include(m => m.Category)
-                .FirstOrDefaultAsync(m => m.MenuItemId == id && m.IsActive);
+                .FirstOrDefaultAsync(m => m.MenuItemId == id);
         }
 
         public async Task<MenuItem> CreateMenuItemAsync(MenuItem menuItem)
@@ -79,7 +86,6 @@ namespace POSRestoran01.Services.Implementations
             menuItem.CreatedAt = DateTime.Now;
             menuItem.UpdatedAt = DateTime.Now;
 
-           
             if (!menuItem.DiscountPercentage.HasValue)
                 menuItem.DiscountPercentage = 0.00m;
 
@@ -94,7 +100,6 @@ namespace POSRestoran01.Services.Implementations
 
             if (menuItem.IsDiscountActive && menuItem.DiscountPercentage.HasValue && menuItem.DiscountPercentage > 0)
             {
-                
                 if (menuItem.DiscountStartDate.HasValue && menuItem.DiscountEndDate.HasValue)
                 {
                     if (menuItem.DiscountEndDate < menuItem.DiscountStartDate)
@@ -114,13 +119,15 @@ namespace POSRestoran01.Services.Implementations
             var menuItem = await _context.MenuItems.FindAsync(id);
             if (menuItem != null)
             {
-                menuItem.IsActive = false;
-                menuItem.UpdatedAt = DateTime.Now;
+                // HARD DELETE - Permanently remove from database
+                _context.MenuItems.Remove(menuItem);
                 await _context.SaveChangesAsync();
                 return true;
             }
             return false;
         }
+
+        // ============ OTHER METHODS (Unchanged) ============
 
         public async Task<bool> UpdateStockAsync(int menuItemId, int quantity)
         {
@@ -130,7 +137,6 @@ namespace POSRestoran01.Services.Implementations
                 var previousStock = menuItem.Stock;
                 var newStock = previousStock - quantity;
 
-                
                 await _stockHistoryService.RecordStockChangeAsync(
                     menuItemId,
                     1,
@@ -173,7 +179,6 @@ namespace POSRestoran01.Services.Implementations
             return false;
         }
 
-        
         public async Task<bool> CheckStockAvailabilityAsync(int menuItemId, int requestedQuantity)
         {
             var menuItem = await _context.MenuItems.FindAsync(menuItemId);
@@ -203,7 +208,6 @@ namespace POSRestoran01.Services.Implementations
 
         public async Task<List<MenuItem>> GetPopularMenuItemsAsync(int count = 10)
         {
-          
             return await _context.MenuItems
                 .Include(m => m.Category)
                 .Include(m => m.OrderDetails)
@@ -216,10 +220,8 @@ namespace POSRestoran01.Services.Implementations
         public async Task<decimal> GetMenuItemPriceAsync(int menuItemId)
         {
             var menuItem = await _context.MenuItems.FindAsync(menuItemId);
-            return menuItem?.FinalPrice ?? 0; 
+            return menuItem?.FinalPrice ?? 0;
         }
-
-    
 
         public async Task<List<MenuItem>> GetMenuItemsWithActiveDiscountAsync()
         {

@@ -12,10 +12,6 @@ namespace POSRestoran01.Services.Implementations
         private readonly IConfiguration _configuration;
         private readonly IStockHistoryService _stockHistoryService;
         private readonly decimal _ppnRate = 0.11m; 
-<<<<<<< HEAD
-
-=======
->>>>>>> 2a958b7 (update project)
 
 
         public OrderService(ApplicationDbContext context, IConfiguration configuration, IStockHistoryService stockHistoryService) 
@@ -100,12 +96,8 @@ namespace POSRestoran01.Services.Implementations
                         OrderId = order.OrderId,
                         MenuItemId = item.MenuItemId,
                         Quantity = item.Quantity,
-                        UnitPrice = item.UnitPrice, 
-<<<<<<< HEAD
-                        OriginalPrice = item.OriginalPrice > 0 ? item.OriginalPrice : item.UnitPrice, // Store original price
-=======
+                        UnitPrice = item.UnitPrice,
                         OriginalPrice = item.OriginalPrice > 0 ? item.OriginalPrice : item.UnitPrice, 
->>>>>>> 2a958b7 (update project)
                         DiscountPercentage = item.DiscountPercentage,
                         DiscountAmount = item.DiscountAmount,
                         OrderNote = item.OrderNote,

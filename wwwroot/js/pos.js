@@ -1,5 +1,4 @@
-﻿// Enhanced POS System JavaScript Functions with Menu Discount Support and Slide Payment
-
+﻿
 let currentMenuItems = [];
 let currentOrder = {};
 let searchTimeout;
@@ -330,10 +329,75 @@ function refreshOrderSummary() {
             if (container) {
                 container.innerHTML = html;
             }
+         
+            initializeDiscountToggle();
         })
         .catch(error => {
             console.error('Error refreshing order summary:', error);
             showNotification('Terjadi kesalahan saat memuat order', 'error');
+        });
+}
+
+function initializeDiscountToggle() {
+    const discountToggle = document.getElementById('discountToggle');
+    if (discountToggle) {
+
+        const newToggle = discountToggle.cloneNode(true);
+        discountToggle.parentNode.replaceChild(newToggle, discountToggle);
+
+        newToggle.addEventListener('change', function () {
+            toggleDiscount(this.checked);
+        });
+    }
+    updateDiscountLabel();
+}
+
+function toggleDiscount(isApplied) {
+    const formData = new FormData();
+    formData.append('applyDiscount', isApplied);
+    formData.append('__RequestVerificationToken', getAntiForgeryToken());
+
+    fetch('/Home/ApplyDiscount', {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                refreshOrderSummary();
+                showNotification(data.message, 'success');
+            } else {
+           
+                const discountToggle = document.getElementById('discountToggle');
+                if (discountToggle) {
+                    discountToggle.checked = !isApplied;
+                }
+                showNotification(data.message || 'Terjadi kesalahan', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error applying discount:', error);
+            const discountToggle = document.getElementById('discountToggle');
+            if (discountToggle) {
+                discountToggle.checked = !isApplied;
+            }
+            showNotification('Terjadi kesalahan saat menerapkan diskon', 'error');
+        });
+}
+
+function updateDiscountLabel() {
+    fetch('/Home/GetOrderSummaryData')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data.discountPercentage) {
+                const discountLabel = document.getElementById('discountLabel');
+                if (discountLabel) {
+                    discountLabel.textContent = `Diskon Order (${data.data.discountPercentage}%):`;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error updating discount label:', error);
         });
 }
 
@@ -760,14 +824,7 @@ function highlightDiscountedItems() {
     }, 10000);
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-    setTimeout(() => {
-        const discountedItems = document.querySelectorAll('.menu-item[data-has-discount="true"]');
-        if (discountedItems.length > 0) {
-            showNotification(`${discountedItems.length} menu dengan diskon tersedia! Tekan F4 untuk melihat`, 'discount', 5000);
-        }
-    }, 2000);
-});
+
 
 window.POS = {
     addToOrder: addToOrder,

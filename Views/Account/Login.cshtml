@@ -5,9 +5,9 @@
 }
 
 <div class="relative z-10 w-full max-w-md mx-4">
-    <!-- Main Login Card -->
+
     <div class="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 floating-animation">
-        <!-- Header -->
+
         <div class="text-center mb-8">
             <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <i class="fas fa-utensils text-white text-xl"></i>
@@ -18,7 +18,7 @@
             <p class="text-gray-600 text-sm">Silakan masuk untuk melanjutkan</p>
         </div>
 
-        <!-- Login Form -->
+        
         <form asp-action="Login" method="post" class="space-y-6">
             <div asp-validation-summary="ModelOnly" class="bg-red-50 border border-red-200 p-3 rounded-lg">
                 <div class="flex items-center">
@@ -27,7 +27,6 @@
                 </div>
             </div>
 
-            <!-- Username Field -->
             <div class="space-y-2">
                 <label asp-for="Username" class="block text-gray-700 text-sm font-medium">
                     Username
@@ -41,7 +40,7 @@
                 <span asp-validation-for="Username" class="text-red-500 text-sm"></span>
             </div>
 
-            <!-- Password Field -->
+    
             <div class="space-y-2">
                 <label asp-for="Password" class="block text-gray-700 text-sm font-medium">
                     Password
@@ -62,7 +61,7 @@
                 <span asp-validation-for="Password" class="text-red-500 text-sm"></span>
             </div>
 
-            <!-- Login Button -->
+         
             <button type="submit"
                     class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 btn-hover shadow-lg">
                 <i class="fas fa-sign-in-alt mr-2"></i>
@@ -71,7 +70,6 @@
         </form>
     </div>
 
-    <!-- Footer -->
     <div class="text-center mt-6">
         <p class="text-gray-600 text-sm">
             © 2025 Restaurant Wisesa

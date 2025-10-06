@@ -3,17 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using POSRestoran01.Data;
 using POSRestoran01.Models.ViewModels.SettingsViewModels;
 using POSRestoran01.Services.Interfaces;
-using System.Net.Mail;
 
 namespace POSRestoran01.Controllers
 {
     public class SettingsController : BaseController
     {
-<<<<<<< HEAD
-        
-=======
-
->>>>>>> 2a958b7 (update project)
         private readonly IStockHistoryService _stockHistoryService;
         private readonly IUserActivityService _userActivityService;
         private readonly IOrderService _orderService;
@@ -21,22 +15,12 @@ namespace POSRestoran01.Controllers
         private readonly ApplicationDbContext _context;
 
         public SettingsController(
-<<<<<<< HEAD
-            
-=======
-
->>>>>>> 2a958b7 (update project)
             IStockHistoryService stockHistoryService,
             IUserActivityService userActivityService,
             IOrderService orderService,
             IAuthService authService,
             ApplicationDbContext context)
         {
-<<<<<<< HEAD
-           
-=======
-
->>>>>>> 2a958b7 (update project)
             _stockHistoryService = stockHistoryService;
             _userActivityService = userActivityService;
             _orderService = orderService;
@@ -196,7 +180,6 @@ namespace POSRestoran01.Controllers
 
         #endregion
 
-
         #region Create New User
 
         [HttpPost]
@@ -325,12 +308,6 @@ namespace POSRestoran01.Controllers
 
         #endregion
 
-<<<<<<< HEAD
-        
-=======
-
->>>>>>> 2a958b7 (update project)
-
         [HttpGet]
         public async Task<IActionResult> GetStockHistory(DateTime? startDate, DateTime? endDate, int? menuItemId)
         {
@@ -359,11 +336,6 @@ namespace POSRestoran01.Controllers
             }
         }
 
-
-<<<<<<< HEAD
-        // Update method signature di SettingsController
-=======
->>>>>>> 2a958b7 (update project)
         [HttpGet]
         public async Task<IActionResult> GetCashierDashboard(DateTime? selectedDate)
         {
@@ -382,40 +354,18 @@ namespace POSRestoran01.Controllers
 
         private async Task<CashierDashboardViewModel> GetCashierDashboardDataAsync(int userId, DateTime? selectedDate = null)
         {
-<<<<<<< HEAD
-            // Gunakan tanggal yang dipilih atau default ke hari ini
-=======
->>>>>>> 2a958b7 (update project)
             var targetDate = selectedDate ?? DateTime.Today;
             var startOfDay = targetDate.Date;
             var endOfDay = targetDate.Date.AddHours(23).AddMinutes(59).AddSeconds(59);
 
             var user = await _authService.GetUserByIdAsync(userId);
 
-<<<<<<< HEAD
-            // Load activities untuk tanggal yang dipilih
-=======
->>>>>>> 2a958b7 (update project)
             var activities = await _userActivityService.GetUserActivitiesAsync(
                 startOfDay,
                 endOfDay,
                 userId
             );
 
-<<<<<<< HEAD
-            // Get orders untuk tanggal yang dipilih
-            var dateOrders = await _orderService.GetOrdersByUserIdAsync(userId, startOfDay, endOfDay);
-
-            // Get orders hari ini (untuk perbandingan)
-            var todayOrders = await _orderService.GetOrdersByUserIdAsync(userId, DateTime.Today, DateTime.Today);
-
-            // PERBAIKAN: Get LOGIN PERTAMA dari tanggal yang dipilih
-            var firstLoginOfDay = activities.Where(a => a.ActivityType == "Login")
-                                           .OrderBy(a => a.ActivityTime) // Urutkan ascending untuk dapat yang pertama
-                                           .FirstOrDefault()?.ActivityTime;
-
-            // PERBAIKAN: Get LOGOUT TERAKHIR dari tanggal yang dipilih (bukan dari semua waktu)
-=======
             var dateOrders = await _orderService.GetOrdersByUserIdAsync(userId, startOfDay, endOfDay);
 
             var todayOrders = await _orderService.GetOrdersByUserIdAsync(userId, DateTime.Today, DateTime.Today);
@@ -424,15 +374,10 @@ namespace POSRestoran01.Controllers
                                            .OrderBy(a => a.ActivityTime)
                                            .FirstOrDefault()?.ActivityTime;
 
->>>>>>> 2a958b7 (update project)
             var lastLogoutOfDay = activities.Where(a => a.ActivityType == "Logout")
                                            .OrderByDescending(a => a.ActivityTime)
                                            .FirstOrDefault()?.ActivityTime;
 
-<<<<<<< HEAD
-            // PERBAIKAN: Calculate working hours dari LOGIN PERTAMA sampai LOGOUT TERAKHIR di hari yang dipilih
-=======
->>>>>>> 2a958b7 (update project)
             TimeSpan? workingHours = null;
             var selectedDayActivities = activities.ToList();
 
@@ -444,33 +389,18 @@ namespace POSRestoran01.Controllers
                                                 .OrderByDescending(a => a.ActivityTime)
                                                 .FirstOrDefault();
 
-<<<<<<< HEAD
-            // Hitung waktu kerja HANYA jika ada login DAN logout di tanggal tersebut
-=======
->>>>>>> 2a958b7 (update project)
             if (firstLogin != null && lastLogout != null)
             {
                 workingHours = lastLogout.ActivityTime - firstLogin.ActivityTime;
             }
 
-<<<<<<< HEAD
-            // Calculate statistics untuk tanggal yang dipilih
             var statistics = new CashierStatisticsViewModel
             {
-                // Statistics untuk tanggal yang dipilih
-=======
-            var statistics = new CashierStatisticsViewModel
-            {
->>>>>>> 2a958b7 (update project)
                 TotalRevenue = await _orderService.GetTotalRevenueByUserIdAsync(userId, startOfDay, endOfDay),
                 TotalOrders = dateOrders.Count(o => o.Status == "Completed"),
                 TotalCustomers = await _orderService.GetTotalCustomersByUserIdAsync(userId, startOfDay, endOfDay),
                 TotalMenusOrdered = await _orderService.GetTotalMenusOrderedByUserIdAsync(userId, startOfDay, endOfDay),
 
-<<<<<<< HEAD
-                // Today's statistics (untuk perbandingan)
-=======
->>>>>>> 2a958b7 (update project)
                 TodayRevenue = todayOrders.Where(o => o.Status == "Completed").Sum(o => o.Total),
                 TodayOrders = todayOrders.Count(o => o.Status == "Completed"),
                 TodayCustomers = todayOrders.Count(o => o.Status == "Completed"),
@@ -478,20 +408,11 @@ namespace POSRestoran01.Controllers
                                               .SelectMany(o => o.OrderDetails)
                                               .Sum(od => od.Quantity),
 
-<<<<<<< HEAD
-                // Activity info - PERBAIKAN: Gunakan firstLoginOfDay
-                LastLogin = firstLoginOfDay, // Ini sekarang adalah login PERTAMA
-=======
                 LastLogin = firstLoginOfDay,
->>>>>>> 2a958b7 (update project)
                 LastLogout = lastLogoutOfDay,
                 WorkingHours = workingHours
             };
 
-<<<<<<< HEAD
-            // Convert activities to detailed view model - ambil semua aktivitas hari yang dipilih
-=======
->>>>>>> 2a958b7 (update project)
             var detailedActivities = activities.Select(a => new UserActivityDetailViewModel
             {
                 ActivityId = a.ActivityId,
@@ -511,27 +432,9 @@ namespace POSRestoran01.Controllers
                 TodayOrders = dateOrders,
                 Statistics = statistics,
                 StartDate = selectedDate,
-<<<<<<< HEAD
-                
             };
         }
 
-       
-
-        
-
-        
-
-        
-
-        
-
-=======
-
-            };
-        }
-
->>>>>>> 2a958b7 (update project)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()

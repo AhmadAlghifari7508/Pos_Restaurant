@@ -1,11 +1,4 @@
-<<<<<<< HEAD
-﻿// Settings JavaScript Functions - Clean Version with Single Date for Cashier Dashboard
-
-// Toggle password visibility
 function togglePasswordVisibility(inputId, buttonElement) {
-=======
-﻿function togglePasswordVisibility(inputId, buttonElement) {
->>>>>>> 2a958b7 (update project)
     const input = document.getElementById(inputId);
     const icon = buttonElement.querySelector('i');
 
@@ -18,41 +11,16 @@ function togglePasswordVisibility(inputId, buttonElement) {
     }
 }
 
-<<<<<<< HEAD
-// Initialize settings page with proper date setup
-function initializeSettings() {
-    console.log('Menginisialisasi halaman pengaturan...');
-
-    // Set default dates for all filters
-    setDefaultDates();
-
-    // NO NEED to load current user data - sudah ada di HTML dari server
-    // Data langsung ditampilkan dari Model/ViewBag
-
-    // Auto load sections based on URL (without notifications and loading)
-=======
 function initializeSettings() {
     console.log('Menginisialisasi halaman pengaturan...');
 
     setDefaultDates();
 
->>>>>>> 2a958b7 (update project)
     const urlParams = new URLSearchParams(window.location.search);
     const section = urlParams.get('section');
 
     if (section === 'cashier-dashboard') {
         setTimeout(() => {
-<<<<<<< HEAD
-            filterCashierDashboard(false, false); // false = no notification, no loading
-        }, 500);
-    } else if (section === 'stock-history') {
-        setTimeout(() => {
-            filterStockHistory(false, false); // false = no notification, no loading
-        }, 500);
-    } else if (section === 'user-activity') {
-        setTimeout(() => {
-            filterUserActivity(false, false); // false = no notification, no loading
-=======
             filterCashierDashboard(false, false);
         }, 500);
     } else if (section === 'stock-history') {
@@ -62,46 +30,25 @@ function initializeSettings() {
     } else if (section === 'user-activity') {
         setTimeout(() => {
             filterUserActivity(false, false);
->>>>>>> 2a958b7 (update project)
         }, 500);
     }
 }
 
-<<<<<<< HEAD
-// Set default dates with proper Indonesian locale
-=======
->>>>>>> 2a958b7 (update project)
 function setDefaultDates() {
     const today = new Date();
     const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-<<<<<<< HEAD
-    // Stock History - default 1 week
-    setDateValue('stockStartDate', today);
-    setDateValue('stockEndDate', today);
-
-    // User Activity - default 1 week  
-    setDateValue('activityStartDate', oneWeekAgo);
-    setDateValue('activityEndDate', today);
-
-    // Cashier Dashboard - default today (single date)
-=======
     setDateValue('stockStartDate', today);
     setDateValue('stockEndDate', today);
 
     setDateValue('activityStartDate', oneWeekAgo);
     setDateValue('activityEndDate', today);
 
->>>>>>> 2a958b7 (update project)
     setDateValue('cashierSelectedDate', today);
 
     console.log('Tanggal default berhasil diatur');
 }
 
-<<<<<<< HEAD
-// Helper function to set date value safely
-=======
->>>>>>> 2a958b7 (update project)
 function setDateValue(elementId, date) {
     const element = document.getElementById(elementId);
     if (element) {
@@ -110,18 +57,10 @@ function setDateValue(elementId, date) {
     }
 }
 
-<<<<<<< HEAD
-// Format date untuk input type="date" (YYYY-MM-DD)
-=======
->>>>>>> 2a958b7 (update project)
 function formatDateForInput(date) {
     return date.toISOString().split('T')[0];
 }
 
-<<<<<<< HEAD
-// Format date untuk display Indonesia
-=======
->>>>>>> 2a958b7 (update project)
 function formatDateIndonesian(dateString) {
     if (!dateString) return '';
 
@@ -136,20 +75,12 @@ function formatDateIndonesian(dateString) {
     return date.toLocaleDateString('id-ID', options);
 }
 
-<<<<<<< HEAD
-// Check if current section is account
-=======
->>>>>>> 2a958b7 (update project)
 function isAccountSection() {
     const urlParams = new URLSearchParams(window.location.search);
     const section = urlParams.get('section');
     return section === 'account' || !section;
 }
 
-<<<<<<< HEAD
-// Load current user data with better error handling
-=======
->>>>>>> 2a958b7 (update project)
 function loadCurrentUserData(showNotificationOnSuccess = true) {
     console.log('Memuat data pengguna saat ini...');
 
@@ -177,10 +108,6 @@ function loadCurrentUserData(showNotificationOnSuccess = true) {
         });
 }
 
-<<<<<<< HEAD
-// Update current user UI elements
-=======
->>>>>>> 2a958b7 (update project)
 function updateCurrentUserUI(user) {
     const elements = [
         { id: 'currentUserEmail', content: user.email || 'Tidak ada email' },
@@ -196,10 +123,6 @@ function updateCurrentUserUI(user) {
     });
 }
 
-<<<<<<< HEAD
-// Format login time in Indonesian
-=======
->>>>>>> 2a958b7 (update project)
 function formatLoginTime(lastLogin) {
     if (!lastLogin) return 'Belum pernah login';
 
@@ -214,10 +137,6 @@ function formatLoginTime(lastLogin) {
     }) + ' WIB';
 }
 
-<<<<<<< HEAD
-// Format created time in Indonesian
-=======
->>>>>>> 2a958b7 (update project)
 function formatCreatedTime(createdAt) {
     if (!createdAt) return 'Data tidak tersedia';
 
@@ -230,10 +149,6 @@ function formatCreatedTime(createdAt) {
     });
 }
 
-<<<<<<< HEAD
-// Update UI when error loading user data
-=======
->>>>>>> 2a958b7 (update project)
 function updateCurrentUserUIError() {
     const errorElements = ['currentUserEmail', 'currentUserLastLogin', 'currentUserCreatedAt'];
     errorElements.forEach(id => {
@@ -244,18 +159,10 @@ function updateCurrentUserUIError() {
     });
 }
 
-<<<<<<< HEAD
-// STOCK HISTORY FUNCTIONS WITH DATE RANGE
-=======
->>>>>>> 2a958b7 (update project)
 function filterStockHistory(showNotificationOnSuccess = true, showLoadingIndicator = true) {
     const startDate = document.getElementById('stockStartDate')?.value;
     const endDate = document.getElementById('stockEndDate')?.value;
 
-<<<<<<< HEAD
-    // Validate date range
-=======
->>>>>>> 2a958b7 (update project)
     if (!validateDateRange(startDate, endDate, 'Filter Riwayat Stok')) {
         return;
     }
@@ -300,10 +207,6 @@ function filterStockHistory(showNotificationOnSuccess = true, showLoadingIndicat
         });
 }
 
-<<<<<<< HEAD
-// USER ACTIVITY FUNCTIONS WITH DATE RANGE
-=======
->>>>>>> 2a958b7 (update project)
 function filterUserActivity(showNotificationOnSuccess = true, showLoadingIndicator = true) {
     const startDate = document.getElementById('activityStartDate')?.value;
     const endDate = document.getElementById('activityEndDate')?.value;
@@ -352,30 +255,18 @@ function filterUserActivity(showNotificationOnSuccess = true, showLoadingIndicat
         });
 }
 
-<<<<<<< HEAD
-// CASHIER DASHBOARD FUNCTIONS WITH SINGLE DATE PICKER
-=======
->>>>>>> 2a958b7 (update project)
 function filterCashierDashboard(showNotificationOnSuccess = true, showLoadingIndicator = true) {
     console.log('=== filterCashierDashboard dipanggil ===');
 
     const selectedDate = document.getElementById('cashierSelectedDate')?.value;
     console.log('Tanggal yang dipilih:', selectedDate);
 
-<<<<<<< HEAD
-    // Validasi tanggal
-=======
->>>>>>> 2a958b7 (update project)
     if (!selectedDate || selectedDate.trim() === '') {
         console.log('Validasi gagal: Tanggal kosong');
         showNotification('Silakan pilih tanggal', 'warning');
         return;
     }
 
-<<<<<<< HEAD
-    // Validasi format tanggal
-=======
->>>>>>> 2a958b7 (update project)
     const selected = new Date(selectedDate);
     if (isNaN(selected.getTime())) {
         console.log('Validasi gagal: Format tanggal tidak valid');
@@ -386,10 +277,6 @@ function filterCashierDashboard(showNotificationOnSuccess = true, showLoadingInd
     const today = new Date();
     today.setHours(23, 59, 59, 999);
 
-<<<<<<< HEAD
-    // Peringatan jika tanggal masa depan
-=======
->>>>>>> 2a958b7 (update project)
     if (selected > today) {
         console.log('Peringatan: Tanggal masa depan dipilih');
         showNotification('Peringatan: Tanggal yang dipilih di masa depan', 'warning');
@@ -434,10 +321,6 @@ function filterCashierDashboard(showNotificationOnSuccess = true, showLoadingInd
         });
 }
 
-<<<<<<< HEAD
-// Reset cashier dashboard to today
-=======
->>>>>>> 2a958b7 (update project)
 function resetCashierDashboard() {
     console.log('Reset dashboard kasir ke hari ini');
     const today = new Date();
@@ -448,10 +331,6 @@ function resetCashierDashboard() {
     }, 300);
 }
 
-<<<<<<< HEAD
-// Validate date range (untuk Stock History dan User Activity)
-=======
->>>>>>> 2a958b7 (update project)
 function validateDateRange(startDate, endDate, context = 'Filter') {
     if (!startDate || !endDate) {
         showNotification('Silakan pilih tanggal mulai dan tanggal akhir', 'warning');
@@ -467,10 +346,6 @@ function validateDateRange(startDate, endDate, context = 'Filter') {
         return false;
     }
 
-<<<<<<< HEAD
-    // Check if date range is too large (more than 1 year)
-=======
->>>>>>> 2a958b7 (update project)
     const diffTime = Math.abs(end - start);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
@@ -479,10 +354,6 @@ function validateDateRange(startDate, endDate, context = 'Filter') {
         return false;
     }
 
-<<<<<<< HEAD
-    // Warn if future date selected
-=======
->>>>>>> 2a958b7 (update project)
     if (end > today) {
         showNotification('Peringatan: Tanggal akhir di masa depan dipilih', 'warning');
     }
@@ -490,17 +361,9 @@ function validateDateRange(startDate, endDate, context = 'Filter') {
     return true;
 }
 
-<<<<<<< HEAD
-// Reset all filters to default
 function resetAllFilters() {
     setDefaultDates();
 
-    // Trigger appropriate filter function based on current section
-=======
-function resetAllFilters() {
-    setDefaultDates();
-
->>>>>>> 2a958b7 (update project)
     const urlParams = new URLSearchParams(window.location.search);
     const section = urlParams.get('section');
 
@@ -519,10 +382,6 @@ function resetAllFilters() {
     }
 }
 
-<<<<<<< HEAD
-// MODAL FUNCTIONS
-=======
->>>>>>> 2a958b7 (update project)
 function showEditCurrentUserModal() {
     console.log('Membuka modal edit pengguna...');
     showLoading();
@@ -557,10 +416,6 @@ function populateEditUserForm(user) {
         if (element) element.value = value;
     });
 
-<<<<<<< HEAD
-    // Clear password fields
-=======
->>>>>>> 2a958b7 (update project)
     ['editCurrentUserCurrentPassword', 'editCurrentUserNewPassword', 'editCurrentUserConfirmPassword'].forEach(id => {
         const element = document.getElementById(id);
         if (element) element.value = '';
@@ -594,10 +449,6 @@ function validateCurrentUserForm() {
         return false;
     }
 
-<<<<<<< HEAD
-    // Password validation only if user wants to change password
-=======
->>>>>>> 2a958b7 (update project)
     if (newPassword || confirmPassword || currentPassword) {
         if (!currentPassword) {
             showNotification('Password lama harus diisi untuk mengubah password', 'warning');
@@ -623,10 +474,6 @@ function validateCurrentUserForm() {
     return true;
 }
 
-<<<<<<< HEAD
-// CREATE USER FUNCTIONS
-=======
->>>>>>> 2a958b7 (update project)
 function showCreateUserModal() {
     const form = document.getElementById('createUserForm');
     if (form) form.reset();
@@ -689,10 +536,6 @@ function validateCreateUserForm() {
     return true;
 }
 
-<<<<<<< HEAD
-// LOGOUT FUNCTION
-=======
->>>>>>> 2a958b7 (update project)
 function logout() {
     if (!confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
         return;
@@ -726,10 +569,6 @@ function logout() {
         });
 }
 
-<<<<<<< HEAD
-// UTILITY FUNCTIONS
-=======
->>>>>>> 2a958b7 (update project)
 function showModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
@@ -765,10 +604,6 @@ function hideLoading() {
 }
 
 function showNotification(message, type = 'info', duration = 4000) {
-<<<<<<< HEAD
-    // Remove existing notifications
-=======
->>>>>>> 2a958b7 (update project)
     const existingNotifications = document.querySelectorAll('.notification');
     existingNotifications.forEach(notification => notification.remove());
 
@@ -838,10 +673,6 @@ function getAntiForgeryToken() {
     return tokenElement ? tokenElement.value : '';
 }
 
-<<<<<<< HEAD
-// EVENT LISTENERS
-=======
->>>>>>> 2a958b7 (update project)
 document.addEventListener('DOMContentLoaded', function () {
     initializeSettings();
 
@@ -952,19 +783,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-<<<<<<< HEAD
-    // Auto-filter on Enter key press for date inputs
-=======
->>>>>>> 2a958b7 (update project)
     const stockStartDate = document.getElementById('stockStartDate');
     const stockEndDate = document.getElementById('stockEndDate');
     if (stockStartDate) {
         stockStartDate.addEventListener('keypress', function (e) {
-<<<<<<< HEAD
-            if (e.key === 'Enter') filterStockHistory(true, true); // true = show notification and loading when manually triggered
-=======
             if (e.key === 'Enter') filterStockHistory(true, true);
->>>>>>> 2a958b7 (update project)
         });
     }
     if (stockEndDate) {
@@ -986,24 +809,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-<<<<<<< HEAD
-    // Cashier dashboard single date - Event listener yang BENAR
-=======
->>>>>>> 2a958b7 (update project)
     const cashierSelectedDate = document.getElementById('cashierSelectedDate');
     if (cashierSelectedDate) {
         cashierSelectedDate.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
-<<<<<<< HEAD
-                filterCashierDashboard(true, true); // true = show notification and loading when manually triggered
-            }
-        });
-    }
-}); 
-=======
                 filterCashierDashboard(true, true);
             }
         });
     }
 });
->>>>>>> 2a958b7 (update project)
