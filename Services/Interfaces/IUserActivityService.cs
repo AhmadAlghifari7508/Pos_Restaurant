@@ -9,5 +9,6 @@ namespace POSRestoran01.Services.Interfaces
         Task RecordActivityAsync(int userId, string activityType, int? orderId = null);
         Task RecordLoginAsync(int userId);
         Task RecordLogoutAsync(int userId);
+        Task RecordCloseShiftAsync(int userId); 
     }
 }

@@ -19,7 +19,7 @@ namespace POSRestoran01.Controllers
             base.OnActionExecuting(context);
         }
 
-        // Helper methods untuk mendapatkan informasi user yang sedang login
+
         protected int GetCurrentUserId()
         {
             var userIdString = HttpContext.Session.GetString("UserId");

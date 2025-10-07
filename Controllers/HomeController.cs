@@ -32,6 +32,8 @@ namespace POSRestoran01.Controllers
             _userActivityService = userActivityService;
             _configuration = configuration;
         }
+
+        // GET: Home/Index - ONLY SHOWS ACTIVE MENUS
         public async Task<IActionResult> Index(int? categoryId, string? searchTerm)
         {
             try
@@ -41,15 +43,15 @@ namespace POSRestoran01.Controllers
                     RestaurantName = _configuration["AppSettings:RestaurantName"] ?? "POS Restoran",
                     CurrentDate = DateTime.Now,
                     Categories = await _categoryService.GetActiveCategoriesAsync(),
-                    SelectedCategoryId = 0, 
+                    SelectedCategoryId = 0,
                     SearchTerm = searchTerm ?? string.Empty
                 };
 
-                
+                // ALL METHODS HERE RETURN ONLY ACTIVE MENUS
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
                     model.MenuItems = await _menuService.SearchMenuItemsAsync(searchTerm);
-                    model.SelectedCategoryId = 0; 
+                    model.SelectedCategoryId = 0;
                 }
                 else if (categoryId.HasValue && categoryId.Value > 0)
                 {
@@ -58,12 +60,12 @@ namespace POSRestoran01.Controllers
                 }
                 else
                 {
-                  
+                    // GetAllMenuItemsAsync returns ONLY ACTIVE items
                     model.MenuItems = await _menuService.GetAllMenuItemsAsync();
                     model.SelectedCategoryId = 0;
                 }
 
-               
+                // Load current order from session
                 var orderJson = HttpContext.Session.GetString("CurrentOrder");
                 if (!string.IsNullOrEmpty(orderJson))
                 {
@@ -73,7 +75,6 @@ namespace POSRestoran01.Controllers
                     }
                     catch (JsonException)
                     {
-                        
                         model.CurrentOrder = new OrderViewModel();
                         HttpContext.Session.Remove("CurrentOrder");
                     }
@@ -83,7 +84,7 @@ namespace POSRestoran01.Controllers
                     model.CurrentOrder = new OrderViewModel();
                 }
 
-              
+                // Generate order number if empty
                 if (string.IsNullOrEmpty(model.CurrentOrder.OrderNumber))
                 {
                     model.CurrentOrder.OrderNumber = await _orderService.GenerateOrderNumberAsync();
@@ -93,48 +94,53 @@ namespace POSRestoran01.Controllers
             }
             catch (Exception ex)
             {
-          
+                Console.WriteLine($"Error in Home/Index: {ex.Message}");
                 TempData["Error"] = "Terjadi kesalahan saat memuat halaman.";
                 return View(new POSViewModel());
             }
         }
 
-        
+        // GET: Home/GetMenuByCategory - ONLY ACTIVE MENUS
         [HttpGet]
         public async Task<IActionResult> GetMenuByCategory(int categoryId)
         {
             try
             {
+                // Returns ONLY ACTIVE menus
                 var menuItems = categoryId > 0
                     ? await _menuService.GetMenuItemsByCategoryAsync(categoryId)
-                    : await _menuService.GetAllMenuItemsAsync(); 
+                    : await _menuService.GetAllMenuItemsAsync();
 
                 return PartialView("_MenuItemsPartial", menuItems);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error in GetMenuByCategory: {ex.Message}");
                 return BadRequest("Terjadi kesalahan saat memuat menu");
             }
         }
 
+        // GET: Home/SearchMenuItems - ONLY ACTIVE MENUS
         [HttpGet]
         public async Task<IActionResult> SearchMenuItems(string searchTerm)
         {
             try
             {
+                // SearchMenuItemsAsync returns ONLY ACTIVE menus
                 var menuItems = !string.IsNullOrEmpty(searchTerm)
                     ? await _menuService.SearchMenuItemsAsync(searchTerm)
-                    : await _menuService.GetAllMenuItemsAsync(); 
+                    : await _menuService.GetAllMenuItemsAsync();
 
                 return PartialView("_MenuItemsPartial", menuItems);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error in SearchMenuItems: {ex.Message}");
                 return BadRequest("Terjadi kesalahan saat mencari menu");
             }
         }
 
-        
+        // GET: Home/GetCurrentOrder
         [HttpGet]
         public IActionResult GetCurrentOrder()
         {
@@ -151,7 +157,6 @@ namespace POSRestoran01.Controllers
 
                         foreach (var item in order.Items)
                         {
-                            
                             item.OrderNote = item.OrderNote ?? "";
                         }
                     }
@@ -168,19 +173,20 @@ namespace POSRestoran01.Controllers
 
                 return PartialView("_OrderSummaryPartial", order);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error in GetCurrentOrder: {ex.Message}");
                 return BadRequest("Terjadi kesalahan saat memuat order");
             }
         }
 
+        // POST: Home/AddToOrder
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToOrder(int menuItemId, int quantity = 1, string? note = null)
         {
             try
             {
-          
                 if (quantity <= 0)
                 {
                     return Json(new { success = false, message = "Quantity harus lebih dari 0" });
@@ -202,7 +208,6 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = $"Stok tidak mencukupi. Tersisa {menuItem.Stock}" });
                 }
 
-                
                 var orderJson = HttpContext.Session.GetString("CurrentOrder");
                 OrderViewModel order;
 
@@ -228,11 +233,9 @@ namespace POSRestoran01.Controllers
                     }
                 }
 
-             
                 var existingItem = order.Items.FirstOrDefault(i => i.MenuItemId == menuItemId);
                 if (existingItem != null)
                 {
-        
                     var newQuantity = existingItem.Quantity + quantity;
                     if (newQuantity > menuItem.Stock)
                     {
@@ -244,16 +247,15 @@ namespace POSRestoran01.Controllers
                 }
                 else
                 {
-                    
                     var orderItem = new OrderItemViewModel
                     {
                         MenuItemId = menuItemId,
                         ItemName = menuItem.ItemName,
                         ImagePath = menuItem.ImagePath,
-                        UnitPrice = menuItem.FinalPrice, 
-                        OriginalPrice = menuItem.Price,   
+                        UnitPrice = menuItem.FinalPrice,
+                        OriginalPrice = menuItem.Price,
                         Quantity = quantity,
-                        OrderNote = "", 
+                        OrderNote = "",
                         HasDiscount = menuItem.HasActiveDiscount,
                         DiscountPercentage = menuItem.DiscountPercentage ?? 0,
                         DiscountAmount = menuItem.DiscountAmount
@@ -263,7 +265,6 @@ namespace POSRestoran01.Controllers
                     order.Items.Add(orderItem);
                 }
 
-         
                 RecalculateOrderTotals(order);
 
                 var updatedOrderJson = JsonSerializer.Serialize(order);
@@ -280,12 +281,12 @@ namespace POSRestoran01.Controllers
             }
             catch (Exception ex)
             {
-              
+                Console.WriteLine($"Error in AddToOrder: {ex.Message}");
                 return Json(new { success = false, message = "Terjadi kesalahan saat menambahkan item" });
             }
         }
 
-  
+        // POST: Home/ClearOrder
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult ClearOrder()
@@ -295,12 +296,14 @@ namespace POSRestoran01.Controllers
                 HttpContext.Session.Remove("CurrentOrder");
                 return Json(new { success = true, message = "Order berhasil dihapus" });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error in ClearOrder: {ex.Message}");
                 return Json(new { success = false, message = "Terjadi kesalahan saat menghapus order" });
             }
         }
 
+        // POST: Home/UpdateOrderItemQuantity
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult UpdateOrderItemQuantity(int menuItemId, int quantity)
@@ -327,29 +330,27 @@ namespace POSRestoran01.Controllers
 
                 if (quantity <= 0)
                 {
-
                     order.Items.Remove(item);
                 }
                 else
                 {
-
                     item.Quantity = quantity;
                     item.Subtotal = item.Quantity * item.UnitPrice;
-
                 }
 
                 RecalculateOrderTotals(order);
-
                 HttpContext.Session.SetString("CurrentOrder", JsonSerializer.Serialize(order));
 
                 return Json(new { success = true, totalItems = order.Items.Sum(i => i.Quantity) });
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error in UpdateOrderItemQuantity: {ex.Message}");
                 return Json(new { success = false, message = "Terjadi kesalahan saat mengupdate quantity" });
             }
         }
 
+        // POST: Home/RemoveFromOrder
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult RemoveFromOrder(int menuItemId)
@@ -374,13 +375,8 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = "Item tidak ditemukan dalam order" });
                 }
 
-         
                 order.Items.Remove(item);
-
-       
                 RecalculateOrderTotals(order);
-
-      
                 HttpContext.Session.SetString("CurrentOrder", JsonSerializer.Serialize(order));
 
                 return Json(new
@@ -392,10 +388,12 @@ namespace POSRestoran01.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error in RemoveFromOrder: {ex.Message}");
                 return Json(new { success = false, message = "Terjadi kesalahan saat menghapus item" });
             }
         }
 
+        // POST: Home/UpdateItemNote
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult UpdateItemNote(int menuItemId, string? note)
@@ -420,21 +418,19 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = "Item tidak ditemukan dalam order" });
                 }
 
- 
                 item.OrderNote = note ?? "";
-
- 
                 HttpContext.Session.SetString("CurrentOrder", JsonSerializer.Serialize(order));
 
-         
                 return Json(new { success = true });
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error in UpdateItemNote: {ex.Message}");
                 return Json(new { success = false, message = "Terjadi kesalahan saat mengupdate catatan" });
             }
         }
 
+        // POST: Home/ApplyDiscount
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult ApplyDiscount(bool applyDiscount = false)
@@ -453,7 +449,6 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = "Order kosong" });
                 }
 
-         
                 if (applyDiscount)
                 {
                     var currentSubtotal = order.Items.Sum(item => item.UnitPrice * item.Quantity);
@@ -464,9 +459,7 @@ namespace POSRestoran01.Controllers
                     order.Discount = 0m;
                 }
 
-          
                 RecalculateOrderTotals(order);
-
                 HttpContext.Session.SetString("CurrentOrder", JsonSerializer.Serialize(order));
 
                 var discountPercentage = _orderService.GetCurrentDiscountPercentage();
@@ -485,10 +478,12 @@ namespace POSRestoran01.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error in ApplyDiscount: {ex.Message}");
                 return Json(new { success = false, message = "Terjadi kesalahan saat menerapkan diskon" });
             }
         }
 
+        // POST: Home/ProcessPayment
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ProcessPayment(PaymentViewModel model)
@@ -505,7 +500,6 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = string.Join(", ", errors) });
                 }
 
-    
                 var orderJson = HttpContext.Session.GetString("CurrentOrder");
                 if (string.IsNullOrEmpty(orderJson))
                 {
@@ -518,42 +512,33 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = "Order kosong" });
                 }
 
-               
                 model.Items = order.Items;
                 model.OrderNumber = order.OrderNumber;
                 model.Subtotal = _orderService.CalculateSubtotalWithMenuDiscount(order.Items);
-                model.Discount = order.Discount; 
+                model.Discount = order.Discount;
                 model.PPN = _orderService.CalculatePPN(model.Subtotal, model.Discount);
                 model.Total = _orderService.CalculateTotal(model.Subtotal, model.Discount, model.PPN);
                 model.Change = _paymentService.CalculateChange(model.Cash, model.Total);
-
 
                 if (model.Cash < model.Total)
                 {
                     return Json(new { success = false, message = "Jumlah cash tidak mencukupi" });
                 }
 
-          
                 if (model.OrderType == "Dine In" && (!model.TableNo.HasValue || model.TableNo <= 0))
                 {
                     return Json(new { success = false, message = "Nomor meja harus diisi untuk Dine In" });
                 }
 
-              
                 var userIdString = HttpContext.Session.GetString("UserId");
                 if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
                 {
                     return Json(new { success = false, message = "Session tidak valid. Silakan login ulang." });
                 }
 
-    
                 var createdOrder = await _orderService.CreateOrderWithMenuDiscountAsync(model, userId, order.MenuDiscountTotal);
-
                 await _userActivityService.RecordActivityAsync(userId, "Create Order", createdOrder.OrderId);
-
-
                 await _paymentService.ProcessPaymentAsync(model, createdOrder.OrderId);
-
                 await _userActivityService.RecordActivityAsync(userId, "Process Payment", createdOrder.OrderId);
 
                 HttpContext.Session.Remove("CurrentOrder");
@@ -569,28 +554,12 @@ namespace POSRestoran01.Controllers
             }
             catch (Exception ex)
             {
-
+                Console.WriteLine($"Error in ProcessPayment: {ex.Message}");
                 return Json(new { success = false, message = $"Terjadi kesalahan: {ex.Message}" });
             }
         }
 
-
-        private void RecalculateOrderTotals(OrderViewModel order)
-        {
-  
-            order.Subtotal = order.Items.Sum(item => item.UnitPrice * item.Quantity);
-
-
-            order.MenuDiscountTotal = order.Items
-                .Where(item => item.HasDiscount)
-                .Sum(item => item.DiscountAmount * item.Quantity);
-
-            order.PPN = _orderService.CalculatePPN(order.Subtotal, order.Discount);
-            
-            order.Total = _orderService.CalculateTotal(order.Subtotal, order.Discount, order.PPN);
-        }
-
-
+        // GET: Home/GetOrderSummaryData
         [HttpGet]
         public IActionResult GetOrderSummaryData()
         {
@@ -654,8 +623,22 @@ namespace POSRestoran01.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error in GetOrderSummaryData: {ex.Message}");
                 return Json(new { success = false, message = "Terjadi kesalahan" });
             }
+        }
+
+   
+        private void RecalculateOrderTotals(OrderViewModel order)
+        {
+            order.Subtotal = order.Items.Sum(item => item.UnitPrice * item.Quantity);
+
+            order.MenuDiscountTotal = order.Items
+                .Where(item => item.HasDiscount)
+                .Sum(item => item.DiscountAmount * item.Quantity);
+
+            order.PPN = _orderService.CalculatePPN(order.Subtotal, order.Discount);
+            order.Total = _orderService.CalculateTotal(order.Subtotal, order.Discount, order.PPN);
         }
     }
 }

@@ -352,6 +352,8 @@ namespace POSRestoran01.Controllers
             }
         }
 
+        // Replace method GetCashierDashboardDataAsync di SettingsController.cs dengan ini:
+
         private async Task<CashierDashboardViewModel> GetCashierDashboardDataAsync(int userId, DateTime? selectedDate = null)
         {
             var targetDate = selectedDate ?? DateTime.Today;
@@ -367,16 +369,17 @@ namespace POSRestoran01.Controllers
             );
 
             var dateOrders = await _orderService.GetOrdersByUserIdAsync(userId, startOfDay, endOfDay);
-
             var todayOrders = await _orderService.GetOrdersByUserIdAsync(userId, DateTime.Today, DateTime.Today);
 
+            // Login pertama di hari tersebut
             var firstLoginOfDay = activities.Where(a => a.ActivityType == "Login")
                                            .OrderBy(a => a.ActivityTime)
                                            .FirstOrDefault()?.ActivityTime;
 
-            var lastLogoutOfDay = activities.Where(a => a.ActivityType == "Logout")
-                                           .OrderByDescending(a => a.ActivityTime)
-                                           .FirstOrDefault()?.ActivityTime;
+            // CHANGED: Close Shift terakhir di hari tersebut (bukan Logout)
+            var lastCloseShiftOfDay = activities.Where(a => a.ActivityType == "Tutup Shift")
+                                               .OrderByDescending(a => a.ActivityTime)
+                                               .FirstOrDefault()?.ActivityTime;
 
             TimeSpan? workingHours = null;
             var selectedDayActivities = activities.ToList();
@@ -385,13 +388,15 @@ namespace POSRestoran01.Controllers
                                                 .OrderBy(a => a.ActivityTime)
                                                 .FirstOrDefault();
 
-            var lastLogout = selectedDayActivities.Where(a => a.ActivityType == "Logout")
-                                                .OrderByDescending(a => a.ActivityTime)
-                                                .FirstOrDefault();
+            // CHANGED: Ambil Close Shift terakhir (bukan Logout)
+            var lastCloseShift = selectedDayActivities.Where(a => a.ActivityType == "Tutup Shift")
+                                                    .OrderByDescending(a => a.ActivityTime)
+                                                    .FirstOrDefault();
 
-            if (firstLogin != null && lastLogout != null)
+            // CHANGED: Hitung waktu kerja dari Login pertama sampai Close Shift terakhir
+            if (firstLogin != null && lastCloseShift != null)
             {
-                workingHours = lastLogout.ActivityTime - firstLogin.ActivityTime;
+                workingHours = lastCloseShift.ActivityTime - firstLogin.ActivityTime;
             }
 
             var statistics = new CashierStatisticsViewModel
@@ -409,7 +414,7 @@ namespace POSRestoran01.Controllers
                                               .Sum(od => od.Quantity),
 
                 LastLogin = firstLoginOfDay,
-                LastLogout = lastLogoutOfDay,
+                LastLogout = lastCloseShiftOfDay,
                 WorkingHours = workingHours
             };
 
@@ -433,6 +438,38 @@ namespace POSRestoran01.Controllers
                 Statistics = statistics,
                 StartDate = selectedDate,
             };
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CloseShift()
+        {
+            try
+            {
+                Console.WriteLine("=== CloseShift Method Called ===");
+
+                var currentUserId = GetCurrentUserId();
+                Console.WriteLine($"Current User ID: {currentUserId}");
+
+                if (currentUserId == 0)
+                {
+                    Console.WriteLine("ERROR: User ID is 0");
+                    return Json(new { success = false, message = "User tidak valid" });
+                }
+
+                // Record close shift activity
+                Console.WriteLine("Recording close shift activity...");
+                await _userActivityService.RecordCloseShiftAsync(currentUserId);
+
+                Console.WriteLine("Tutup shift recorded successfully");
+                return Json(new { success = true, message = "Shift berhasil ditutup" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR in CloseShift: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return Json(new { success = false, message = $"Terjadi kesalahan saat menutup shift: {ex.Message}" });
+            }
         }
 
         [HttpPost]

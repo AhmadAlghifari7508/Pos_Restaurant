@@ -16,16 +16,40 @@ namespace POSRestoran01.Services.Implementations
             _stockHistoryService = stockHistoryService;
         }
 
-        // ============ UPDATED METHODS FOR PRODUCT MANAGEMENT ============
-
-        public async Task<List<MenuItem>> GetAllMenuItemsAsync()
+        // ============ NEW METHOD: For PRODUCT MANAGEMENT PAGE ============
+        // Shows ALL menus (Active & Inactive) for management purposes
+        public async Task<List<MenuItem>> GetAllMenuItemsForManagementAsync()
         {
-            // For PRODUCT MANAGEMENT - Show ALL menus (Active & Inactive)
             return await _context.MenuItems
                 .Include(m => m.Category)
-                // NO IsActive filter - shows everything
                 .OrderByDescending(m => m.IsActive) // Active items first
                 .ThenBy(m => m.ItemName)
+                .ToListAsync();
+        }
+
+        public async Task<List<MenuItem>> GetMenuItemsByCategoryForManagementAsync(int categoryId)
+        {
+            if (categoryId == 0)
+            {
+                return await GetAllMenuItemsForManagementAsync();
+            }
+
+            return await _context.MenuItems
+                .Include(m => m.Category)
+                .Where(m => m.CategoryId == categoryId) // NO IsActive filter
+                .OrderByDescending(m => m.IsActive) // Active items first
+                .ThenBy(m => m.ItemName)
+                .ToListAsync();
+        }
+
+        // ============ EXISTING METHODS: For HOME/POS PAGE ============
+        // Shows ONLY ACTIVE menus for customer-facing pages
+        public async Task<List<MenuItem>> GetAllMenuItemsAsync()
+        {
+            return await _context.MenuItems
+                .Include(m => m.Category)
+                .Where(m => m.IsActive) // ONLY ACTIVE
+                .OrderBy(m => m.ItemName)
                 .ToListAsync();
         }
 
@@ -36,18 +60,15 @@ namespace POSRestoran01.Services.Implementations
                 return await GetAllMenuItemsAsync();
             }
 
-            // For PRODUCT MANAGEMENT - Show ALL menus in category
             return await _context.MenuItems
                 .Include(m => m.Category)
-                .Where(m => m.CategoryId == categoryId) // NO IsActive filter
-                .OrderByDescending(m => m.IsActive) // Active items first
-                .ThenBy(m => m.ItemName)
+                .Where(m => m.CategoryId == categoryId && m.IsActive) // ONLY ACTIVE
+                .OrderBy(m => m.ItemName)
                 .ToListAsync();
         }
 
         public async Task<List<MenuItem>> GetActiveMenuItemsAsync()
         {
-            // For HOME/POS PAGE - Only show active items
             return await _context.MenuItems
                 .Include(m => m.Category)
                 .Where(m => m.IsActive)
@@ -59,12 +80,12 @@ namespace POSRestoran01.Services.Implementations
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
             {
-                return await GetActiveMenuItemsAsync(); // For HOME - only active
+                return await GetActiveMenuItemsAsync();
             }
 
             return await _context.MenuItems
                 .Include(m => m.Category)
-                .Where(m => m.IsActive && ( // For HOME - only active
+                .Where(m => m.IsActive && (
                     m.ItemName.Contains(searchTerm) ||
                     m.Description.Contains(searchTerm) ||
                     m.Category.CategoryName.Contains(searchTerm)
@@ -114,17 +135,45 @@ namespace POSRestoran01.Services.Implementations
             return menuItem;
         }
 
+        // ============ FIXED DELETE METHOD ============
         public async Task<bool> DeleteMenuItemAsync(int id)
         {
-            var menuItem = await _context.MenuItems.FindAsync(id);
-            if (menuItem != null)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
             {
-                // HARD DELETE - Permanently remove from database
-                _context.MenuItems.Remove(menuItem);
+                var menuItem = await _context.MenuItems
+                    .Include(m => m.OrderDetails) // Include related data
+                    .FirstOrDefaultAsync(m => m.MenuItemId == id);
+
+                if (menuItem == null)
+                    return false;
+
+                // Check if menu has order history
+                if (menuItem.OrderDetails != null && menuItem.OrderDetails.Any())
+                {
+                    // If has order history, just set to inactive (soft delete)
+                    menuItem.IsActive = false;
+                    menuItem.UpdatedAt = DateTime.Now;
+                    _context.MenuItems.Update(menuItem);
+                }
+                else
+                {
+                    // If no order history, can safely hard delete
+                    _context.MenuItems.Remove(menuItem);
+                }
+
                 await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
                 return true;
             }
-            return false;
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                Console.WriteLine($"Error deleting menu item: {ex.Message}");
+                throw new InvalidOperationException("Tidak dapat menghapus menu yang sudah memiliki transaksi. Menu akan dinonaktifkan.", ex);
+            }
         }
 
         // ============ OTHER METHODS (Unchanged) ============

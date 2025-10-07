@@ -68,5 +68,10 @@ namespace POSRestoran01.Services.Implementations
         {
             await RecordActivityAsync(userId, "Logout");
         }
+
+        public async Task RecordCloseShiftAsync(int userId)
+        {
+            await RecordActivityAsync(userId, "Tutup Shift");
+        }
     }
 }

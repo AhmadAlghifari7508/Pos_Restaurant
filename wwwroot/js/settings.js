@@ -331,6 +331,55 @@ function resetCashierDashboard() {
     }, 300);
 }
 
+
+function closeShift() {
+    console.log('=== closeShift function called ===');
+
+    if (!confirm('Apakah Anda yakin ingin menutup shift?\n\nWaktu kerja akan dihitung dari login pertama hingga sekarang.')) {
+        console.log('User cancelled Tutup shift');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('__RequestVerificationToken', getAntiForgeryToken());
+
+    console.log('Sending tutup shift request...');
+    showLoading();
+
+    fetch('/Settings/CloseShift', {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => {
+            console.log('tutup shift response received:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            hideLoading();
+            console.log('Tutup shift data:', data);
+
+            if (data.success) {
+                showNotification(data.message || 'Shift berhasil ditutup', 'success');
+
+                // Reload cashier dashboard untuk update tampilan
+                console.log('Reloading cashier dashboard...');
+                setTimeout(() => {
+                    filterCashierDashboard(false, true);
+                }, 1000);
+            } else {
+                showNotification(data.message || 'Gagal menutup shift', 'error');
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            console.error('Error during tutup shift:', error);
+            showNotification('Terjadi kesalahan saat menutup shift: ' + error.message, 'error');
+        });
+}
+
 function validateDateRange(startDate, endDate, context = 'Filter') {
     if (!startDate || !endDate) {
         showNotification('Silakan pilih tanggal mulai dan tanggal akhir', 'warning');
@@ -674,6 +723,8 @@ function getAntiForgeryToken() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+    console.log('=== DOM Content Loaded - Settings.js ===');
+
     initializeSettings();
 
     const createUserForm = document.getElementById('createUserForm');
@@ -817,4 +868,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    console.log('=== Settings.js fully initialized ===');
 });

@@ -21,7 +21,7 @@ namespace POSRestoran01.Controllers
             _stockHistoryService = stockHistoryService;
         }
 
-        // GET: Product/Index
+        // GET: Product/Index - SHOWS ALL MENUS (Active & Inactive)
         public async Task<IActionResult> Index(int? categoryId)
         {
             try
@@ -32,14 +32,14 @@ namespace POSRestoran01.Controllers
                     SelectedCategoryId = categoryId ?? 0
                 };
 
-                // Show ALL menus (Active and Inactive) in Product Management
+                // USE NEW METHODS: Show ALL menus for management
                 if (categoryId.HasValue && categoryId.Value > 0)
                 {
-                    model.MenuItems = await _menuService.GetMenuItemsByCategoryAsync(categoryId.Value);
+                    model.MenuItems = await _menuService.GetMenuItemsByCategoryForManagementAsync(categoryId.Value);
                 }
                 else
                 {
-                    model.MenuItems = await _menuService.GetAllMenuItemsAsync();
+                    model.MenuItems = await _menuService.GetAllMenuItemsForManagementAsync();
                     model.SelectedCategoryId = 0;
                 }
 
@@ -53,16 +53,15 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // GET: Product/GetMenuByCategory
+        // GET: Product/GetMenuByCategory - SHOWS ALL MENUS
         [HttpGet]
         public async Task<IActionResult> GetMenuByCategory(int categoryId)
         {
             try
             {
-                // Show ALL menus (Active and Inactive)
                 var menuItems = categoryId == 0
-                    ? await _menuService.GetAllMenuItemsAsync()
-                    : await _menuService.GetMenuItemsByCategoryAsync(categoryId);
+                    ? await _menuService.GetAllMenuItemsForManagementAsync()
+                    : await _menuService.GetMenuItemsByCategoryForManagementAsync(categoryId);
 
                 return PartialView("_ProductMenuItemsPartial", menuItems);
             }
@@ -89,7 +88,7 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // POST: Product/CreateCategory
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateCategory(string categoryName)
@@ -181,23 +180,19 @@ namespace POSRestoran01.Controllers
                         .Where(x => x.Value.Errors.Count > 0)
                         .Select(x => x.Value.Errors.First().ErrorMessage)
                         .ToList();
-
                     return Json(new { success = false, message = string.Join(", ", errors) });
                 }
 
-                // Validate discount settings
                 if (model.IsDiscountActive)
                 {
                     if (!model.DiscountPercentage.HasValue || model.DiscountPercentage <= 0)
                     {
                         return Json(new { success = false, message = "Persentase diskon harus lebih dari 0 jika diskon aktif" });
                     }
-
                     if (model.DiscountPercentage > 100)
                     {
                         return Json(new { success = false, message = "Persentase diskon tidak boleh lebih dari 100%" });
                     }
-
                     if (model.DiscountStartDate.HasValue && model.DiscountEndDate.HasValue)
                     {
                         if (model.DiscountEndDate < model.DiscountStartDate)
@@ -207,7 +202,6 @@ namespace POSRestoran01.Controllers
                     }
                 }
 
-                // Handle image upload
                 string imagePath = null;
                 if (model.ImageFile != null)
                 {
@@ -233,7 +227,6 @@ namespace POSRestoran01.Controllers
 
                 await _menuService.CreateMenuItemAsync(menuItem);
 
-                // Record initial stock
                 await _stockHistoryService.RecordStockChangeAsync(
                     menuItem.MenuItemId,
                     GetCurrentUserId(),
@@ -325,23 +318,19 @@ namespace POSRestoran01.Controllers
                         .Where(x => x.Value.Errors.Count > 0)
                         .Select(x => x.Value.Errors.First().ErrorMessage)
                         .ToList();
-
                     return Json(new { success = false, message = string.Join(", ", errors) });
                 }
 
-                // Validate discount settings
                 if (model.IsDiscountActive)
                 {
                     if (!model.DiscountPercentage.HasValue || model.DiscountPercentage <= 0)
                     {
                         return Json(new { success = false, message = "Persentase diskon harus lebih dari 0 jika diskon aktif" });
                     }
-
                     if (model.DiscountPercentage > 100)
                     {
                         return Json(new { success = false, message = "Persentase diskon tidak boleh lebih dari 100%" });
                     }
-
                     if (model.DiscountStartDate.HasValue && model.DiscountEndDate.HasValue)
                     {
                         if (model.DiscountEndDate < model.DiscountStartDate)
@@ -362,21 +351,18 @@ namespace POSRestoran01.Controllers
                 var wasDiscountActive = menuItem.IsDiscountActive;
                 var oldDiscountPercentage = menuItem.DiscountPercentage;
 
-                // Update menu item properties
                 menuItem.CategoryId = model.CategoryId;
                 menuItem.ItemName = model.ItemName;
                 menuItem.Description = model.Description;
                 menuItem.Price = model.Price;
                 menuItem.Stock = model.Stock;
                 menuItem.IsActive = model.IsActive;
-
                 menuItem.DiscountPercentage = model.IsDiscountActive ? (model.DiscountPercentage ?? 0) : 0;
                 menuItem.DiscountStartDate = model.IsDiscountActive ? model.DiscountStartDate : null;
                 menuItem.DiscountEndDate = model.IsDiscountActive ? model.DiscountEndDate : null;
                 menuItem.IsDiscountActive = model.IsDiscountActive;
                 menuItem.UpdatedAt = DateTime.Now;
 
-                // Handle image update
                 if (model.ImageFile != null)
                 {
                     if (!string.IsNullOrEmpty(menuItem.ImagePath))
@@ -388,7 +374,6 @@ namespace POSRestoran01.Controllers
 
                 await _menuService.UpdateMenuItemAsync(menuItem);
 
-                // Record stock changes
                 if (stockChanged)
                 {
                     await _stockHistoryService.RecordStockChangeAsync(
@@ -401,7 +386,6 @@ namespace POSRestoran01.Controllers
                     );
                 }
 
-                // Build response message
                 var responseMessage = $"Menu '{menuItem.ItemName}' berhasil diperbarui";
                 var discountStatusChanged = wasDiscountActive != model.IsDiscountActive;
 
@@ -421,7 +405,7 @@ namespace POSRestoran01.Controllers
                     responseMessage += $" (diskon diperbarui ke {model.DiscountPercentage}%)";
                 }
 
-                if (!model.IsActive && wasDiscountActive != model.IsDiscountActive)
+                if (!model.IsActive)
                 {
                     responseMessage += " - Menu dinonaktifkan";
                 }
@@ -450,7 +434,7 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // POST: Product/DeleteMenuItem - HARD DELETE (Permanent)
+        // POST: Product/DeleteMenuItem - SMART DELETE
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteMenuItem(int menuItemId)
@@ -464,30 +448,54 @@ namespace POSRestoran01.Controllers
                 }
 
                 var menuName = menuItem.ItemName;
+                var imagePath = menuItem.ImagePath;
 
-                // Delete image file if exists
-                if (!string.IsNullOrEmpty(menuItem.ImagePath))
-                {
-                    DeleteImage(menuItem.ImagePath);
-                }
-
-                // HARD DELETE - permanently remove from database
                 var success = await _menuService.DeleteMenuItemAsync(menuItemId);
 
                 if (success)
                 {
-                    return Json(new
+                    var stillExists = await _menuService.GetMenuItemByIdAsync(menuItemId);
+
+                    if (stillExists != null && !stillExists.IsActive)
                     {
-                        success = true,
-                        message = $"Menu '{menuName}' berhasil dihapus PERMANENT dari database"
-                    });
+                        return Json(new
+                        {
+                            success = true,
+                            message = $"Menu '{menuName}' memiliki riwayat transaksi dan telah dinonaktifkan",
+                            isDeactivated = true
+                        });
+                    }
+                    else
+                    {
+                        if (!string.IsNullOrEmpty(imagePath))
+                        {
+                            DeleteImage(imagePath);
+                        }
+
+                        return Json(new
+                        {
+                            success = true,
+                            message = $"Menu '{menuName}' berhasil dihapus permanent",
+                            isDeleted = true
+                        });
+                    }
                 }
 
                 return Json(new { success = false, message = "Gagal menghapus menu" });
             }
+            catch (InvalidOperationException ex)
+            {
+                return Json(new
+                {
+                    success = true,
+                    message = ex.Message,
+                    isDeactivated = true
+                });
+            }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in DeleteMenuItem: {ex.Message}");
+                Console.WriteLine($"Inner Exception: {ex.InnerException?.Message}");
                 return Json(new { success = false, message = $"Terjadi kesalahan: {ex.Message}" });
             }
         }
