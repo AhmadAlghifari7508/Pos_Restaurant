@@ -33,7 +33,7 @@ namespace POSRestoran01.Controllers
             _configuration = configuration;
         }
 
-        // GET: Home/Index - ONLY SHOWS ACTIVE MENUS
+
         public async Task<IActionResult> Index(int? categoryId, string? searchTerm)
         {
             try
@@ -47,7 +47,7 @@ namespace POSRestoran01.Controllers
                     SearchTerm = searchTerm ?? string.Empty
                 };
 
-                // ALL METHODS HERE RETURN ONLY ACTIVE MENUS
+  
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
                     model.MenuItems = await _menuService.SearchMenuItemsAsync(searchTerm);
@@ -60,12 +60,12 @@ namespace POSRestoran01.Controllers
                 }
                 else
                 {
-                    // GetAllMenuItemsAsync returns ONLY ACTIVE items
+
                     model.MenuItems = await _menuService.GetAllMenuItemsAsync();
                     model.SelectedCategoryId = 0;
                 }
 
-                // Load current order from session
+
                 var orderJson = HttpContext.Session.GetString("CurrentOrder");
                 if (!string.IsNullOrEmpty(orderJson))
                 {
@@ -84,7 +84,6 @@ namespace POSRestoran01.Controllers
                     model.CurrentOrder = new OrderViewModel();
                 }
 
-                // Generate order number if empty
                 if (string.IsNullOrEmpty(model.CurrentOrder.OrderNumber))
                 {
                     model.CurrentOrder.OrderNumber = await _orderService.GenerateOrderNumberAsync();
@@ -100,13 +99,12 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // GET: Home/GetMenuByCategory - ONLY ACTIVE MENUS
         [HttpGet]
         public async Task<IActionResult> GetMenuByCategory(int categoryId)
         {
             try
             {
-                // Returns ONLY ACTIVE menus
+
                 var menuItems = categoryId > 0
                     ? await _menuService.GetMenuItemsByCategoryAsync(categoryId)
                     : await _menuService.GetAllMenuItemsAsync();
@@ -120,13 +118,12 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // GET: Home/SearchMenuItems - ONLY ACTIVE MENUS
         [HttpGet]
         public async Task<IActionResult> SearchMenuItems(string searchTerm)
         {
             try
             {
-                // SearchMenuItemsAsync returns ONLY ACTIVE menus
+
                 var menuItems = !string.IsNullOrEmpty(searchTerm)
                     ? await _menuService.SearchMenuItemsAsync(searchTerm)
                     : await _menuService.GetAllMenuItemsAsync();
@@ -140,7 +137,7 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // GET: Home/GetCurrentOrder
+
         [HttpGet]
         public IActionResult GetCurrentOrder()
         {
@@ -180,7 +177,6 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // POST: Home/AddToOrder
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToOrder(int menuItemId, int quantity = 1, string? note = null)
@@ -286,7 +282,6 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // POST: Home/ClearOrder
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult ClearOrder()
@@ -303,7 +298,6 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // POST: Home/UpdateOrderItemQuantity
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult UpdateOrderItemQuantity(int menuItemId, int quantity)
@@ -350,7 +344,6 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // POST: Home/RemoveFromOrder
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult RemoveFromOrder(int menuItemId)
@@ -393,7 +386,6 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // POST: Home/UpdateItemNote
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult UpdateItemNote(int menuItemId, string? note)
@@ -430,7 +422,6 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // POST: Home/ApplyDiscount
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult ApplyDiscount(bool applyDiscount = false)
@@ -483,7 +474,6 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // POST: Home/ProcessPayment
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ProcessPayment(PaymentViewModel model)
@@ -559,7 +549,7 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // GET: Home/GetOrderSummaryData
+ 
         [HttpGet]
         public IActionResult GetOrderSummaryData()
         {

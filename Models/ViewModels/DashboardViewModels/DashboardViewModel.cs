@@ -29,6 +29,7 @@ namespace POSRestoran01.Models.ViewModels.DashboardViewModels
         public string UserName { get; set; } = string.Empty;
     }
 
+  
     public class OrderDetailViewModel
     {
         public string ItemName { get; set; } = string.Empty;
@@ -36,6 +37,12 @@ namespace POSRestoran01.Models.ViewModels.DashboardViewModels
         public decimal UnitPrice { get; set; }
         public decimal Subtotal { get; set; }
         public string OrderNote { get; set; } = string.Empty;
+        public decimal OriginalPrice { get; set; } = 0;
+        public decimal DiscountPercentage { get; set; } = 0;
+        public decimal DiscountAmount { get; set; } = 0;
+        public bool HasDiscount { get; set; } = false;
+        public decimal TotalSavingsPerItem => DiscountAmount * Quantity;
+        public string FormattedDiscountPercentage => HasDiscount ? $"-{DiscountPercentage:0}%" : "";
     }
 
 

@@ -85,6 +85,12 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = "Order tidak ditemukan" });
                 }
 
+                var menuDiscountTotal = order.OrderDetails?
+                    .Where(od => od.HasDiscount)
+                    .Sum(od => od.DiscountAmount * od.Quantity) ?? 0;
+
+                var totalSavings = menuDiscountTotal + order.Discount;
+
                 var orderDetails = new
                 {
                     OrderId = order.OrderId,
@@ -98,17 +104,24 @@ namespace POSRestoran01.Controllers
                     Cashier = order.User?.FullName ?? "Unknown",
                     Subtotal = order.Subtotal,
                     Discount = order.Discount,
+                    MenuDiscountTotal = menuDiscountTotal,
                     PPN = order.PPN,
                     Total = order.Total,
+                    TotalSavings = totalSavings,
                     Items = order.OrderDetails?
-                    .Select(od => new OrderDetailViewModel
-                    {
-                        ItemName = od.MenuItem?.ItemName ?? "Item tidak diketahui",
-                        Quantity = od.Quantity,
-                        UnitPrice = od.UnitPrice,
-                        Subtotal = od.Subtotal,
-                        OrderNote = od.OrderNote ?? string.Empty
-                    }).ToList() ?? new List<OrderDetailViewModel>()
+    .Select(od => new OrderDetailViewModel
+    {
+        ItemName = od.MenuItem?.ItemName ?? "Item tidak diketahui",
+        Quantity = od.Quantity,
+        UnitPrice = od.UnitPrice,
+        OriginalPrice = od.OriginalPrice > 0 ? od.OriginalPrice : od.UnitPrice,
+        HasDiscount = od.HasDiscount,
+        DiscountPercentage = od.DiscountPercentage,
+        DiscountAmount = od.DiscountAmount,
+        Subtotal = od.Subtotal,
+        OrderNote = od.OrderNote ?? string.Empty
+    }).ToList() ?? new List<OrderDetailViewModel>()
+
                 };
 
                 return Json(new { success = true, data = orderDetails });

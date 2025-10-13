@@ -22,14 +22,25 @@ namespace POSRestoran01.Services.Implementations
                 .Include(sh => sh.User)
                 .AsQueryable();
 
+ 
             if (startDate.HasValue)
-                query = query.Where(sh => sh.ChangedAt >= startDate.Value);
+            {
+             
+                var start = startDate.Value.Date;
+                query = query.Where(sh => sh.ChangedAt >= start);
+            }
 
             if (endDate.HasValue)
-                query = query.Where(sh => sh.ChangedAt <= endDate.Value);
+            {
+  
+                var end = endDate.Value.Date.AddDays(1).AddTicks(-1);
+                query = query.Where(sh => sh.ChangedAt <= end);
+            }
 
             if (menuItemId.HasValue)
+            {
                 query = query.Where(sh => sh.MenuItemId == menuItemId.Value);
+            }
 
             return await query
                 .OrderByDescending(sh => sh.ChangedAt)

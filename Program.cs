@@ -5,14 +5,11 @@ using POSRestoran01.Services.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// Add Entity Framework
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add Session
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromHours(2);
@@ -20,7 +17,6 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// Add Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IMenuService, MenuService>();
@@ -34,7 +30,6 @@ builder.Services.AddScoped<IDbSeederService, DbSeederService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -50,11 +45,10 @@ app.UseSession();
 
 app.UseAuthorization();
 
-// Auto-seed data on application start
 using (var scope = app.Services.CreateScope())
 {
     var seeder = scope.ServiceProvider.GetRequiredService<IDbSeederService>();
-    // Only seed if no data exists
+
     if (!await seeder.HasInitialDataAsync())
     {
         await seeder.SeedInitialDataAsync();

@@ -21,7 +21,6 @@ namespace POSRestoran01.Controllers
             _stockHistoryService = stockHistoryService;
         }
 
-        // GET: Product/Index - SHOWS ALL MENUS (Active & Inactive)
         public async Task<IActionResult> Index(int? categoryId)
         {
             try
@@ -32,7 +31,6 @@ namespace POSRestoran01.Controllers
                     SelectedCategoryId = categoryId ?? 0
                 };
 
-                // USE NEW METHODS: Show ALL menus for management
                 if (categoryId.HasValue && categoryId.Value > 0)
                 {
                     model.MenuItems = await _menuService.GetMenuItemsByCategoryForManagementAsync(categoryId.Value);
@@ -53,7 +51,7 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // GET: Product/GetMenuByCategory - SHOWS ALL MENUS
+
         [HttpGet]
         public async Task<IActionResult> GetMenuByCategory(int categoryId)
         {
@@ -72,7 +70,6 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // GET: Product/GetCategories
         [HttpGet]
         public async Task<IActionResult> GetCategories()
         {
@@ -116,7 +113,6 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // POST: Product/UpdateCategory
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateCategory(int categoryId, string categoryName)
@@ -146,7 +142,6 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // POST: Product/DeleteCategory
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteCategory(int categoryId)
@@ -167,7 +162,6 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // POST: Product/CreateMenuItem
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateMenuItem(CreateMenuItemViewModel model)
@@ -260,7 +254,7 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // GET: Product/GetMenuItem
+
         [HttpGet]
         public async Task<IActionResult> GetMenuItem(int menuItemId)
         {
@@ -305,7 +299,6 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // POST: Product/UpdateMenuItem
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateMenuItem(UpdateMenuItemViewModel model)
@@ -434,7 +427,6 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // POST: Product/DeleteMenuItem - SMART DELETE
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteMenuItem(int menuItemId)
@@ -500,7 +492,6 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // Private Helper Methods
         private async Task<string> SaveImageAsync(IFormFile imageFile)
         {
             if (imageFile == null || imageFile.Length == 0)

@@ -15,7 +15,7 @@ namespace POSRestoran01.Models
         [Required]
         [StringLength(50)]
         [Display(Name = "Tipe Aktivitas")]
-        public string ActivityType { get; set; } = string.Empty; // "Login", "Logout", "Create Order", "Update Stock", "Process Payment"
+        public string ActivityType { get; set; } = string.Empty; 
 
         [Display(Name = "Order ID")]
         public int? OrderId { get; set; } 

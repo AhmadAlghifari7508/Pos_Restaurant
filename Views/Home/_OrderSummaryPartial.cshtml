@@ -205,7 +205,7 @@
 </div>
 
 <script>
-    // Update quantity function
+ 
     function updateQuantity(menuItemId, newQuantity) {
         if (newQuantity <= 0) {
             removeFromOrder(menuItemId);
@@ -225,7 +225,7 @@
         .then(data => {
             if (data.success) {
                 refreshOrderSummary();
-                // Don't show notification for quantity updates to reduce noise
+    
             } else {
                 showNotification(data.message || 'Terjadi kesalahan', 'error');
             }
@@ -236,7 +236,6 @@
         });
     }
 
-    // Toggle order discount function (not menu discount)
     function toggleDiscount(isApplied) {
         const formData = new FormData();
         formData.append('applyDiscount', isApplied);
@@ -252,7 +251,6 @@
                 refreshOrderSummary();
                 showNotification(data.message, 'success');
 
-                // Update discount label with current percentage
                 if (data.discountPercentage) {
                     const discountLabel = document.getElementById('discountLabel');
                     if (discountLabel) {
@@ -278,7 +276,7 @@
         });
     }
 
-    // Update item note function - No notification for auto-save
+
     function updateItemNote(menuItemId, note) {
         const formData = new FormData();
         formData.append('menuItemId', menuItemId);
@@ -291,7 +289,7 @@
         })
         .then(response => response.json())
         .then(data => {
-            // Silent save - no notification shown
+ 
             if (!data.success) {
                 showNotification(data.message || 'Terjadi kesalahan', 'error');
             }
@@ -302,7 +300,6 @@
         });
     }
 
-    // Update note visual styling without refresh
     function updateNoteVisual(input) {
         if (input.value.trim()) {
             input.classList.add('bg-blue-50', 'border-blue-300');
@@ -311,11 +308,9 @@
         }
     }
 
-    // Initialize discount label when partial loads
     document.addEventListener('DOMContentLoaded', function() {
         updateDiscountLabel();
 
-        // Initialize note field styling
         document.querySelectorAll('input[placeholder="Catatan Pesanan..."]').forEach(input => {
             updateNoteVisual(input);
         });
@@ -339,13 +334,13 @@
         }
     }
 
-    // Helper function to get anti-forgery token
+
     function getAntiForgeryToken() {
         const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
         return tokenElement ? tokenElement.value : '';
     }
 
-    // Make sure functions are available globally
+
     if (typeof window !== 'undefined') {
         window.updateQuantity = updateQuantity;
         window.toggleDiscount = toggleDiscount;
@@ -353,7 +348,6 @@
         window.updateNoteVisual = updateNoteVisual;
     }
 
-    // Initialize discount label when this partial is loaded
     setTimeout(updateDiscountLabel, 100);
 </script>
 
@@ -366,7 +360,6 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
-        /* Enhanced styling for discount items */
         .order-item.bg-red-50 {
             background: linear-gradient(135deg, #fef2f2 0%, #fdf2f8 100%);
             border: 1px solid #fecaca;
@@ -376,7 +369,7 @@
                 box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
             }
 
-    /* Custom scrollbar for order items */
+
     .overflow-y-auto::-webkit-scrollbar {
         width: 4px;
     }
@@ -395,7 +388,7 @@
             background: #a8a8a8;
         }
 
-    /* Grid layout responsive adjustments */
+
     media (max-width: 640px) {
         .grid.grid-cols-12
 
@@ -409,7 +402,6 @@
 
     }
 
-    /* Ensure note input and delete button have same height */
     input[placeholder="Catatan Pesanan..."] {
         height: 32px;
     }

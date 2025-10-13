@@ -94,11 +94,6 @@ function loadCurrentUserData(showNotificationOnSuccess = true) {
         .then(data => {
             if (data.success) {
                 updateCurrentUserUI(data.data);
-                if (showNotificationOnSuccess) {
-                    showNotification('Data pengguna berhasil dimuat', 'success');
-                }
-            } else {
-                throw new Error(data.message || 'Gagal memuat data pengguna');
             }
         })
         .catch(error => {
@@ -162,6 +157,7 @@ function updateCurrentUserUIError() {
 function filterStockHistory(showNotificationOnSuccess = true, showLoadingIndicator = true) {
     const startDate = document.getElementById('stockStartDate')?.value;
     const endDate = document.getElementById('stockEndDate')?.value;
+
 
     if (!validateDateRange(startDate, endDate, 'Filter Riwayat Stok')) {
         return;
@@ -364,7 +360,7 @@ function closeShift() {
             if (data.success) {
                 showNotification(data.message || 'Shift berhasil ditutup', 'success');
 
-                // Reload cashier dashboard untuk update tampilan
+     
                 console.log('Reloading cashier dashboard...');
                 setTimeout(() => {
                     filterCashierDashboard(false, true);
@@ -798,9 +794,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (data.success) {
                         showNotification(data.message, 'success');
                         hideEditCurrentUserModal();
-                        setTimeout(() => {
-                            loadCurrentUserData();
-                        }, 500);
+                        const fullNameElement = document.getElementById('currentUserFullName');
+                        if (fullNameElement) {
+                            fullNameElement.textContent = document.getElementById('editCurrentUserFullName').value;
+                        }
+                        const emailElement = document.getElementById('currentUserEmail');
+                        if (emailElement) {
+                            emailElement.textContent = document.getElementById('editCurrentUserEmail').value;
+                        }
                     } else {
                         showNotification(data.message || 'Gagal mengupdate akun', 'error');
                     }

@@ -906,7 +906,7 @@ function showNotification(message, type = 'info', duration = 4000) {
     }, duration);
 }
 
-// Tab Switching
+
 function switchTab(tab) {
     const basicTab = document.getElementById('basicTab');
     const discountTab = document.getElementById('discountTab');
@@ -926,7 +926,7 @@ function switchTab(tab) {
     }
 }
 
-// Filter by Status
+
 function filterByStatus(status) {
     const menuItems = document.querySelectorAll('.menu-item-card');
     menuItems.forEach(item => {

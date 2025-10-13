@@ -352,7 +352,7 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        // Replace method GetCashierDashboardDataAsync di SettingsController.cs dengan ini:
+
 
         private async Task<CashierDashboardViewModel> GetCashierDashboardDataAsync(int userId, DateTime? selectedDate = null)
         {
@@ -371,12 +371,10 @@ namespace POSRestoran01.Controllers
             var dateOrders = await _orderService.GetOrdersByUserIdAsync(userId, startOfDay, endOfDay);
             var todayOrders = await _orderService.GetOrdersByUserIdAsync(userId, DateTime.Today, DateTime.Today);
 
-            // Login pertama di hari tersebut
             var firstLoginOfDay = activities.Where(a => a.ActivityType == "Login")
                                            .OrderBy(a => a.ActivityTime)
                                            .FirstOrDefault()?.ActivityTime;
 
-            // CHANGED: Close Shift terakhir di hari tersebut (bukan Logout)
             var lastCloseShiftOfDay = activities.Where(a => a.ActivityType == "Tutup Shift")
                                                .OrderByDescending(a => a.ActivityTime)
                                                .FirstOrDefault()?.ActivityTime;
@@ -388,12 +386,10 @@ namespace POSRestoran01.Controllers
                                                 .OrderBy(a => a.ActivityTime)
                                                 .FirstOrDefault();
 
-            // CHANGED: Ambil Close Shift terakhir (bukan Logout)
             var lastCloseShift = selectedDayActivities.Where(a => a.ActivityType == "Tutup Shift")
                                                     .OrderByDescending(a => a.ActivityTime)
                                                     .FirstOrDefault();
 
-            // CHANGED: Hitung waktu kerja dari Login pertama sampai Close Shift terakhir
             if (firstLogin != null && lastCloseShift != null)
             {
                 workingHours = lastCloseShift.ActivityTime - firstLogin.ActivityTime;
@@ -457,7 +453,6 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = "User tidak valid" });
                 }
 
-                // Record close shift activity
                 Console.WriteLine("Recording close shift activity...");
                 await _userActivityService.RecordCloseShiftAsync(currentUserId);
 

@@ -16,13 +16,12 @@ namespace POSRestoran01.Services.Implementations
             _stockHistoryService = stockHistoryService;
         }
 
-        // ============ NEW METHOD: For PRODUCT MANAGEMENT PAGE ============
-        // Shows ALL menus (Active & Inactive) for management purposes
+    
         public async Task<List<MenuItem>> GetAllMenuItemsForManagementAsync()
         {
             return await _context.MenuItems
                 .Include(m => m.Category)
-                .OrderByDescending(m => m.IsActive) // Active items first
+                .OrderByDescending(m => m.IsActive) 
                 .ThenBy(m => m.ItemName)
                 .ToListAsync();
         }
@@ -36,19 +35,17 @@ namespace POSRestoran01.Services.Implementations
 
             return await _context.MenuItems
                 .Include(m => m.Category)
-                .Where(m => m.CategoryId == categoryId) // NO IsActive filter
-                .OrderByDescending(m => m.IsActive) // Active items first
+                .Where(m => m.CategoryId == categoryId) 
+                .OrderByDescending(m => m.IsActive) 
                 .ThenBy(m => m.ItemName)
                 .ToListAsync();
         }
 
-        // ============ EXISTING METHODS: For HOME/POS PAGE ============
-        // Shows ONLY ACTIVE menus for customer-facing pages
         public async Task<List<MenuItem>> GetAllMenuItemsAsync()
         {
             return await _context.MenuItems
                 .Include(m => m.Category)
-                .Where(m => m.IsActive) // ONLY ACTIVE
+                .Where(m => m.IsActive) 
                 .OrderBy(m => m.ItemName)
                 .ToListAsync();
         }
@@ -62,7 +59,7 @@ namespace POSRestoran01.Services.Implementations
 
             return await _context.MenuItems
                 .Include(m => m.Category)
-                .Where(m => m.CategoryId == categoryId && m.IsActive) // ONLY ACTIVE
+                .Where(m => m.CategoryId == categoryId && m.IsActive) 
                 .OrderBy(m => m.ItemName)
                 .ToListAsync();
         }
@@ -96,7 +93,7 @@ namespace POSRestoran01.Services.Implementations
 
         public async Task<MenuItem?> GetMenuItemByIdAsync(int id)
         {
-            // Get any menu item by ID (for editing), regardless of IsActive status
+      
             return await _context.MenuItems
                 .Include(m => m.Category)
                 .FirstOrDefaultAsync(m => m.MenuItemId == id);
@@ -135,7 +132,6 @@ namespace POSRestoran01.Services.Implementations
             return menuItem;
         }
 
-        // ============ FIXED DELETE METHOD ============
         public async Task<bool> DeleteMenuItemAsync(int id)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -143,23 +139,22 @@ namespace POSRestoran01.Services.Implementations
             try
             {
                 var menuItem = await _context.MenuItems
-                    .Include(m => m.OrderDetails) // Include related data
+                    .Include(m => m.OrderDetails)
                     .FirstOrDefaultAsync(m => m.MenuItemId == id);
 
                 if (menuItem == null)
                     return false;
 
-                // Check if menu has order history
                 if (menuItem.OrderDetails != null && menuItem.OrderDetails.Any())
                 {
-                    // If has order history, just set to inactive (soft delete)
+    
                     menuItem.IsActive = false;
                     menuItem.UpdatedAt = DateTime.Now;
                     _context.MenuItems.Update(menuItem);
                 }
                 else
                 {
-                    // If no order history, can safely hard delete
+  
                     _context.MenuItems.Remove(menuItem);
                 }
 
@@ -176,7 +171,7 @@ namespace POSRestoran01.Services.Implementations
             }
         }
 
-        // ============ OTHER METHODS (Unchanged) ============
+
 
         public async Task<bool> UpdateStockAsync(int menuItemId, int quantity)
         {
