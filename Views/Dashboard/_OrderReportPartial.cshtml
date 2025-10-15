@@ -43,7 +43,9 @@
                     </td>
                     <td class="py-2 px-2">
                         <div class="flex space-x-1">
-                            <select onchange="updateOrderStatus(@order.OrderId, this.value)" class="text-xs border rounded px-1 py-1" style="font-size:10px;">
+                            <select onchange="updateOrderStatus(@order.OrderId, this.value)"
+                                    class="text-xs border rounded px-1 py-1"
+                                    style="font-size:10px;">
                                 <option value="">Ubah</option>
                                 @if (order.Status != "Pending")
                                 {
@@ -62,10 +64,22 @@
                                     <option value="Canceled">Canceled</option>
                                 }
                             </select>
+
                             <button onclick="showOrderDetail(@order.OrderId)"
-                                    class="text-blue-600 hover:text-blue-800 text-xs">
+                                    class="text-blue-600 hover:text-blue-800 text-xs px-1"
+                                    title="Lihat Detail">
                                 <i class="fas fa-eye"></i>
                             </button>
+
+                            @if (order.Status == "Completed")
+                            {
+                                <button onclick="@(order.Status == "Completed" ? $"printReceipt({order.OrderId}, true)" : "return false;")"
+                                        class="@(order.Status == "Completed" ? "text-green-600 hover:text-green-800" : "text-gray-400 cursor-not-allowed") text-xs px-1"
+                                        title="@(order.Status == "Completed" ? "Cetak Struk" : "Order belum completed")"
+                                        @(order.Status != "Completed" ? "disabled" : "")>
+                                    <i class="fas fa-print"></i>
+                                </button>
+                            }
                         </div>
                     </td>
                 </tr>

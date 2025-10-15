@@ -306,13 +306,13 @@
 
             let html = `
                 <table class="min-w-full">
-                    <thead class="sticky top-0 bg-white">
+                    <thead class="sticky top-0 bg-white z-10">
                         <tr class="border-b border-gray-200">
                             <th class="text-left py-2 px-2 font-semibold text-gray-700 text-sm">Customer</th>
                             <th class="text-left py-2 px-2 font-semibold text-gray-700 text-sm">Menu</th>
                             <th class="text-left py-2 px-2 font-semibold text-gray-700 text-sm">Total</th>
                             <th class="text-left py-2 px-2 font-semibold text-gray-700 text-sm">Status</th>
-                            <th class="text-left py-2 px-2 font-semibold text-gray-700 text-sm">Aksi</th>
+                            <th class="text-left py-2 px-2 font-semibold text-gray-700 text-sm" style="min-width: 200px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -320,34 +320,60 @@
 
             orders.forEach(order => {
                 const statusClass = getStatusClass(order.status);
+                const orderDate = new Date(order.orderDate);
+                const formattedDate = orderDate.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const formattedTime = order.orderTime ? order.orderTime.substring(0, 5) : '';
+
                 html += `
                     <tr class="border-b border-gray-100 hover:bg-gray-50">
                         <td class="py-2 px-2">
                             <div>
                                 <div class="font-medium text-sm">${order.customerName || 'Guest'}</div>
                                 <div class="text-xs text-gray-500">${order.orderNumber}</div>
+                                <div class="text-xs text-gray-400">${formattedDate} ${formattedTime}</div>
                             </div>
                         </td>
                         <td class="py-2 px-2">
                             <div class="text-xs text-gray-600 truncate max-w-xs">${order.menuSummary}</div>
+                            <div class="text-xs text-gray-400">${order.orderType}${order.tableNo ? ' - Table ' + order.tableNo : ''}</div>
                         </td>
                         <td class="py-2 px-2 font-semibold text-sm">${formatCurrency(order.total)}</td>
                         <td class="py-2 px-2">
                             <span class="px-2 py-1 text-xs rounded-full ${statusClass}">${order.status}</span>
                         </td>
                         <td class="py-2 px-2">
-                            <div class="flex space-x-1">
-                                <select onchange="updateOrderStatus(${order.orderId}, this.value)" class="text-xs border rounded px-1 py-1" style="font-size:10px;">
+                            <div class="flex space-x-2 items-center flex-wrap gap-1">
+                                <select onchange="updateOrderStatus(${order.orderId}, this.value)"
+                                        class="text-xs border rounded px-2 py-1"
+                                        style="font-size:10px; min-width: 90px;">
                                     <option value="">Ubah</option>
-                                    <option value="Pending" ${order.status === 'Pending' ? 'disabled' : ''}>Pending</option>
-                                    <option value="Preparing" ${order.status === 'Preparing' ? 'disabled' : ''}>Preparing</option>
-                                    <option value="Completed" ${order.status === 'Completed' ? 'disabled' : ''}>Completed</option>
-                                    <option value="Canceled" ${order.status === 'Canceled' ? 'disabled' : ''}>Canceled</option>
+                                    ${order.status !== 'Pending' ? '<option value="Pending">Pending</option>' : ''}
+                                    ${order.status !== 'Preparing' ? '<option value="Preparing">Preparing</option>' : ''}
+                                    ${order.status !== 'Completed' ? '<option value="Completed">Completed</option>' : ''}
+                                    ${order.status !== 'Canceled' ? '<option value="Canceled">Canceled</option>' : ''}
                                 </select>
+
                                 <button onclick="showOrderDetail(${order.orderId})"
-                                        class="text-blue-600 hover:text-blue-800 text-xs">
+                                        class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded"
+                                        title="Lihat Detail"
+                                        type="button">
                                     <i class="fas fa-eye"></i>
                                 </button>
+                `;
+
+                // TOMBOL PRINT - Hanya muncul jika status Completed
+                if (order.status === 'Completed') {
+                    html += `
+                                <button onclick="printReceipt(${order.orderId})"
+                                        class="text-green-600 hover:text-green-800 hover:bg-green-50 p-2 rounded"
+                                        title="Cetak Struk"
+                                        type="button">
+                                    <i class="fas fa-print"></i>
+                                </button>
+                    `;
+                }
+
+                html += `
                             </div>
                         </td>
                     </tr>
@@ -544,7 +570,7 @@
                 });
         }
 
-               function renderOrderDetail(order) {
+        function renderOrderDetail(order) {
             const content = document.getElementById('orderDetailContent');
             let html = `
                 <div class="space-y-4">
@@ -689,6 +715,29 @@
         function hideOrderDetailModal() {
             document.getElementById('orderDetailModal').classList.add('hidden');
             document.getElementById('orderDetailModal').classList.remove('flex');
+        }
+
+        // FUNCTION PRINT RECEIPT - INI YANG PENTING!
+        function printReceipt(orderId) {
+            if (!orderId) {
+                showNotification('Order ID tidak valid', 'error');
+                return;
+            }
+
+            console.log('Printing receipt for order ID:', orderId);
+
+            // Buka window baru untuk print
+            const printWindow = window.open(
+                `/Receipt/Print?orderId=${orderId}`,
+                '_blank',
+                'width=400,height=700,menubar=no,toolbar=no,location=no,status=no'
+            );
+
+            if (!printWindow) {
+                showNotification('Popup diblokir! Silakan izinkan popup untuk mencetak struk', 'warning');
+            } else {
+                showNotification('Membuka halaman cetak...', 'info', 1500);
+            }
         }
 
         function showLoading() {

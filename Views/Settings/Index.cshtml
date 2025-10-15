@@ -89,69 +89,112 @@
         }
         else if (Model.ActiveSection == "about")
         {
-
-            <div class="mb-6">
-                <h1 class="text-3xl font-bold text-gray-800 mb-4">Tentang Restoran</h1>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="text-center mb-8">
-                    <div class="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-utensils text-3xl text-blue-600"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">POS Restoran</h2>
-                    <p class="text-gray-600">Sistem Point of Sale untuk Restoran Modern</p>
+            <div class="max-w-5xl mx-auto">
+            
+                <div class="mb-6">
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">Informasi Restoran</h1>
+                    <p class="text-gray-600">Data konfigurasi sistem dan informasi restoran</p>
                 </div>
 
-                <div class="grid md:grid-cols-2 gap-8">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Fitur Utama</h3>
-                        <ul class="space-y-3 text-gray-600">
-                            <li class="flex items-center">
-                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                                Laporan Penjualan
-                            </li>
-                            <li class="flex items-center">
-                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                                Manajemen Stok
-                            </li>
-                            <li class="flex items-center">
-                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                                Dashboard Analytics
-                            </li>
-                        </ul>
+             
+                <div class="grid md:grid-cols-2 gap-6">
+               
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                        <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+                            <div class="flex items-center text-white">
+                                <i class="fas fa-store-alt text-2xl mr-3"></i>
+                                <h3 class="text-lg font-semibold">Data Restoran</h3>
+                            </div>
+                        </div>
+                        <div class="p-6 space-y-4">
+                     
+                            <div class="pb-4 border-b border-gray-200">
+                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                    Nama Restoran
+                                </label>
+                                <p class="text-gray-800 text-lg font-semibold">
+                                    @Model.AppSettings?.RestaurantName
+                                </p>
+                            </div>
+
+                          
+                            <div class="pb-4 border-b border-gray-200">
+                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                    <i class="fas fa-map-marker-alt mr-1"></i>Alamat
+                                </label>
+                                <p class="text-gray-700 leading-relaxed">
+                                    @Model.AppSettings?.RestaurantAddress
+                                </p>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                    <i class="fas fa-phone mr-1"></i>Telepon
+                                </label>
+                                <a href="tel:@Model.AppSettings?.RestaurantPhone"
+                                   class="text-blue-600 hover:text-blue-700 font-medium inline-flex items-center">
+                                    @Model.AppSettings?.RestaurantPhone
+                                    <i class="fas fa-external-link-alt ml-2 text-xs"></i>
+                                </a>
+                            </div>
+                        </div>
                     </div>
 
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Informasi Sistem</h3>
-                        <div class="space-y-3 text-gray-600">
-                            <div class="flex justify-between">
-                                <span>Versi:</span>
-                                <span class="font-semibold">1.0.0</span>
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                        <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4">
+                            <div class="flex items-center text-white">
+                                <i class="fas fa-cog text-2xl mr-3"></i>
+                                <h3 class="text-lg font-semibold">Konfigurasi Harga</h3>
                             </div>
-                            <div class="flex justify-between">
-                                <span>Technology:</span>
-                                <span class="font-semibold">ASP.NET Core MVC</span>
+                        </div>
+                        <div class="p-6 space-y-5">
+                        
+                            <div class="bg-orange-50 rounded-lg p-4 border-l-4 border-orange-500">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <i class="fas fa-percentage text-white text-sm"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-semibold text-gray-700">PPN</p>
+                                            <p class="text-xs text-gray-500">Pajak Pertambahan Nilai</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-3xl font-bold text-orange-600">@Model.AppSettings?.PPN<span class="text-xl">%</span></p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="flex justify-between">
-                                <span>Database:</span>
-                                <span class="font-semibold">SQL Server</span>
+
+
+                            <div class="bg-green-50 rounded-lg p-4 border-l-4 border-green-500">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <i class="fas fa-tag text-white text-sm"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-semibold text-gray-700">Diskon Order</p>
+                                            <p class="text-xs text-gray-500">Potongan harga default</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-3xl font-bold text-green-600">@(Model.AppSettings?.DiscountPercentage.ToString("0.##"))<span class="text-xl">%</span></p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="flex justify-between">
-                                <span>UI Framework:</span>
-                                <span class="font-semibold">Tailwind CSS</span>
+
+         
+                            <div class="bg-blue-50 rounded-lg p-3 flex items-start space-x-2">
+                                <i class="fas fa-info-circle text-blue-500 text-sm mt-0.5"></i>
+                                <p class="text-xs text-gray-600 leading-relaxed">
+                                    Nilai PPN dan diskon akan otomatis diterapkan pada setiap transaksi
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <div class="mt-8 p-4 bg-blue-50 rounded-lg">
-                    <h4 class="font-semibold text-blue-800 mb-2">Bantuan & Support</h4>
-                    <p class="text-blue-600 text-sm">
-                        Untuk bantuan teknis atau pertanyaan mengenai sistem, silakan hubungi administrator sistem.
-                    </p>
                 </div>
-            </div>
         }
         else if (Model.ActiveSection == "stock-history")
         {

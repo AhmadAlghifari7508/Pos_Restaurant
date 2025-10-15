@@ -25,6 +25,7 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IStockHistoryService, StockHistoryService>();
 builder.Services.AddScoped<IUserActivityService, UserActivityService>();
+builder.Services.AddScoped<IReceiptService, ReceiptService>();
 
 builder.Services.AddScoped<IDbSeederService, DbSeederService>();
 

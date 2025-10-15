@@ -53,18 +53,45 @@ namespace POSRestoran01.Services.Implementations
 
         public async Task<bool> DeleteCategoryAsync(int id)
         {
-            var category = await _context.Categories.FindAsync(id);
-            if (category != null)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
             {
-                category.IsActive = false;
-                category.UpdatedAt = DateTime.Now;
+                var category = await _context.Categories
+                    .Include(c => c.MenuItems)
+                    .FirstOrDefaultAsync(c => c.CategoryId == id);
+
+                if (category == null)
+                    return false;
+
+  
+                if (category.MenuItems != null && category.MenuItems.Any())
+                {
+                    await transaction.RollbackAsync();
+                    throw new InvalidOperationException($"Kategori '{category.CategoryName}' tidak dapat dihapus karena masih memiliki {category.MenuItems.Count} menu item. Hapus menu terlebih dahulu.");
+                }
+
+
+                _context.Categories.Remove(category);
                 await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
                 return true;
             }
-            return false;
+            catch (InvalidOperationException)
+            {
+                await transaction.RollbackAsync();
+                throw; 
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                Console.WriteLine($"Error deleting category: {ex.Message}");
+                throw new InvalidOperationException($"Gagal menghapus kategori: {ex.Message}", ex);
+            }
         }
 
-        
+
         public async Task<bool> CategoryExistsAsync(int id)
         {
             return await _context.Categories.AnyAsync(c => c.CategoryId == id && c.IsActive);

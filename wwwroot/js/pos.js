@@ -574,6 +574,16 @@ function processSlidePayment() {
                     }, 2000);
                 }
 
+                if (data.shouldPrintReceipt && data.orderId) {
+                    setTimeout(() => {
+                        if (confirm('Pembayaran berhasil! Cetak struk sekarang?')) {
+                            showReceiptPreview(data.orderId);
+                        } else {
+                            showNotification('Struk dapat dicetak dari menu Dashboard', 'info', 5000);
+                        }
+                    }, 2500);
+                }
+
                 setTimeout(() => {
                     refreshOrderSummary();
                 }, 1500);
@@ -825,6 +835,75 @@ function highlightDiscountedItems() {
 }
 
 
+function autoPrintToPhysicalPrinter(orderId) {
+    if (!orderId) {
+        console.error('Order ID tidak valid');
+        return;
+    }
+
+    console.log('Auto printing receipt for order:', orderId);
+
+    const printUrl = `/Receipt/Print?orderId=${orderId}`;
+    const printWindow = window.open(
+        printUrl,
+        '_blank',
+        'width=400,height=600,menubar=no,toolbar=no,location=no,status=no'
+    );
+
+    if (!printWindow) {
+        showNotification('Pop-up diblokir! Silakan izinkan pop-up untuk mencetak.', 'warning', 5000);
+    }
+}
+
+function showPrintConfirmation(orderId, totalSavings) {
+    const modalHtml = `
+        <div id="printConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-2xl p-6 max-w-md w-full mx-4">
+                <div class="text-center">
+                    <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
+                        <i class="fas fa-check text-green-600 text-3xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">Pembayaran Berhasil!</h3>
+                    ${totalSavings > 0 ? `
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                            <p class="text-green-700 font-semibold">
+                                <i class="fas fa-tags mr-2"></i>
+                                Hemat: Rp ${totalSavings.toLocaleString('id-ID')}
+                            </p>
+                        </div>
+                    ` : ''}
+                    <p class="text-gray-700 mb-6">Cetak struk sekarang?</p>
+                    <div class="flex space-x-3">
+                        <button onclick="closePrintModal()" 
+                                class="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg">
+                            Nanti
+                        </button>
+                        <button onclick="printNow(${orderId})" 
+                                class="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg">
+                            <i class="fas fa-print mr-2"></i>Cetak
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+function closePrintModal() {
+    const modal = document.getElementById('printConfirmModal');
+    if (modal) modal.remove();
+}
+
+function printNow(orderId) {
+    closePrintModal();
+    autoPrintToPhysicalPrinter(orderId);
+}
+
+
+
+
+
 
 window.POS = {
     addToOrder: addToOrder,
@@ -874,6 +953,10 @@ window.toggleSlideTableNo = toggleSlideTableNo;
 window.processSlidePayment = processSlidePayment;
 window.updateSlidePaymentSummary = updateSlidePaymentSummary;
 window.resetSlidePaymentForm = resetSlidePaymentForm;
+window.autoPrintToPhysicalPrinter = autoPrintToPhysicalPrinter;
+window.showPrintConfirmation = showPrintConfirmation;
+window.closePrintModal = closePrintModal;
+window.printNow = printNow;
 
 const enhancedCSS = `
     @keyframes discount-highlight {

@@ -249,7 +249,7 @@
             }
         }
 
-        function processSlidePayment() {
+                function processSlidePayment() {
             const customerName = document.getElementById('slideCustomerName')?.value || '';
             const orderTypeRadio = document.querySelector('input[name="slideOrderType"]:checked');
             const tableNo = document.getElementById('slideTableNo')?.value || '';
@@ -305,13 +305,19 @@
                     hideSlidePayment();
                     showNotification('Pembayaran berhasil diproses!', 'success');
 
+                    if (data.orderId) {
+                        setTimeout(() => {
+                            autoPrintToPhysicalPrinter(data.orderId);
+                        }, 1000);
+                    }
+
                     document.getElementById('slideCustomerName').value = '';
                     document.getElementById('slideCashAmount').value = '';
                     document.getElementById('slideTableNo').value = '';
 
                     setTimeout(() => {
                         window.location.reload();
-                    }, 1500);
+                    }, 2000);
                 } else {
                     showNotification(data.message || 'Terjadi kesalahan dalam pembayaran', 'error');
                 }
@@ -321,6 +327,35 @@
                 console.error('Payment error:', error);
                 showNotification('Terjadi kesalahan sistem', 'error');
             });
+        }
+
+        function autoPrintToPhysicalPrinter(orderId) {
+            if (!orderId) {
+                console.error('Order ID tidak valid untuk print');
+                return;
+            }
+
+            console.log('Auto printing receipt for order:', orderId);
+
+            const printUrl = `/Receipt/Print?orderId=${orderId}`;
+            const printWindow = window.open(
+                printUrl,
+                '_blank',
+                'width=400,height=600,menubar=no,toolbar=no,location=no,status=no'
+            );
+
+            if (!printWindow) {
+            
+                showNotification('Pop-up diblokir! Silakan izinkan pop-up untuk mencetak struk otomatis.', 'warning', 5000);
+
+                setTimeout(() => {
+                    if (confirm('Popup diblokir. Buka halaman print manual?')) {
+                        window.open(printUrl, '_blank');
+                    }
+                }, 1000);
+            } else {
+                showNotification('Mencetak struk...', 'info', 2000);
+            }
         }
 
         function getAntiForgeryToken() {

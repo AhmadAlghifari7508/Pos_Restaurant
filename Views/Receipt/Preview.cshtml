@@ -1,0 +1,398 @@
+﻿@model POSRestoran01.Models.ViewModels.ReceiptViewModels.ReceiptViewModel
+@{
+    Layout = null; // TIDAK PAKAI LAYOUT!
+    ViewData["Title"] = "Preview Struk";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Preview Struk - @Model.OrderNumber</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .toolbar h1 {
+                font-size: 24px;
+                color: #1f2937;
+            }
+
+        .toolbar-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-gray {
+            background: #6b7280;
+            color: white;
+        }
+
+            .btn-gray:hover {
+                background: #4b5563;
+            }
+
+        .btn-blue {
+            background: #3b82f6;
+            color: white;
+        }
+
+            .btn-blue:hover {
+                background: #2563eb;
+            }
+
+        /* Receipt Container */
+        .receipt-wrapper {
+            background: white;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .receipt-paper {
+            max-width: 300px;
+            margin: 0 auto;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            line-height: 1.4;
+            background: white;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+        }
+
+        /* Receipt Styles */
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #ccc;
+        }
+
+            .receipt-header h2 {
+                font-size: 16px;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+
+            .receipt-header p {
+                font-size: 10px;
+                line-height: 1.3;
+                margin: 2px 0;
+            }
+
+        .order-info {
+            margin: 15px 0;
+            font-size: 10px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+
+        .divider {
+            border-top: 2px dashed #ccc;
+            margin: 10px 0;
+        }
+
+        .items {
+            margin: 15px 0;
+        }
+
+        .item {
+            margin-bottom: 10px;
+        }
+
+        .item-name {
+            font-weight: bold;
+            font-size: 11px;
+            margin-bottom: 2px;
+        }
+
+        .item-detail {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            margin-bottom: 2px;
+        }
+
+        .item-note {
+            font-size: 9px;
+            font-style: italic;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .totals {
+            margin: 15px 0;
+            font-size: 10px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+
+        .grand-total {
+            font-weight: bold;
+            font-size: 12px;
+            padding-top: 8px;
+            margin-top: 8px;
+            border-top: 1px solid #000;
+        }
+
+        .payment {
+            margin: 15px 0;
+            padding-top: 10px;
+            border-top: 2px dashed #ccc;
+            font-size: 10px;
+        }
+
+        .savings-box {
+            background: #dcfce7;
+            border: 1px solid #16a34a;
+            padding: 8px;
+            text-align: center;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+            .savings-box p {
+                font-weight: bold;
+                color: #16a34a;
+                font-size: 11px;
+            }
+
+        .footer {
+            text-align: center;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 2px dashed #ccc;
+            font-size: 9px;
+        }
+
+        /* Print Styles */
+        @@media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .toolbar {
+                display: none !important;
+            }
+
+            .receipt-wrapper {
+                padding: 0;
+                box-shadow: none;
+            }
+
+            .receipt-paper {
+                border: none;
+                max-width: 58mm;
+                padding: 5mm;
+            }
+
+            @@page {
+                size: 58mm auto;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div>
+                <h1>Preview Struk</h1>
+                <p style="color: #6b7280; margin-top: 4px;">Order: @Model.OrderNumber</p>
+            </div>
+            <div class="toolbar-buttons">
+                <button onclick="window.history.back()" class="btn btn-gray">
+                    <i class="fas fa-arrow-left"></i>
+                    Kembali
+                </button>
+                <button onclick="window.print()" class="btn btn-blue">
+                    <i class="fas fa-print"></i>
+                    Cetak Struk
+                </button>
+            </div>
+        </div>
+
+        <!-- Receipt -->
+        <div class="receipt-wrapper">
+            <div class="receipt-paper">
+                <!-- Header -->
+                <div class="receipt-header">
+                    <h2>@Model.RestaurantName</h2>
+                    <p>@Model.RestaurantAddress</p>
+                    <p>Telp: @Model.RestaurantPhone</p>
+                </div>
+
+                <!-- Order Info -->
+                <div class="order-info">
+                    <div class="info-row">
+                        <span>No. Order:</span>
+                        <span style="font-weight: bold;">@Model.OrderNumber</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Tanggal:</span>
+                        <span>@Model.OrderDate.ToString("dd/MM/yyyy") @(Model.OrderTime.Hours.ToString("00")):@(Model.OrderTime.Minutes.ToString("00"))</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Kasir:</span>
+                        <span>@Model.CashierName</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.CustomerName))
+                    {
+                        <div class="info-row">
+                            <span>Customer:</span>
+                            <span>@Model.CustomerName</span>
+                        </div>
+                    }
+                    <div class="info-row">
+                        <span>Tipe:</span>
+                        <span>@Model.OrderType @(Model.TableNo.HasValue ? $"- Meja {Model.TableNo}" : "")</span>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Items -->
+                <div class="items">
+                    @foreach (var item in Model.Items)
+                    {
+                        <div class="item">
+                            <div class="item-name">@item.ItemName</div>
+                            <div class="item-detail">
+                                <span>@item.Quantity x Rp @item.UnitPrice.ToString("N0")</span>
+                                <span style="font-weight: bold;">Rp @item.Subtotal.ToString("N0")</span>
+                            </div>
+                            @if (item.HasDiscount)
+                            {
+                                <div class="item-detail" style="color: #16a34a;">
+                                    <span>Diskon @item.FormattedDiscountPercentage</span>
+                                    <span>-Rp @item.TotalSavingsPerItem.ToString("N0")</span>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(item.OrderNote))
+                            {
+                                <div class="item-note">Note: @item.OrderNote</div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Totals -->
+                <div class="totals">
+                    <div class="total-row">
+                        <span>Subtotal:</span>
+                        <span>Rp @Model.Subtotal.ToString("N0")</span>
+                    </div>
+                    @if (Model.MenuDiscountTotal > 0)
+                    {
+                        <div class="total-row" style="color: #16a34a;">
+                            <span>Diskon Menu:</span>
+                            <span>-Rp @Model.MenuDiscountTotal.ToString("N0")</span>
+                        </div>
+                    }
+                    @if (Model.OrderDiscount > 0)
+                    {
+                        <div class="total-row" style="color: #16a34a;">
+                            <span>Diskon Order:</span>
+                            <span>-Rp @Model.OrderDiscount.ToString("N0")</span>
+                        </div>
+                    }
+                    <div class="total-row">
+                        <span>PPN (11%):</span>
+                        <span>Rp @Model.PPN.ToString("N0")</span>
+                    </div>
+                    <div class="total-row grand-total">
+                        <span>TOTAL:</span>
+                        <span>Rp @Model.Total.ToString("N0")</span>
+                    </div>
+                </div>
+
+                <!-- Payment -->
+                <div class="payment">
+                    <div class="total-row">
+                        <span>Bayar (@Model.PaymentMethod):</span>
+                        <span>Rp @Model.AmountPaid.ToString("N0")</span>
+                    </div>
+                    <div class="total-row">
+                        <span style="font-weight: bold;">Kembalian:</span>
+                        <span style="font-weight: bold;">Rp @Model.ChangeAmount.ToString("N0")</span>
+                    </div>
+                </div>
+
+                @if (Model.TotalSavings > 0)
+                {
+                    <div class="savings-box">
+                        <p>TOTAL HEMAT: Rp @Model.TotalSavings.ToString("N0")</p>
+                    </div>
+                }
+
+                <!-- Footer -->
+                <div class="footer">
+                    <p style="font-weight: bold; margin-bottom: 3px;">@Model.ReceiptFooter</p>
+                    <p>@Model.PrintedAt.ToString("dd/MM/yyyy HH:mm:ss")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Keyboard shortcut untuk print
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -539,7 +539,8 @@ namespace POSRestoran01.Controllers
                     orderId = createdOrder.OrderId,
                     orderNumber = createdOrder.OrderNumber,
                     message = "Pembayaran berhasil diproses",
-                    totalSavings = order.MenuDiscountTotal + order.Discount
+                    totalSavings = order.MenuDiscountTotal + order.Discount,
+                    shouldPrintReceipt = true
                 });
             }
             catch (Exception ex)

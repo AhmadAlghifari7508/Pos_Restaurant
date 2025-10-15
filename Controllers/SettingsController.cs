@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using POSRestoran01.Data;
 using POSRestoran01.Models.ViewModels.SettingsViewModels;
 using POSRestoran01.Services.Interfaces;
+using Microsoft.Extensions.Configuration;
+
 
 namespace POSRestoran01.Controllers
 {
@@ -13,19 +15,22 @@ namespace POSRestoran01.Controllers
         private readonly IOrderService _orderService;
         private readonly IAuthService _authService;
         private readonly ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
 
         public SettingsController(
             IStockHistoryService stockHistoryService,
             IUserActivityService userActivityService,
             IOrderService orderService,
             IAuthService authService,
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            IConfiguration configuration)
         {
             _stockHistoryService = stockHistoryService;
             _userActivityService = userActivityService;
             _orderService = orderService;
             _authService = authService;
             _context = context;
+            _configuration = configuration;
         }
 
         public async Task<IActionResult> Index(string section = "account")
@@ -38,7 +43,17 @@ namespace POSRestoran01.Controllers
                 var model = new SettingsViewModel
                 {
                     ActiveSection = section,
-                    CurrentUser = currentUser ?? new Models.User()
+                    CurrentUser = currentUser ?? new Models.User(),
+                    AppSettings = new AppSettings
+                    {
+                        RestaurantName = _configuration["AppSettings:RestaurantName"] ?? "Restaurant Wisesa",
+                        RestaurantAddress = _configuration["AppSettings:RestaurantAddress"] ?? "Alamat tidak tersedia",
+                        RestaurantPhone = _configuration["AppSettings:RestaurantPhone"] ?? "Telepon tidak tersedia",
+                        PPN = int.TryParse(_configuration["AppSettings:PPN"], out var ppn) ? ppn : 11,
+                        DiscountPercentage = decimal.TryParse(_configuration["AppSettings:DiscountPercentage"], out var discount) ? discount : 5.0m
+                    }
+
+
                 };
 
                 ViewBag.CurrentUserFullName = currentUser?.FullName ?? "User Tidak Ditemukan";

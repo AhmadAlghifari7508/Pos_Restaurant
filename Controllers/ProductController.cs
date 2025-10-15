@@ -141,24 +141,41 @@ namespace POSRestoran01.Controllers
                 return Json(new { success = false, message = "Terjadi kesalahan saat memperbarui kategori" });
             }
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteCategory(int categoryId)
         {
             try
             {
+                var category = await _categoryService.GetCategoryByIdAsync(categoryId);
+                if (category == null)
+                {
+                    return Json(new { success = false, message = "Kategori tidak ditemukan" });
+                }
+
+                var categoryName = category.CategoryName;
                 var success = await _categoryService.DeleteCategoryAsync(categoryId);
+
                 if (success)
                 {
-                    return Json(new { success = true, message = "Kategori berhasil dihapus" });
+                    return Json(new
+                    {
+                        success = true,
+                        message = $"Kategori '{categoryName}' berhasil dihapus permanent dari database"
+                    });
                 }
-                return Json(new { success = false, message = "Kategori tidak ditemukan" });
+
+                return Json(new { success = false, message = "Gagal menghapus kategori" });
+            }
+            catch (InvalidOperationException ex)
+            {
+        
+                return Json(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in DeleteCategory: {ex.Message}");
-                return Json(new { success = false, message = "Terjadi kesalahan saat menghapus kategori" });
+                return Json(new { success = false, message = $"Terjadi kesalahan: {ex.Message}" });
             }
         }
 
@@ -446,37 +463,25 @@ namespace POSRestoran01.Controllers
 
                 if (success)
                 {
-                    var stillExists = await _menuService.GetMenuItemByIdAsync(menuItemId);
 
-                    if (stillExists != null && !stillExists.IsActive)
+                    if (!string.IsNullOrEmpty(imagePath))
                     {
-                        return Json(new
-                        {
-                            success = true,
-                            message = $"Menu '{menuName}' memiliki riwayat transaksi dan telah dinonaktifkan",
-                            isDeactivated = true
-                        });
+                        DeleteImage(imagePath);
                     }
-                    else
-                    {
-                        if (!string.IsNullOrEmpty(imagePath))
-                        {
-                            DeleteImage(imagePath);
-                        }
 
-                        return Json(new
-                        {
-                            success = true,
-                            message = $"Menu '{menuName}' berhasil dihapus permanent",
-                            isDeleted = true
-                        });
-                    }
+                    return Json(new
+                    {
+                        success = true,
+                        message = $"Menu '{menuName}' berhasil dihapus permanent dari database",
+                        isDeleted = true
+                    });
                 }
 
                 return Json(new { success = false, message = "Gagal menghapus menu" });
             }
             catch (InvalidOperationException ex)
             {
+           
                 return Json(new
                 {
                     success = true,

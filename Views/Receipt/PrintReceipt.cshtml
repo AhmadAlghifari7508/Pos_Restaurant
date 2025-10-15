@@ -1,0 +1,340 @@
+﻿@model POSRestoran01.Models.ViewModels.ReceiptViewModels.ReceiptViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@Model.OrderNumber</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 10px;
+            line-height: 1.4;
+            width: 48mm;
+            margin: 0;
+            padding: 1mm;
+            background: white;
+            color: #000;
+        }
+
+        /* Utility */
+        .center {
+            text-align: center;
+        }
+
+        .left {
+            text-align: left;
+        }
+
+        .right {
+            text-align: right;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+
+        .small {
+            font-size: 8px;
+        }
+
+        /* Divider */
+        .divider {
+            border-top: 1px dashed #000;
+            margin: 3px 0;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 5px;
+            padding-bottom: 3px;
+            border-bottom: 1px dashed #000;
+        }
+
+            .header .name {
+                font-size: 13px;
+                font-weight: bold;
+                margin-bottom: 2px;
+            }
+
+            .header .info {
+                font-size: 8px;
+                line-height: 1.2;
+            }
+
+        /* Row with 2 columns */
+        .row {
+            width: 100%;
+            margin: 1px 0;
+            font-size: 9px;
+        }
+
+            .row::after {
+                content: "";
+                display: table;
+                clear: both;
+            }
+
+            .row .col-left {
+                float: left;
+                width: 40%;
+            }
+
+            .row .col-right {
+                float: right;
+                width: 60%;
+                text-align: right;
+            }
+
+        /* Item */
+        .item {
+            margin: 3px 0;
+            font-size: 9px;
+        }
+
+        .item-name {
+            font-weight: bold;
+            margin-bottom: 1px;
+        }
+
+        .item-line {
+            width: 100%;
+        }
+
+            .item-line::after {
+                content: "";
+                display: table;
+                clear: both;
+            }
+
+        .item-qty {
+            float: left;
+            width: 60%;
+            font-size: 8px;
+        }
+
+        .item-price {
+            float: right;
+            width: 40%;
+            text-align: right;
+            font-size: 8px;
+        }
+
+        .item-note {
+            font-size: 7px;
+            font-style: italic;
+            margin-top: 1px;
+        }
+
+        /* Total Section */
+        .total-line {
+            width: 100%;
+            margin: 2px 0;
+            font-size: 9px;
+        }
+
+            .total-line::after {
+                content: "";
+                display: table;
+                clear: both;
+            }
+
+            .total-line .label {
+                float: left;
+                width: 50%;
+            }
+
+            .total-line .value {
+                float: right;
+                width: 50%;
+                text-align: right;
+            }
+
+        .grand-total {
+            font-weight: bold;
+            font-size: 11px;
+            margin-top: 3px;
+            padding-top: 3px;
+            border-top: 1px solid #000;
+        }
+
+        /* Payment */
+        .payment {
+            margin-top: 5px;
+            padding-top: 3px;
+            border-top: 1px dashed #000;
+        }
+
+        /* Savings */
+        .savings {
+            text-align: center;
+            font-weight: bold;
+            margin: 5px 0;
+            padding: 3px 0;
+            border-top: 1px dashed #000;
+            border-bottom: 1px dashed #000;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 5px;
+            padding-top: 3px;
+            border-top: 1px dashed #000;
+            font-size: 7px;
+        }
+
+        /* Print Settings */
+        @@page {
+            size: 58mm auto;
+            margin: 0;
+        }
+
+        @@media print {
+            body {
+                width: 48mm;
+                margin: 0;
+                padding: 1mm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="header">
+        <div class="name">@Model.RestaurantName</div>
+        <div class="info">@Model.RestaurantAddress</div>
+        <div class="info">Telp: @Model.RestaurantPhone</div>
+    </div>
+
+    <!-- ORDER INFO -->
+    <div class="row">
+        <div class="col-left">No. Order</div>
+        <div class="col-right bold">@Model.OrderNumber</div>
+    </div>
+    <div class="row">
+        <div class="col-left">Tanggal</div>
+        <div class="col-right">@Model.OrderDate.ToString("dd/MM/yyyy") @(Model.OrderTime.Hours.ToString("00")):@(Model.OrderTime.Minutes.ToString("00"))</div>
+    </div>
+    <div class="row">
+        <div class="col-left">Kasir</div>
+        <div class="col-right">@Model.CashierName</div>
+    </div>
+    @if (!string.IsNullOrEmpty(Model.CustomerName))
+    {
+        <div class="row">
+            <div class="col-left">Customer</div>
+            <div class="col-right">@Model.CustomerName</div>
+        </div>
+    }
+    <div class="row">
+        <div class="col-left">Tipe</div>
+        <div class="col-right">@Model.OrderType @(Model.TableNo.HasValue ? $"- Meja {Model.TableNo}" : "")</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ITEMS -->
+    @foreach (var item in Model.Items)
+    {
+        <div class="item">
+            <div class="item-name">@item.ItemName</div>
+            <div class="item-line">
+                <div class="item-qty">@item.Quantity x @item.UnitPrice.ToString("N0")</div>
+                <div class="item-price">@item.Subtotal.ToString("N0")</div>
+            </div>
+            @if (item.HasDiscount)
+            {
+                <div class="item-line">
+                    <div class="item-qty">Diskon @item.FormattedDiscountPercentage</div>
+                    <div class="item-price">-@item.TotalSavingsPerItem.ToString("N0")</div>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(item.OrderNote))
+            {
+                <div class="item-note">Note: @item.OrderNote</div>
+            }
+        </div>
+    }
+
+    <div class="divider"></div>
+
+    <!-- TOTALS -->
+    <div class="total-line">
+        <div class="label">Subtotal</div>
+        <div class="value">Rp @Model.Subtotal.ToString("N0")</div>
+    </div>
+
+    @if (Model.MenuDiscountTotal > 0)
+    {
+        <div class="total-line">
+            <div class="label">Diskon Menu</div>
+            <div class="value">-Rp @Model.MenuDiscountTotal.ToString("N0")</div>
+        </div>
+    }
+
+    @if (Model.OrderDiscount > 0)
+    {
+        <div class="total-line">
+            <div class="label">Diskon Order</div>
+            <div class="value">-Rp @Model.OrderDiscount.ToString("N0")</div>
+        </div>
+    }
+
+    <div class="total-line">
+        <div class="label">PPN (11%)</div>
+        <div class="value">Rp @Model.PPN.ToString("N0")</div>
+    </div>
+
+    <div class="total-line grand-total">
+        <div class="label">TOTAL</div>
+        <div class="value">Rp @Model.Total.ToString("N0")</div>
+    </div>
+
+    <!-- PAYMENT -->
+    <div class="payment">
+        <div class="total-line">
+            <div class="label">Bayar (@Model.PaymentMethod)</div>
+            <div class="value">Rp @Model.AmountPaid.ToString("N0")</div>
+        </div>
+        <div class="total-line">
+            <div class="label bold">Kembalian</div>
+            <div class="value bold">Rp @Model.ChangeAmount.ToString("N0")</div>
+        </div>
+    </div>
+
+    <!-- SAVINGS -->
+    @if (Model.TotalSavings > 0)
+    {
+        <div class="savings">
+            HEMAT: Rp @Model.TotalSavings.ToString("N0")
+        </div>
+    }
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <div style="font-weight: bold; margin-bottom: 2px; font-size: 8px;">@Model.ReceiptFooter</div>
+        <div>@Model.PrintedAt.ToString("dd/MM/yyyy HH:mm:ss")</div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+                setTimeout(function() {
+                    window.close();
+                }, 1000);
+            }, 500);
+        };
+    </script>
+</body>
+</html>

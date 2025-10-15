@@ -141,33 +141,55 @@ namespace POSRestoran01.Services.Implementations
                 var menuItem = await _context.MenuItems
                     .Include(m => m.OrderDetails)
                     .FirstOrDefaultAsync(m => m.MenuItemId == id);
+                var stockHistories = await _context.StockHistories
+               .Where(sh => sh.MenuItemId == id)
+               .ToListAsync();
+
 
                 if (menuItem == null)
                     return false;
 
                 if (menuItem.OrderDetails != null && menuItem.OrderDetails.Any())
                 {
-    
+
                     menuItem.IsActive = false;
                     menuItem.UpdatedAt = DateTime.Now;
                     _context.MenuItems.Update(menuItem);
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    throw new InvalidOperationException($"Menu '{menuItem.ItemName}' memiliki riwayat transaksi dan telah dinonaktifkan");
                 }
                 else
                 {
-  
+
+
+
+                    if (stockHistories.Any())
+                    {
+                        _context.StockHistories.RemoveRange(stockHistories);
+                    }
+
+
                     _context.MenuItems.Remove(menuItem);
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return true;
                 }
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-
-                return true;
+            }
+            catch (InvalidOperationException)
+            {
+                await transaction.RollbackAsync();
+                throw;
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
                 Console.WriteLine($"Error deleting menu item: {ex.Message}");
-                throw new InvalidOperationException("Tidak dapat menghapus menu yang sudah memiliki transaksi. Menu akan dinonaktifkan.", ex);
+                throw new InvalidOperationException($"Gagal menghapus menu: {ex.Message}", ex);
             }
         }
 

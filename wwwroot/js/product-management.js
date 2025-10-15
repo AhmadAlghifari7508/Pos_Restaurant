@@ -160,14 +160,24 @@ function deleteCategory(categoryId, categoryName) {
                 <div class="w-16 h-16 bg-gradient-to-br from-red-100 to-red-200 rounded-full flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-trash text-3xl text-red-600"></i>
                 </div>
-                <h3 class="text-xl font-bold text-gray-800 mb-2">Hapus Kategori</h3>
-                <p class="text-gray-600 mb-6">Apakah Anda yakin ingin menghapus kategori "<strong>${categoryName}</strong>"?</p>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Hapus Kategori Permanent</h3>
+                <p class="text-gray-600 mb-2">Apakah Anda yakin ingin menghapus kategori:</p>
+                <p class="font-bold text-gray-800 mb-4">"${categoryName}"</p>
+                <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                    <p class="text-sm text-red-800 font-medium">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        Kategori akan dihapus PERMANENT dari database!
+                    </p>
+                    <p class="text-xs text-red-600 mt-1">
+                        Pastikan kategori tidak memiliki menu item.
+                    </p>
+                </div>
                 <div class="flex space-x-3">
                     <button onclick="this.closest('.fixed').remove()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-3 px-4 rounded-lg transition-colors font-semibold">
                         Batal
                     </button>
                     <button onclick="confirmDeleteCategory(${categoryId}); this.closest('.fixed').remove();" class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-3 px-4 rounded-lg transition-colors font-semibold">
-                        Hapus
+                        Hapus Permanent
                     </button>
                 </div>
             </div>
