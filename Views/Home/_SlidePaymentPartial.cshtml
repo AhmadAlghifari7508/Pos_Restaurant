@@ -1,107 +1,116 @@
-﻿<div class="h-full flex flex-col p-4">
+﻿<div class="h-full flex flex-col p-4 overflow-y-auto">
 
     <div class="mb-4">
-        <h3 class="text-base font-bold text-gray-800 mb-3">Metode Pembayaran</h3>
-
-
-        <div class="mb-3">
-            <div class="flex items-center p-2 border-2 border-blue-500 rounded-md bg-blue-50">
-                <i class="fas fa-money-bill-wave text-green-500 mr-2 text-sm"></i>
-                <span class="font-medium text-gray-800 text-sm">Cash</span>
-            </div>
+        <h3 class="text-sm font-bold text-gray-800 mb-2">Metode Pembayaran</h3>
+        <div class="flex items-center p-3 border-2 border-green-500 rounded-lg bg-green-50">
+            <i class="fas fa-money-bill-wave text-green-600 mr-2"></i>
+            <span class="font-semibold text-gray-800">Cash</span>
         </div>
+    </div>
 
-        
-        <div class="mb-3">
-            <label class="block text-gray-700 text-xs font-bold mb-1">Nama Pelanggan</label>
-            <input type="text"
-                   id="slideCustomerName"
-                   class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
-                   placeholder="Masukkan nama pelanggan">
-        </div>
+    <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-semibold mb-1.5">Nama Pelanggan</label>
+        <input type="text"
+               id="slideCustomerName"
+               class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+               placeholder="Masukkan nama pelanggan">
+    </div>
 
- 
-        <div class="mb-3">
-            <label class="block text-gray-700 text-xs font-bold mb-2">Tipe Pesanan</label>
-            <div class="grid grid-cols-2 gap-2 mb-2">
-                <label class="flex items-center p-2 border-2 border-blue-500 bg-blue-50 rounded-md cursor-pointer">
-                    <input type="radio"
-                           name="slideOrderType"
-                           value="Dine In"
-                           checked
-                           onchange="toggleSlideTableNo()"
-                           class="mr-2 text-xs">
-                    <span class="font-medium text-gray-800 text-xs">Dine In</span>
-                </label>
-                <label class="flex items-center p-2 border-2 border-gray-300 rounded-md cursor-pointer hover:border-blue-500">
-                    <input type="radio"
-                           name="slideOrderType"
-                           value="Take Away"
-                           onchange="toggleSlideTableNo()"
-                           class="mr-2 text-xs">
-                    <span class="font-medium text-gray-800 text-xs">Take Away</span>
-                </label>
+
+
+    <div class="mb-4">
+        <div class="grid grid-cols-2 gap-3">
+
+            <div>
+                <label class="block text-gray-700 text-sm font-semibold mb-1.5">Tipe Pesanan</label>
+                <select id="slideOrderType"
+                        onchange="toggleSlideTableNo()"
+                        class="w-full px-3 py-2 border-2 border-blue-500 bg-blue-50 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 font-medium text-gray-800 text-sm cursor-pointer hover:bg-blue-100 transition-colors">
+                    <option value="Dine In">Dine In</option>
+                    <option value="Take Away">Take Away</option>
+                </select>
             </div>
 
-            <div id="slideTableNoContainer">
-                <label class="block text-gray-700 text-xs font-bold mb-1">No Meja</label>
+            <div id="slideTableNoContainer" style="display: block;">
+                <label class="block text-gray-700 text-sm font-semibold mb-1.5">No. Meja</label>
                 <input type="number"
                        id="slideTableNo"
                        name="slideTableNo"
                        min="1"
                        max="100"
-                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
-                       placeholder="">
-            </div>
-        </div>
-
-        
-        <div class="mb-3">
-            <label class="block text-gray-700 text-xs font-bold mb-1">Jumlah Cash</label>
-            <div class="relative">
-                <input type="number"
-                       id="slideCashAmount"
-                       step="1000"
-                       min="0"
-                       class="w-full px-3 py-2 pl-10 text-sm font-semibold border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
-                       placeholder="0"
-                       onkeyup="calculateSlideChange()"
-                       oninput="calculateSlideChange()">
-                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium text-xs">Rp</span>
-            </div>
-        </div>
-
-        <div class="mb-4">
-            <h5 class="block text-gray-700 text-xs font-bold mb-2">Perhitungan Pembayaran</h5>
-            <div class="bg-gray-50 rounded-md p-3 space-y-1">
-                <div class="flex justify-between items-center">
-                    <span class="text-gray-700 text-xs">Cash Diterima</span>
-                    <span id="slideCashReceived" class="font-bold text-green-700 text-xs">Rp 0</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-gray-700 text-xs">Total Bayar</span>
-                    <span id="slidePaymentTotal" class="font-bold text-gray-800 text-xs">Rp 0</span>
-                    <span id="paymentTotalAmount" class="hidden">Rp 0</span>
-                </div>
-                <div class="flex justify-between items-center font-bold text-sm border-t border-gray-300 pt-1">
-                    <span class="text-gray-800 text-xs">Kembalian</span>
-                    <span id="slideChange" class="text-green-600 text-sm">Rp 0</span>
-                </div>
+                       class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                       placeholder="Nomor meja">
             </div>
         </div>
     </div>
 
-  
-    <div class="mt-auto pt-3 border-t">
-        <div class="flex space-x-2">
+    <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-semibold mb-2">Jumlah Cash</label>
+        <div class="relative mb-3">
+            <input type="number"
+                   id="slideCashAmount"
+                   step="1000"
+                   min="0"
+                   class="w-full px-3 py-2 pl-11 text-sm font-semibold border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                   placeholder="0"
+                   onkeyup="calculateSlideChange()"
+                   oninput="calculateSlideChange()">
+            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold text-sm">Rp</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+            <button onclick="addToCash(500)" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold text-sm rounded-lg transition-colors">
+                500
+            </button>
+            <button onclick="addToCash(1000)" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold text-sm rounded-lg transition-colors">
+                1000
+            </button>
+            <button onclick="addToCash(5000)" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold text-sm rounded-lg transition-colors">
+                5000
+            </button>
+            <button onclick="addToCash(10000)" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold text-sm rounded-lg transition-colors">
+                10000
+            </button>
+            <button onclick="addToCash(50000)" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold text-sm rounded-lg transition-colors">
+                50000
+            </button>
+            <button onclick="addToCash(100000)" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold text-sm rounded-lg transition-colors">
+                100000
+            </button>
+        </div>
+    </div>
+
+    <div class="mb-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+        <h5 class="text-gray-800 text-sm font-semibold mb-3">Perhitungan Pembayaran</h5>
+        <div class="space-y-2">
+            <div class="flex justify-between items-center">
+                <span class="text-gray-700 font-medium text-sm">Total Bayar</span>
+                <span id="slidePaymentTotal" class="font-bold text-gray-800 text-sm">Rp 0</span>
+                <span id="paymentTotalAmount" class="hidden">Rp 0</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-gray-700 font-medium text-sm">Cash Diterima</span>
+                <span id="slideCashReceived" class="font-bold text-gray-800 text-sm">Rp 0</span>
+            </div>
+            <div class="flex justify-between items-center border-t-2 border-blue-200 pt-2 mt-2">
+                <span class="text-gray-800 font-semibold text-sm">Kembalian</span>
+                <span id="slideChange" class="font-bold text-green-600 text-lg">Rp 0</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-auto pt-3 border-t border-gray-200">
+        <div class="flex gap-3">
             <button onclick="hideSlidePayment()"
-                    class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-3 rounded-md transition-all flex items-center justify-center space-x-1 text-sm">
+                    class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition-all flex items-center justify-center gap-2 text-sm">
+                <i class="fas fa-times"></i>
                 <span>Batal</span>
             </button>
             <button id="slideConfirmBtn"
                     onclick="processSlidePayment()"
                     disabled
-                    class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-3 rounded-md transition-all flex items-center justify-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed text-sm">
+                    class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm">
+                <i class="fas fa-check"></i>
                 <span>Konfirmasi</span>
             </button>
         </div>
@@ -109,14 +118,38 @@
 </div>
 
 <script>
- 
+    function toggleSlideTableNo() {
+        const orderTypeSelect = document.getElementById('slideOrderType');
+        const tableNoContainer = document.getElementById('slideTableNoContainer');
+        const tableNoInput = document.getElementById('slideTableNo');
+
+        if (orderTypeSelect && tableNoContainer && tableNoInput) {
+            if (orderTypeSelect.value === 'Dine In') {
+                tableNoContainer.style.display = 'block';
+                tableNoInput.required = true;
+            } else {
+                tableNoContainer.style.display = 'none';
+                tableNoInput.required = false;
+                tableNoInput.value = '';
+            }
+        }
+    }
+
+    function addToCash(amount) {
+        const input = document.getElementById('slideCashAmount');
+        const currentValue = parseFloat(input.value) || 0;
+        input.value = currentValue + amount;
+        calculateSlideChange();
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         toggleSlideTableNo();
     });
+
+    window.addToCash = addToCash;
 </script>
 
 <style>
-]
     input[type="number"]::-webkit-outer-spin-button,
     input[type="number"]::-webkit-inner-spin-button {
         -webkit-appearance: none;
@@ -127,36 +160,26 @@
         -moz-appearance: textfield;
     }
 
-
     input[type="radio"]:checked {
         background-color: #3b82f6;
         border-color: #3b82f6;
     }
 
-
-    .h-full {
-        max-height: calc(100vh - 40px);
-        overflow-y: auto;
+    .overflow-y-auto::-webkit-scrollbar {
+        width: 5px;
     }
 
-
-    
-
-    .h-full::-webkit-scrollbar {
-        width: 4px;
-    }
-
-    .h-full::-webkit-scrollbar-track {
+    .overflow-y-auto::-webkit-scrollbar-track {
         background: #f1f1f1;
-        border-radius: 2px;
+        border-radius: 3px;
     }
 
-    .h-full::-webkit-scrollbar-thumb {
-        background: #c1c1c1;
-        border-radius: 2px;
+    .overflow-y-auto::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
     }
 
-    .h-full::-webkit-scrollbar-thumb:hover {
-        background: #a8a8a8;
-    }
+        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
 </style>

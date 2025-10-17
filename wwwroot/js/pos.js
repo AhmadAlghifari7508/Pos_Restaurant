@@ -1,5 +1,4 @@
-﻿
-let currentMenuItems = [];
+﻿let currentMenuItems = [];
 let currentOrder = {};
 let searchTimeout;
 
@@ -329,7 +328,7 @@ function refreshOrderSummary() {
             if (container) {
                 container.innerHTML = html;
             }
-         
+
             initializeDiscountToggle();
         })
         .catch(error => {
@@ -341,7 +340,6 @@ function refreshOrderSummary() {
 function initializeDiscountToggle() {
     const discountToggle = document.getElementById('discountToggle');
     if (discountToggle) {
-
         const newToggle = discountToggle.cloneNode(true);
         discountToggle.parentNode.replaceChild(newToggle, discountToggle);
 
@@ -367,7 +365,6 @@ function toggleDiscount(isApplied) {
                 refreshOrderSummary();
                 showNotification(data.message, 'success');
             } else {
-           
                 const discountToggle = document.getElementById('discountToggle');
                 if (discountToggle) {
                     discountToggle.checked = !isApplied;
@@ -398,6 +395,31 @@ function updateDiscountLabel() {
         })
         .catch(error => {
             console.error('Error updating discount label:', error);
+        });
+}
+
+function updateItemNote(menuItemId, note) {
+    const formData = new FormData();
+    formData.append('menuItemId', menuItemId);
+    formData.append('note', note ? note.trim() : ''); 
+    formData.append('__RequestVerificationToken', getAntiForgeryToken());
+
+    fetch('/Home/UpdateItemNote', {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+               
+                console.log('Note saved successfully for item:', menuItemId, '- Note:', data.note);
+            } else {
+                showNotification(data.message || 'Terjadi kesalahan', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error saving note:', error);
+            showNotification('Terjadi kesalahan saat menyimpan catatan', 'error');
         });
 }
 
@@ -602,12 +624,12 @@ function resetSlidePaymentForm() {
     const customerNameInput = document.getElementById('slideCustomerName');
     const cashInput = document.getElementById('slideCashAmount');
     const tableNoInput = document.getElementById('slideTableNo');
-    const dineInRadio = document.querySelector('input[name="slideOrderType"][value="Dine In"]');
+    const orderTypeSelect = document.getElementById('slideOrderType');
 
     if (customerNameInput) customerNameInput.value = '';
     if (cashInput) cashInput.value = '';
     if (tableNoInput) tableNoInput.value = '';
-    if (dineInRadio) dineInRadio.checked = true;
+    if (orderTypeSelect) orderTypeSelect.value = 'Dine In';
 
     toggleSlideTableNo();
     calculateSlideChange();
@@ -834,7 +856,6 @@ function highlightDiscountedItems() {
     }, 10000);
 }
 
-
 function autoPrintToPhysicalPrinter(orderId) {
     if (!orderId) {
         console.error('Order ID tidak valid');
@@ -900,10 +921,14 @@ function printNow(orderId) {
     autoPrintToPhysicalPrinter(orderId);
 }
 
+function showReceiptPreview(orderId) {
+    if (!orderId) {
+        console.error('Order ID tidak valid untuk preview');
+        return;
+    }
 
-
-
-
+    autoPrintToPhysicalPrinter(orderId);
+}
 
 window.POS = {
     addToOrder: addToOrder,
@@ -928,7 +953,8 @@ window.POS = {
     resetSlidePaymentForm: resetSlidePaymentForm,
     showDiscountedItems: showDiscountedItems,
     highlightDiscountedItems: highlightDiscountedItems,
-    getDiscountInfo: getDiscountInfo
+    getDiscountInfo: getDiscountInfo,
+    updateItemNote: updateItemNote
 };
 
 window.addToOrder = addToOrder;
@@ -957,6 +983,8 @@ window.autoPrintToPhysicalPrinter = autoPrintToPhysicalPrinter;
 window.showPrintConfirmation = showPrintConfirmation;
 window.closePrintModal = closePrintModal;
 window.printNow = printNow;
+window.showReceiptPreview = showReceiptPreview;
+window.updateItemNote = updateItemNote;
 
 const enhancedCSS = `
     @keyframes discount-highlight {

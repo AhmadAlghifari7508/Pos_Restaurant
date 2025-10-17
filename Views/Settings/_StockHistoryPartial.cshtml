@@ -1,29 +1,4 @@
 ﻿@model List<POSRestoran01.Models.StockHistory>
-@{
-    var totalRecords = Model?.Count ?? 0;
-    var increasedStock = Model?.Where(h => h.StockChange > 0).Count() ?? 0;
-    var decreasedStock = Model?.Where(h => h.StockChange < 0).Count() ?? 0;
-    var uniqueItems = Model?.Select(h => h.MenuItemId).Distinct().Count() ?? 0;
-}
-
-<div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
-    <div class="text-center">
-        <div class="text-2xl font-bold text-blue-600">@totalRecords</div>
-        <div class="text-sm text-gray-600">Total Perubahan</div>
-    </div>
-    <div class="text-center">
-        <div class="text-2xl font-bold text-green-600">@increasedStock</div>
-        <div class="text-sm text-gray-600">Penambahan</div>
-    </div>
-    <div class="text-center">
-        <div class="text-2xl font-bold text-red-600">@decreasedStock</div>
-        <div class="text-sm text-gray-600">Pengurangan</div>
-    </div>
-    <div class="text-center">
-        <div class="text-2xl font-bold text-purple-600">@uniqueItems</div>
-        <div class="text-sm text-gray-600">Item Berbeda</div>
-    </div>
-</div>
 
 @if (Model != null && Model.Any())
 {

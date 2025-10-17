@@ -88,7 +88,7 @@ namespace POSRestoran01.Services.Implementations
                 _context.Orders.Add(order);
                 await _context.SaveChangesAsync();
 
-                
+
                 foreach (var item in paymentModel.Items)
                 {
                     var orderDetail = new OrderDetail
@@ -97,23 +97,22 @@ namespace POSRestoran01.Services.Implementations
                         MenuItemId = item.MenuItemId,
                         Quantity = item.Quantity,
                         UnitPrice = item.UnitPrice,
-                        OriginalPrice = item.OriginalPrice > 0 ? item.OriginalPrice : item.UnitPrice, 
+                        OriginalPrice = item.OriginalPrice > 0 ? item.OriginalPrice : item.UnitPrice,
                         DiscountPercentage = item.DiscountPercentage,
                         DiscountAmount = item.DiscountAmount,
-                        OrderNote = item.OrderNote,
+                        OrderNote = !string.IsNullOrWhiteSpace(item.OrderNote) ? item.OrderNote.Trim() : "",
                         Subtotal = item.Subtotal
                     };
 
                     _context.OrderDetails.Add(orderDetail);
 
-                    
+            
                     var menuItem = await _context.MenuItems.FindAsync(item.MenuItemId);
                     if (menuItem != null)
                     {
                         var previousStock = menuItem.Stock;
                         var newStock = previousStock - item.Quantity;
 
-                       
                         await _stockHistoryService.RecordStockChangeAsync(
                             item.MenuItemId,
                             userId,
@@ -123,7 +122,6 @@ namespace POSRestoran01.Services.Implementations
                             $"Order: {paymentModel.OrderNumber} - {item.ItemName} x{item.Quantity}"
                         );
 
-                        
                         menuItem.Stock = newStock;
                         menuItem.UpdatedAt = DateTime.Now;
                     }

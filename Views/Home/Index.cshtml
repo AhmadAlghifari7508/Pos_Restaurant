@@ -231,14 +231,13 @@
             }
         }
 
-        function toggleSlideTableNo() {
-            const orderTypeRadios = document.querySelectorAll('input[name="slideOrderType"]');
-            const checkedRadio = document.querySelector('input[name="slideOrderType"]:checked');
+                function toggleSlideTableNo() {
+            const orderTypeSelect = document.getElementById('slideOrderType');
             const tableNoContainer = document.getElementById('slideTableNoContainer');
-            const tableNoInput = document.querySelector('input[name="slideTableNo"]');
+            const tableNoInput = document.getElementById('slideTableNo');
 
-            if (checkedRadio && tableNoContainer && tableNoInput) {
-                if (checkedRadio.value === 'Dine In') {
+            if (orderTypeSelect && tableNoContainer && tableNoInput) {
+                if (orderTypeSelect.value === 'Dine In') {
                     tableNoContainer.style.display = 'block';
                     tableNoInput.required = true;
                 } else {
@@ -249,28 +248,28 @@
             }
         }
 
-                function processSlidePayment() {
-            const customerName = document.getElementById('slideCustomerName')?.value || '';
-            const orderTypeRadio = document.querySelector('input[name="slideOrderType"]:checked');
-            const tableNo = document.getElementById('slideTableNo')?.value || '';
-            const cash = parseFloat(document.getElementById('slideCashAmount')?.value || '0');
+                    function processSlidePayment() {
+        const customerName = document.getElementById('slideCustomerName')?.value || '';
+        const orderTypeSelect = document.getElementById('slideOrderType');
+        const tableNo = document.getElementById('slideTableNo')?.value || '';
+        const cash = parseFloat(document.getElementById('slideCashAmount')?.value || '0');
 
-            if (!orderTypeRadio) {
-                showNotification('Pilih tipe pesanan', 'error');
-                return;
-            }
+        if (!orderTypeSelect) {
+            showNotification('Pilih tipe pesanan', 'error');
+            return;
+        }
 
-            const orderType = orderTypeRadio.value;
+        const orderType = orderTypeSelect.value;
 
-            if (orderType === 'Dine In' && (!tableNo || parseInt(tableNo) <= 0)) {
-                showNotification('Nomor meja harus diisi untuk Dine In', 'error');
-                return;
-            }
+        if (orderType === 'Dine In' && (!tableNo || parseInt(tableNo) <= 0)) {
+            showNotification('Nomor meja harus diisi untuk Dine In', 'error');
+            return;
+        }
 
-            if (cash <= 0) {
-                showNotification('Jumlah cash harus diisi', 'error');
-                return;
-            }
+        if (cash <= 0) {
+            showNotification('Jumlah cash harus diisi', 'error');
+            return;
+        }
 
             const totalElement = document.getElementById('paymentTotalAmount');
             if (totalElement) {

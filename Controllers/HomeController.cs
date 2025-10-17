@@ -410,10 +410,17 @@ namespace POSRestoran01.Controllers
                     return Json(new { success = false, message = "Item tidak ditemukan dalam order" });
                 }
 
-                item.OrderNote = note ?? "";
-                HttpContext.Session.SetString("CurrentOrder", JsonSerializer.Serialize(order));
+                item.OrderNote = !string.IsNullOrWhiteSpace(note) ? note.Trim() : "";
 
-                return Json(new { success = true });
+                var updatedOrderJson = JsonSerializer.Serialize(order);
+                HttpContext.Session.SetString("CurrentOrder", updatedOrderJson);
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Catatan berhasil disimpan",
+                    note = item.OrderNote
+                });
             }
             catch (Exception ex)
             {
@@ -474,81 +481,99 @@ namespace POSRestoran01.Controllers
             }
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ProcessPayment(PaymentViewModel model)
+       [HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> ProcessPayment(PaymentViewModel model)
+{
+    try
+    {
+        if (!ModelState.IsValid)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    var errors = ModelState
-                        .Where(x => x.Value.Errors.Count > 0)
-                        .Select(x => x.Value.Errors.First().ErrorMessage)
-                        .ToList();
+            var errors = ModelState
+                .Where(x => x.Value.Errors.Count > 0)
+                .Select(x => x.Value.Errors.First().ErrorMessage)
+                .ToList();
 
-                    return Json(new { success = false, message = string.Join(", ", errors) });
-                }
-
-                var orderJson = HttpContext.Session.GetString("CurrentOrder");
-                if (string.IsNullOrEmpty(orderJson))
-                {
-                    return Json(new { success = false, message = "Tidak ada order yang aktif" });
-                }
-
-                var order = JsonSerializer.Deserialize<OrderViewModel>(orderJson);
-                if (order == null || !order.Items.Any())
-                {
-                    return Json(new { success = false, message = "Order kosong" });
-                }
-
-                model.Items = order.Items;
-                model.OrderNumber = order.OrderNumber;
-                model.Subtotal = _orderService.CalculateSubtotalWithMenuDiscount(order.Items);
-                model.Discount = order.Discount;
-                model.PPN = _orderService.CalculatePPN(model.Subtotal, model.Discount);
-                model.Total = _orderService.CalculateTotal(model.Subtotal, model.Discount, model.PPN);
-                model.Change = _paymentService.CalculateChange(model.Cash, model.Total);
-
-                if (model.Cash < model.Total)
-                {
-                    return Json(new { success = false, message = "Jumlah cash tidak mencukupi" });
-                }
-
-                if (model.OrderType == "Dine In" && (!model.TableNo.HasValue || model.TableNo <= 0))
-                {
-                    return Json(new { success = false, message = "Nomor meja harus diisi untuk Dine In" });
-                }
-
-                var userIdString = HttpContext.Session.GetString("UserId");
-                if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
-                {
-                    return Json(new { success = false, message = "Session tidak valid. Silakan login ulang." });
-                }
-
-                var createdOrder = await _orderService.CreateOrderWithMenuDiscountAsync(model, userId, order.MenuDiscountTotal);
-                await _userActivityService.RecordActivityAsync(userId, "Create Order", createdOrder.OrderId);
-                await _paymentService.ProcessPaymentAsync(model, createdOrder.OrderId);
-                await _userActivityService.RecordActivityAsync(userId, "Process Payment", createdOrder.OrderId);
-
-                HttpContext.Session.Remove("CurrentOrder");
-
-                return Json(new
-                {
-                    success = true,
-                    orderId = createdOrder.OrderId,
-                    orderNumber = createdOrder.OrderNumber,
-                    message = "Pembayaran berhasil diproses",
-                    totalSavings = order.MenuDiscountTotal + order.Discount,
-                    shouldPrintReceipt = true
-                });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error in ProcessPayment: {ex.Message}");
-                return Json(new { success = false, message = $"Terjadi kesalahan: {ex.Message}" });
-            }
+            return Json(new { success = false, message = string.Join(", ", errors) });
         }
+
+        var orderJson = HttpContext.Session.GetString("CurrentOrder");
+        if (string.IsNullOrEmpty(orderJson))
+        {
+            return Json(new { success = false, message = "Tidak ada order yang aktif" });
+        }
+
+        var order = JsonSerializer.Deserialize<OrderViewModel>(orderJson);
+        if (order == null || !order.Items.Any())
+        {
+            return Json(new { success = false, message = "Order kosong" });
+        }
+
+        model.Items = new List<OrderItemViewModel>();
+        foreach (var sessionItem in order.Items)
+        {
+            model.Items.Add(new OrderItemViewModel
+            {
+                MenuItemId = sessionItem.MenuItemId,
+                ItemName = sessionItem.ItemName,
+                ImagePath = sessionItem.ImagePath,
+                UnitPrice = sessionItem.UnitPrice,
+                OriginalPrice = sessionItem.OriginalPrice,
+                Quantity = sessionItem.Quantity,
+                OrderNote = sessionItem.OrderNote ?? "", 
+                HasDiscount = sessionItem.HasDiscount,
+                DiscountPercentage = sessionItem.DiscountPercentage,
+                DiscountAmount = sessionItem.DiscountAmount,
+                Subtotal = sessionItem.Subtotal
+            });
+        }
+        
+        model.OrderNumber = order.OrderNumber;
+        model.Subtotal = _orderService.CalculateSubtotalWithMenuDiscount(order.Items);
+        model.Discount = order.Discount;
+        model.PPN = _orderService.CalculatePPN(model.Subtotal, model.Discount);
+        model.Total = _orderService.CalculateTotal(model.Subtotal, model.Discount, model.PPN);
+        model.Change = _paymentService.CalculateChange(model.Cash, model.Total);
+
+        if (model.Cash < model.Total)
+        {
+            return Json(new { success = false, message = "Jumlah cash tidak mencukupi" });
+        }
+
+        if (model.OrderType == "Dine In" && (!model.TableNo.HasValue || model.TableNo <= 0))
+        {
+            return Json(new { success = false, message = "Nomor meja harus diisi untuk Dine In" });
+        }
+
+        var userIdString = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
+        {
+            return Json(new { success = false, message = "Session tidak valid. Silakan login ulang." });
+        }
+
+        var createdOrder = await _orderService.CreateOrderWithMenuDiscountAsync(model, userId, order.MenuDiscountTotal);
+        await _userActivityService.RecordActivityAsync(userId, "Create Order", createdOrder.OrderId);
+        await _paymentService.ProcessPaymentAsync(model, createdOrder.OrderId);
+        await _userActivityService.RecordActivityAsync(userId, "Process Payment", createdOrder.OrderId);
+
+        HttpContext.Session.Remove("CurrentOrder");
+
+        return Json(new
+        {
+            success = true,
+            orderId = createdOrder.OrderId,
+            orderNumber = createdOrder.OrderNumber,
+            message = "Pembayaran berhasil diproses",
+            totalSavings = order.MenuDiscountTotal + order.Discount,
+            shouldPrintReceipt = true
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error in ProcessPayment: {ex.Message}");
+        return Json(new { success = false, message = $"Terjadi kesalahan: {ex.Message}" });
+    }
+}
 
  
         [HttpGet]

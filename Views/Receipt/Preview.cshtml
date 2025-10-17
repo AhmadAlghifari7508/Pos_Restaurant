@@ -28,7 +28,7 @@
             margin: 0 auto;
         }
 
-        /* Toolbar */
+
         .toolbar {
             background: white;
             border-radius: 8px;
@@ -80,7 +80,6 @@
                 background: #2563eb;
             }
 
-        /* Receipt Container */
         .receipt-wrapper {
             background: white;
             border-radius: 8px;
@@ -99,7 +98,7 @@
             border: 1px solid #e5e7eb;
         }
 
-        /* Receipt Styles */
+
         .receipt-header {
             text-align: center;
             margin-bottom: 15px;
@@ -212,7 +211,7 @@
             font-size: 9px;
         }
 
-        /* Print Styles */
+  
         @@media print {
             body {
                 background: white;
@@ -243,7 +242,7 @@
 </head>
 <body>
     <div class="container">
-        <!-- Toolbar -->
+   
         <div class="toolbar">
             <div>
                 <h1>Preview Struk</h1>
@@ -261,17 +260,15 @@
             </div>
         </div>
 
-        <!-- Receipt -->
         <div class="receipt-wrapper">
             <div class="receipt-paper">
-                <!-- Header -->
+  
                 <div class="receipt-header">
                     <h2>@Model.RestaurantName</h2>
                     <p>@Model.RestaurantAddress</p>
                     <p>Telp: @Model.RestaurantPhone</p>
                 </div>
 
-                <!-- Order Info -->
                 <div class="order-info">
                     <div class="info-row">
                         <span>No. Order:</span>
@@ -300,7 +297,6 @@
 
                 <div class="divider"></div>
 
-                <!-- Items -->
                 <div class="items">
                     @foreach (var item in Model.Items)
                     {
@@ -327,7 +323,6 @@
 
                 <div class="divider"></div>
 
-                <!-- Totals -->
                 <div class="totals">
                     <div class="total-row">
                         <span>Subtotal:</span>
@@ -357,7 +352,6 @@
                     </div>
                 </div>
 
-                <!-- Payment -->
                 <div class="payment">
                     <div class="total-row">
                         <span>Bayar (@Model.PaymentMethod):</span>
@@ -376,7 +370,6 @@
                     </div>
                 }
 
-                <!-- Footer -->
                 <div class="footer">
                     <p style="font-weight: bold; margin-bottom: 3px;">@Model.ReceiptFooter</p>
                     <p>@Model.PrintedAt.ToString("dd/MM/yyyy HH:mm:ss")</p>
@@ -386,7 +379,7 @@
     </div>
 
     <script>
-        // Keyboard shortcut untuk print
+
         document.addEventListener('keydown', function(e) {
             if (e.ctrlKey && e.key === 'p') {
                 e.preventDefault();

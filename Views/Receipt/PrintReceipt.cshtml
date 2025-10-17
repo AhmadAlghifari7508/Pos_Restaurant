@@ -16,16 +16,15 @@
 
         body {
             font-family: 'Courier New', Courier, monospace;
-            font-size: 10px;
-            line-height: 1.4;
-            width: 48mm;
+            font-size: 9px;
+            line-height: 1.3;
+            width: 46mm;
             margin: 0;
             padding: 1mm;
             background: white;
             color: #000;
         }
 
-        /* Utility */
         .center {
             text-align: center;
         }
@@ -42,40 +41,41 @@
             font-weight: bold;
         }
 
-        .small {
-            font-size: 8px;
+        /* Divider */
+        .div {
+            border-top: 1px dashed #000;
+            margin: 2px 0;
         }
 
-        /* Divider */
-        .divider {
-            border-top: 1px dashed #000;
-            margin: 3px 0;
+        .div-solid {
+            border-top: 1px solid #000;
+            margin: 2px 0;
         }
 
         /* Header */
-        .header {
+        .hdr {
             text-align: center;
-            margin-bottom: 5px;
-            padding-bottom: 3px;
+            margin-bottom: 4px;
+            padding-bottom: 2px;
             border-bottom: 1px dashed #000;
         }
 
-            .header .name {
-                font-size: 13px;
+            .hdr .nm {
+                font-size: 11px;
                 font-weight: bold;
-                margin-bottom: 2px;
+                margin-bottom: 1px;
             }
 
-            .header .info {
-                font-size: 8px;
+            .hdr .inf {
+                font-size: 7px;
                 line-height: 1.2;
             }
 
-        /* Row with 2 columns */
+        /* Row */
         .row {
             width: 100%;
             margin: 1px 0;
-            font-size: 9px;
+            font-size: 8px;
         }
 
             .row::after {
@@ -84,116 +84,117 @@
                 clear: both;
             }
 
-            .row .col-left {
+            .row .l {
                 float: left;
-                width: 40%;
+                width: 35%;
             }
 
-            .row .col-right {
+            .row .r {
                 float: right;
-                width: 60%;
+                width: 65%;
                 text-align: right;
             }
 
         /* Item */
-        .item {
-            margin: 3px 0;
-            font-size: 9px;
+        .itm {
+            margin: 2px 0;
+            font-size: 8px;
         }
 
-        .item-name {
+        .itm-nm {
             font-weight: bold;
             margin-bottom: 1px;
         }
 
-        .item-line {
+        .itm-ln {
             width: 100%;
         }
 
-            .item-line::after {
+            .itm-ln::after {
                 content: "";
                 display: table;
                 clear: both;
             }
 
-        .item-qty {
+        .itm-q {
             float: left;
-            width: 60%;
-            font-size: 8px;
+            width: 55%;
+            font-size: 7px;
         }
 
-        .item-price {
+        .itm-p {
             float: right;
-            width: 40%;
+            width: 45%;
             text-align: right;
-            font-size: 8px;
+            font-size: 7px;
         }
 
-        .item-note {
+        .itm-nt {
             font-size: 7px;
             font-style: italic;
             margin-top: 1px;
         }
 
-        /* Total Section */
-        .total-line {
+        /* Total */
+        .tot {
             width: 100%;
-            margin: 2px 0;
-            font-size: 9px;
+            margin: 1px 0;
+            font-size: 8px;
         }
 
-            .total-line::after {
+            .tot::after {
                 content: "";
                 display: table;
                 clear: both;
             }
 
-            .total-line .label {
+            .tot .lbl {
                 float: left;
                 width: 50%;
             }
 
-            .total-line .value {
+            .tot .val {
                 float: right;
                 width: 50%;
                 text-align: right;
             }
 
-        .grand-total {
+        .grt {
             font-weight: bold;
-            font-size: 11px;
-            margin-top: 3px;
-            padding-top: 3px;
+            font-size: 10px;
+            margin-top: 2px;
+            padding-top: 2px;
             border-top: 1px solid #000;
         }
 
         /* Payment */
-        .payment {
-            margin-top: 5px;
-            padding-top: 3px;
+        .pmt {
+            margin-top: 4px;
+            padding-top: 2px;
             border-top: 1px dashed #000;
         }
 
         /* Savings */
-        .savings {
+        .sav {
             text-align: center;
             font-weight: bold;
-            margin: 5px 0;
-            padding: 3px 0;
+            margin: 4px 0;
+            padding: 2px 0;
             border-top: 1px dashed #000;
             border-bottom: 1px dashed #000;
+            font-size: 9px;
         }
 
         /* Footer */
-        .footer {
+        .ftr {
             text-align: center;
-            margin-top: 5px;
-            padding-top: 3px;
+            margin-top: 4px;
+            padding-top: 2px;
             border-top: 1px dashed #000;
             font-size: 7px;
         }
 
-        /* Print Settings */
+        /* Print */
         @@page {
             size: 58mm auto;
             margin: 0;
@@ -201,7 +202,7 @@
 
         @@media print {
             body {
-                width: 48mm;
+                width: 46mm;
                 margin: 0;
                 padding: 1mm;
             }
@@ -210,120 +211,120 @@
 </head>
 <body>
     <!-- HEADER -->
-    <div class="header">
-        <div class="name">@Model.RestaurantName</div>
-        <div class="info">@Model.RestaurantAddress</div>
-        <div class="info">Telp: @Model.RestaurantPhone</div>
+    <div class="hdr">
+        <div class="nm">@Model.RestaurantName</div>
+        <div class="inf">@Model.RestaurantAddress</div>
+        <div class="inf">Telp: @Model.RestaurantPhone</div>
     </div>
 
     <!-- ORDER INFO -->
     <div class="row">
-        <div class="col-left">No. Order</div>
-        <div class="col-right bold">@Model.OrderNumber</div>
+        <div class="l">No Order</div>
+        <div class="r bold">@Model.OrderNumber</div>
     </div>
     <div class="row">
-        <div class="col-left">Tanggal</div>
-        <div class="col-right">@Model.OrderDate.ToString("dd/MM/yyyy") @(Model.OrderTime.Hours.ToString("00")):@(Model.OrderTime.Minutes.ToString("00"))</div>
+        <div class="l">Tanggal</div>
+        <div class="r">@Model.OrderDate.ToString("dd/MM/yy") @(Model.OrderTime.Hours.ToString("00")):@(Model.OrderTime.Minutes.ToString("00"))</div>
     </div>
     <div class="row">
-        <div class="col-left">Kasir</div>
-        <div class="col-right">@Model.CashierName</div>
+        <div class="l">Kasir</div>
+        <div class="r">@Model.CashierName</div>
     </div>
     @if (!string.IsNullOrEmpty(Model.CustomerName))
     {
         <div class="row">
-            <div class="col-left">Customer</div>
-            <div class="col-right">@Model.CustomerName</div>
+            <div class="l">Customer</div>
+            <div class="r">@Model.CustomerName</div>
         </div>
     }
     <div class="row">
-        <div class="col-left">Tipe</div>
-        <div class="col-right">@Model.OrderType @(Model.TableNo.HasValue ? $"- Meja {Model.TableNo}" : "")</div>
+        <div class="l">Tipe</div>
+        <div class="r">@Model.OrderType @(Model.TableNo.HasValue ? $"- Meja {Model.TableNo}" : "")</div>
     </div>
 
-    <div class="divider"></div>
+    <div class="div"></div>
 
     <!-- ITEMS -->
     @foreach (var item in Model.Items)
     {
-        <div class="item">
-            <div class="item-name">@item.ItemName</div>
-            <div class="item-line">
-                <div class="item-qty">@item.Quantity x @item.UnitPrice.ToString("N0")</div>
-                <div class="item-price">@item.Subtotal.ToString("N0")</div>
+        <div class="itm">
+            <div class="itm-nm">@item.ItemName</div>
+            <div class="itm-ln">
+                <div class="itm-q">@item.Quantity x @item.UnitPrice.ToString("N0")</div>
+                <div class="itm-p">@item.Subtotal.ToString("N0")</div>
             </div>
             @if (item.HasDiscount)
             {
-                <div class="item-line">
-                    <div class="item-qty">Diskon @item.FormattedDiscountPercentage</div>
-                    <div class="item-price">-@item.TotalSavingsPerItem.ToString("N0")</div>
+                <div class="itm-ln">
+                    <div class="itm-q">Diskon @item.FormattedDiscountPercentage</div>
+                    <div class="itm-p">-@item.TotalSavingsPerItem.ToString("N0")</div>
                 </div>
             }
             @if (!string.IsNullOrEmpty(item.OrderNote))
             {
-                <div class="item-note">Note: @item.OrderNote</div>
+                <div class="itm-nt">Cttn: @item.OrderNote</div>
             }
         </div>
     }
 
-    <div class="divider"></div>
+    <div class="div"></div>
 
     <!-- TOTALS -->
-    <div class="total-line">
-        <div class="label">Subtotal</div>
-        <div class="value">Rp @Model.Subtotal.ToString("N0")</div>
+    <div class="tot">
+        <div class="lbl">Subtotal</div>
+        <div class="val">@Model.Subtotal.ToString("N0")</div>
     </div>
 
     @if (Model.MenuDiscountTotal > 0)
     {
-        <div class="total-line">
-            <div class="label">Diskon Menu</div>
-            <div class="value">-Rp @Model.MenuDiscountTotal.ToString("N0")</div>
+        <div class="tot">
+            <div class="lbl">Disk Menu</div>
+            <div class="val">-@Model.MenuDiscountTotal.ToString("N0")</div>
         </div>
     }
 
     @if (Model.OrderDiscount > 0)
     {
-        <div class="total-line">
-            <div class="label">Diskon Order</div>
-            <div class="value">-Rp @Model.OrderDiscount.ToString("N0")</div>
+        <div class="tot">
+            <div class="lbl">Disk Order</div>
+            <div class="val">-@Model.OrderDiscount.ToString("N0")</div>
         </div>
     }
 
-    <div class="total-line">
-        <div class="label">PPN (11%)</div>
-        <div class="value">Rp @Model.PPN.ToString("N0")</div>
+    <div class="tot">
+        <div class="lbl">PPN 11%</div>
+        <div class="val">@Model.PPN.ToString("N0")</div>
     </div>
 
-    <div class="total-line grand-total">
-        <div class="label">TOTAL</div>
-        <div class="value">Rp @Model.Total.ToString("N0")</div>
+    <div class="tot grt">
+        <div class="lbl">TOTAL</div>
+        <div class="val">Rp @Model.Total.ToString("N0")</div>
     </div>
 
     <!-- PAYMENT -->
-    <div class="payment">
-        <div class="total-line">
-            <div class="label">Bayar (@Model.PaymentMethod)</div>
-            <div class="value">Rp @Model.AmountPaid.ToString("N0")</div>
+    <div class="pmt">
+        <div class="tot">
+            <div class="lbl">Bayar (@Model.PaymentMethod)</div>
+            <div class="val">@Model.AmountPaid.ToString("N0")</div>
         </div>
-        <div class="total-line">
-            <div class="label bold">Kembalian</div>
-            <div class="value bold">Rp @Model.ChangeAmount.ToString("N0")</div>
+        <div class="tot">
+            <div class="lbl bold">Kembalian</div>
+            <div class="val bold">Rp @Model.ChangeAmount.ToString("N0")</div>
         </div>
     </div>
 
     <!-- SAVINGS -->
     @if (Model.TotalSavings > 0)
     {
-        <div class="savings">
+        <div class="sav">
             HEMAT: Rp @Model.TotalSavings.ToString("N0")
         </div>
     }
 
     <!-- FOOTER -->
-    <div class="footer">
-        <div style="font-weight: bold; margin-bottom: 2px; font-size: 8px;">@Model.ReceiptFooter</div>
-        <div>@Model.PrintedAt.ToString("dd/MM/yyyy HH:mm:ss")</div>
+    <div class="ftr">
+        <div style="font-weight: bold; margin-bottom: 1px; font-size: 7px;">@Model.ReceiptFooter</div>
+        <div>@Model.PrintedAt.ToString("dd/MM/yy HH:mm")</div>
     </div>
 
     <script>

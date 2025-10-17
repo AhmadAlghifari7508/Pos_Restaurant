@@ -1,7 +1,7 @@
 ﻿@model POSRestoran01.Models.ViewModels.HomeViewModels.OrderViewModel
 
 <div class="h-full flex flex-col p-6">
- 
+
     <div class="mb-4 pb-3 border-b border-gray-200">
         <div class="flex items-center justify-between">
             <span class="text-base text-gray-600 font-medium">Order No:</span>
@@ -18,21 +18,18 @@
                 <div class="col-span-3 pl-2">Harga</div>
             </div>
         </div>
-    }
 
-    <div class="flex-1 overflow-y-auto mb-2" style="max-height: calc(100vh - 380px);">
-        @if (Model.Items.Any())
-        {
+        <div class="flex-1 overflow-y-auto mb-2" style="max-height: calc(100vh - 380px);">
             <div class="space-y-3">
                 @foreach (var item in Model.Items)
                 {
                     <div class="order-item bg-gray-50 rounded-lg p-3 border border-gray-200 @(item.HasDiscount ? "bg-red-50 border-red-200" : "")">
-                
+
                         <div class="grid grid-cols-12 gap-1">
-                
+
                             <div class="col-span-6">
                                 <div class="flex items-start space-x-2">
-                            
+
                                     <div class="w-10 h-10 bg-gray-200 rounded overflow-hidden flex-shrink-0">
                                         @if (!string.IsNullOrEmpty(item.ImagePath))
                                         {
@@ -72,13 +69,14 @@
                                            value="@(item.OrderNote ?? "")"
                                            class="px-3 py-2 text-xs border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 @(!string.IsNullOrEmpty(item.OrderNote) ? "bg-blue-50 border-blue-300" : "")"
                                            onchange="updateItemNote(@item.MenuItemId, this.value)"
+                                           onblur="updateItemNote(@item.MenuItemId, this.value)"
                                            oninput="updateNoteVisual(this)"
                                            placeholder="Catatan Pesanan..."
                                            style="height: 32px; width: calc(100% + 75px);">
                                 </div>
                             </div>
 
-                     
+
                             <div class="col-span-3 flex flex-col items-center">
                                 <div class="flex items-center justify-center space-x-1">
                                     <button onclick="updateQuantity(@item.MenuItemId, @(item.Quantity - 1))"
@@ -107,7 +105,7 @@
                                         </p>
                                     }
                                 </div>
-                             
+
                                 <div class="mt-2 text-left">
                                     <button onclick="removeFromOrder(@item.MenuItemId)"
                                             class="text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-2 rounded transition-colors"
@@ -121,26 +119,27 @@
                     </div>
                 }
             </div>
-        }
-        else
-        {
- 
-            <div class="text-center text-gray-500 py-12">
+        </div>
+    }
+    else
+    {
+  
+        <div class="flex-1 flex items-center justify-center">
+            <div class="text-center text-gray-500">
                 <div class="mb-4">
                     <i class="fas fa-shopping-cart text-6xl text-gray-300"></i>
                 </div>
                 <h4 class="text-xl font-medium text-gray-600 mb-2">Belum Ada Pesanan</h4>
-                <p class="text-sm text-gray-500">Silakan pilih menu untuk memulai pesanan</p>
             </div>
-        }
-    </div>
+        </div>
+    }
 
     <div class="mt-2">
         @if (Model.Items.Any())
         {
-    
+
             <div class="border-t border-gray-200 pt-3 space-y-2 bg-white">
-          
+
                 <div class="flex justify-between text-sm">
                     <div class="flex items-center space-x-1">
                         <span class="text-gray-600">Total Item:</span>
@@ -173,27 +172,27 @@
                     </div>
                 </div>
 
-           
+
                 @if (Model.TotalSavings > 0)
                 {
                     <div class="flex justify-between text-sm">
-                        <span class="text-gray-600">Total Hemat:</span>
+                        <span class="text-gray-600">Diskon Menu:</span>
                         <span class="font-medium">
                             Rp @Model.TotalSavings.ToString("N0", new System.Globalization.CultureInfo("id-ID"))
                         </span>
                     </div>
                 }
 
-       
+
                 <div class="flex justify-between font-bold text-lg border-t pt-2 text-gray-800">
                     <span>Total</span>
                     <span class="text-blue-600">@Model.Total.ToString("C0", new System.Globalization.CultureInfo("id-ID"))</span>
                 </div>
             </div>
 
-            
+
             <div class="mt-3 bg-white">
-                
+
                 <button onclick="showSlidePayment()"
                         class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2">
                     <i class="fas fa-credit-card"></i>
@@ -205,7 +204,6 @@
 </div>
 
 <script>
- 
     function updateQuantity(menuItemId, newQuantity) {
         if (newQuantity <= 0) {
             removeFromOrder(menuItemId);
@@ -225,7 +223,6 @@
         .then(data => {
             if (data.success) {
                 refreshOrderSummary();
-    
             } else {
                 showNotification(data.message || 'Terjadi kesalahan', 'error');
             }
@@ -254,11 +251,10 @@
                 if (data.discountPercentage) {
                     const discountLabel = document.getElementById('discountLabel');
                     if (discountLabel) {
-                        discountLabel.textContent = `Diskon Order ${data.discountPercentage}%`;
+                        discountLabel.textContent = `Diskon Order (${data.discountPercentage}%):`;
                     }
                 }
             } else {
-                \
                 const discountToggle = document.getElementById('discountToggle');
                 if (discountToggle) {
                     discountToggle.checked = !isApplied;
@@ -276,11 +272,38 @@
         });
     }
 
+    function removeFromOrder(menuItemId) {
+        if (!confirm('Apakah Anda yakin ingin menghapus item ini dari order?')) {
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('menuItemId', menuItemId);
+        formData.append('__RequestVerificationToken', getAntiForgeryToken());
+
+        fetch('/Home/RemoveFromOrder', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                refreshOrderSummary();
+                showNotification(data.message, 'success');
+            } else {
+                showNotification(data.message || 'Terjadi kesalahan', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error removing from order:', error);
+            showNotification('Terjadi kesalahan saat menghapus item', 'error');
+        });
+    }
 
     function updateItemNote(menuItemId, note) {
         const formData = new FormData();
         formData.append('menuItemId', menuItemId);
-        formData.append('note', note);
+        formData.append('note', note ? note.trim() : '');
         formData.append('__RequestVerificationToken', getAntiForgeryToken());
 
         fetch('/Home/UpdateItemNote', {
@@ -289,8 +312,9 @@
         })
         .then(response => response.json())
         .then(data => {
- 
-            if (!data.success) {
+            if (data.success) {
+                console.log('Note saved successfully:', data.note);
+            } else {
                 showNotification(data.message || 'Terjadi kesalahan', 'error');
             }
         })
@@ -324,7 +348,7 @@
                     if (data.success && data.data.discountPercentage) {
                         const discountLabel = document.getElementById('discountLabel');
                         if (discountLabel) {
-                            discountLabel.textContent = `Diskon Order ${data.data.discountPercentage}%`;
+                            discountLabel.textContent = `Diskon Order (${data.data.discountPercentage}%):`;
                         }
                     }
                 })
@@ -334,18 +358,17 @@
         }
     }
 
-
     function getAntiForgeryToken() {
         const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
         return tokenElement ? tokenElement.value : '';
     }
-
 
     if (typeof window !== 'undefined') {
         window.updateQuantity = updateQuantity;
         window.toggleDiscount = toggleDiscount;
         window.updateItemNote = updateItemNote;
         window.updateNoteVisual = updateNoteVisual;
+        window.removeFromOrder = removeFromOrder;
     }
 
     setTimeout(updateDiscountLabel, 100);
@@ -369,7 +392,6 @@
                 box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
             }
 
-
     .overflow-y-auto::-webkit-scrollbar {
         width: 4px;
     }
@@ -387,20 +409,6 @@
         .overflow-y-auto::-webkit-scrollbar-thumb:hover {
             background: #a8a8a8;
         }
-
-
-    media (max-width: 640px) {
-        .grid.grid-cols-12
-
-    {
-        display: block;
-    }
-
-    .grid.grid-cols-12 > div {
-        margin-bottom: 0.5rem;
-    }
-
-    }
 
     input[placeholder="Catatan Pesanan..."] {
         height: 32px;
