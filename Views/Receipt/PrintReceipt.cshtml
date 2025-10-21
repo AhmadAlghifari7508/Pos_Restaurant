@@ -41,7 +41,7 @@
             font-weight: bold;
         }
 
-        /* Divider */
+
         .div {
             border-top: 1px dashed #000;
             margin: 2px 0;
@@ -52,7 +52,7 @@
             margin: 2px 0;
         }
 
-        /* Header */
+
         .hdr {
             text-align: center;
             margin-bottom: 4px;
@@ -71,7 +71,7 @@
                 line-height: 1.2;
             }
 
-        /* Row */
+
         .row {
             width: 100%;
             margin: 1px 0;
@@ -95,7 +95,7 @@
                 text-align: right;
             }
 
-        /* Item */
+
         .itm {
             margin: 2px 0;
             font-size: 8px;
@@ -135,7 +135,6 @@
             margin-top: 1px;
         }
 
-        /* Total */
         .tot {
             width: 100%;
             margin: 1px 0;
@@ -167,14 +166,13 @@
             border-top: 1px solid #000;
         }
 
-        /* Payment */
         .pmt {
             margin-top: 4px;
             padding-top: 2px;
             border-top: 1px dashed #000;
         }
 
-        /* Savings */
+
         .sav {
             text-align: center;
             font-weight: bold;
@@ -185,7 +183,7 @@
             font-size: 9px;
         }
 
-        /* Footer */
+
         .ftr {
             text-align: center;
             margin-top: 4px;
@@ -194,7 +192,6 @@
             font-size: 7px;
         }
 
-        /* Print */
         @@page {
             size: 58mm auto;
             margin: 0;
@@ -210,14 +207,14 @@
     </style>
 </head>
 <body>
-    <!-- HEADER -->
+ 
     <div class="hdr">
         <div class="nm">@Model.RestaurantName</div>
         <div class="inf">@Model.RestaurantAddress</div>
         <div class="inf">Telp: @Model.RestaurantPhone</div>
     </div>
 
-    <!-- ORDER INFO -->
+
     <div class="row">
         <div class="l">No Order</div>
         <div class="r bold">@Model.OrderNumber</div>
@@ -244,7 +241,7 @@
 
     <div class="div"></div>
 
-    <!-- ITEMS -->
+
     @foreach (var item in Model.Items)
     {
         <div class="itm">
@@ -262,14 +259,14 @@
             }
             @if (!string.IsNullOrEmpty(item.OrderNote))
             {
-                <div class="itm-nt">Cttn: @item.OrderNote</div>
+                <div class="itm-nt">Note: @item.OrderNote</div>
             }
         </div>
     }
 
     <div class="div"></div>
 
-    <!-- TOTALS -->
+
     <div class="tot">
         <div class="lbl">Subtotal</div>
         <div class="val">@Model.Subtotal.ToString("N0")</div>
@@ -301,7 +298,7 @@
         <div class="val">Rp @Model.Total.ToString("N0")</div>
     </div>
 
-    <!-- PAYMENT -->
+
     <div class="pmt">
         <div class="tot">
             <div class="lbl">Bayar (@Model.PaymentMethod)</div>
@@ -313,7 +310,7 @@
         </div>
     </div>
 
-    <!-- SAVINGS -->
+
     @if (Model.TotalSavings > 0)
     {
         <div class="sav">
@@ -321,7 +318,6 @@
         </div>
     }
 
-    <!-- FOOTER -->
     <div class="ftr">
         <div style="font-weight: bold; margin-bottom: 1px; font-size: 7px;">@Model.ReceiptFooter</div>
         <div>@Model.PrintedAt.ToString("dd/MM/yy HH:mm")</div>
