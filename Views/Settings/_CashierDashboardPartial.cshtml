@@ -1,14 +1,13 @@
 ﻿@model POSRestoran01.Models.ViewModels.SettingsViewModels.CashierDashboardViewModel
 
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-6">
 
     <div class="bg-white rounded-lg shadow-md p-6">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-sm font-medium text-gray-600 mb-1">Total Pendapatan</p>
                 <p class="text-2xl font-bold text-green-600">@Model.Statistics.TotalRevenue.ToString("C0")</p>
-                <p class="text-xs text-gray-500">Hari ini: @Model.Statistics.TodayRevenue.ToString("C0")</p>
             </div>
             <div class="p-3 bg-green-100 rounded-full">
                 <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
@@ -21,7 +20,6 @@
             <div>
                 <p class="text-sm font-medium text-gray-600 mb-1">Total Menu Dipesan</p>
                 <p class="text-2xl font-bold text-blue-600">@Model.Statistics.TotalMenusOrdered</p>
-                <p class="text-xs text-gray-500">Hari ini: @Model.Statistics.TodayMenusOrdered</p>
             </div>
             <div class="p-3 bg-blue-100 rounded-full">
                 <i class="fas fa-utensils text-blue-600 text-xl"></i>
@@ -32,22 +30,8 @@
     <div class="bg-white rounded-lg shadow-md p-6">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-sm font-medium text-gray-600 mb-1">Total Pelanggan</p>
-                <p class="text-2xl font-bold text-purple-600">@Model.Statistics.TotalCustomers</p>
-                <p class="text-xs text-gray-500">Hari ini: @Model.Statistics.TodayCustomers</p>
-            </div>
-            <div class="p-3 bg-purple-100 rounded-full">
-                <i class="fas fa-users text-purple-600 text-xl"></i>
-            </div>
-        </div>
-    </div>
-
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm font-medium text-gray-600 mb-1">Total Order</p>
+                <p class="text-sm font-medium text-gray-600 mb-1">Total Pesanan</p>
                 <p class="text-2xl font-bold text-orange-600">@Model.Statistics.TotalOrders</p>
-                <p class="text-xs text-gray-500">Hari ini: @Model.Statistics.TodayOrders</p>
             </div>
             <div class="p-3 bg-orange-100 rounded-full">
                 <i class="fas fa-shopping-cart text-orange-600 text-xl"></i>

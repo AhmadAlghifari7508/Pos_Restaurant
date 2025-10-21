@@ -17,7 +17,7 @@ namespace POSRestoran01.Services.Implementations
         public async Task<DashboardViewModel> GetDashboardDataAsync(DateTime date)
         {
             var stats = await GetDashboardStatsAsync(date);
-            var orderReports = await GetOrderReportsAsync(date, date, null, 1, 50);
+            var orderReports = await GetOrderReportsAsync(date, date, null, 1, 1000);
             var popularMenus = await GetPopularMenusAsync(date, date, 10);
             var orderTypeStats = await GetOrderTypeStatsAsync(date, date);
 
@@ -37,7 +37,7 @@ namespace POSRestoran01.Services.Implementations
         public async Task<DashboardViewModel> GetDashboardDataRangeAsync(DateTime startDate, DateTime endDate)
         {
             var stats = await GetDashboardStatsRangeAsync(startDate, endDate);
-            var orderReports = await GetOrderReportsAsync(startDate, endDate, null, 1, 50);
+            var orderReports = await GetOrderReportsAsync(startDate, endDate, null, 1, 1000);
             var popularMenus = await GetPopularMenusAsync(startDate, endDate, 10);
             var orderTypeStats = await GetOrderTypeStatsAsync(startDate, endDate);
 
@@ -74,7 +74,9 @@ namespace POSRestoran01.Services.Implementations
                     query = query.Where(o => o.Status == status);
 
                 var orders = await query
-                    .OrderByDescending(o => o.CreatedAt)
+                    .OrderByDescending(o => o.OrderDate)
+                    .ThenByDescending(o => o.OrderTime)
+                    .ThenByDescending(o => o.CreatedAt)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
@@ -101,7 +103,7 @@ namespace POSRestoran01.Services.Implementations
             }
         }
 
-        public async Task<List<PopularMenuViewModel>> GetPopularMenusAsync(DateTime? startDate, DateTime? endDate, int limit = 10)
+        public async Task<List<PopularMenuViewModel>> GetPopularMenusAsync(DateTime? startDate, DateTime? endDate, int limit = 7)
         {
             try
             {
@@ -228,12 +230,10 @@ namespace POSRestoran01.Services.Implementations
             var totalRevenue = completedOrders.Sum(o => o.Total);
             var totalOrders = orders.Count;
 
-           
             var totalMenusOrdered = completedOrders
                                     .SelectMany(o => o.OrderDetails)
                                     .Sum(od => od.Quantity);
 
-            
             var totalCustomers = completedOrders.Count;
 
             return new DashboardStatsViewModel

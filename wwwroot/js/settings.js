@@ -24,9 +24,7 @@ function initializeSettings() {
             filterCashierDashboard(false, false);
         }, 500);
     } else if (section === 'stock-history') {
-        setTimeout(() => {
             filterStockHistory(false, false);
-        }, 500);
     } else if (section === 'user-activity') {
         setTimeout(() => {
             filterUserActivity(false, false);
@@ -37,6 +35,7 @@ function initializeSettings() {
 function setDefaultDates() {
     const today = new Date();
     const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+
 
     setDateValue('stockStartDate', today);
     setDateValue('stockEndDate', today);
@@ -158,7 +157,6 @@ function filterStockHistory(showNotificationOnSuccess = true, showLoadingIndicat
     const startDate = document.getElementById('stockStartDate')?.value;
     const endDate = document.getElementById('stockEndDate')?.value;
 
-
     if (!validateDateRange(startDate, endDate, 'Filter Riwayat Stok')) {
         return;
     }
@@ -186,12 +184,6 @@ function filterStockHistory(showNotificationOnSuccess = true, showLoadingIndicat
             const container = document.getElementById('stockHistoryContainer');
             if (container) {
                 container.innerHTML = html;
-                if (showNotificationOnSuccess) {
-                    showNotification(
-                        `Data riwayat stok berhasil difilter periode ${formatDateIndonesian(startDate)} - ${formatDateIndonesian(endDate)}`,
-                        'success'
-                    );
-                }
             }
         })
         .catch(error => {
@@ -234,12 +226,6 @@ function filterUserActivity(showNotificationOnSuccess = true, showLoadingIndicat
             const container = document.getElementById('userActivityContainer');
             if (container) {
                 container.innerHTML = html;
-                if (showNotificationOnSuccess) {
-                    showNotification(
-                        `Data aktivitas pengguna berhasil difilter periode ${formatDateIndonesian(startDate)} - ${formatDateIndonesian(endDate)}`,
-                        'success'
-                    );
-                }
             }
         })
         .catch(error => {
@@ -300,12 +286,6 @@ function filterCashierDashboard(showNotificationOnSuccess = true, showLoadingInd
             const container = document.getElementById('cashierDashboardContainer');
             if (container) {
                 container.innerHTML = html;
-                if (showNotificationOnSuccess) {
-                    showNotification(
-                        `Dashboard kasir berhasil dimuat untuk tanggal ${formatDateIndonesian(selectedDate)}`,
-                        'success'
-                    );
-                }
             }
         })
         .catch(error => {
@@ -326,7 +306,6 @@ function resetCashierDashboard() {
         filterCashierDashboard();
     }, 300);
 }
-
 
 function closeShift() {
     console.log('=== closeShift function called ===');
@@ -360,7 +339,6 @@ function closeShift() {
             if (data.success) {
                 showNotification(data.message || 'Shift berhasil ditutup', 'success');
 
-     
                 console.log('Reloading cashier dashboard...');
                 setTimeout(() => {
                     filterCashierDashboard(false, true);
@@ -750,7 +728,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(data => {
                     hideLoading();
                     if (data.success) {
-                        showNotification(data.message || 'Pengguna berhasil dibuat', 'success');
                         hideCreateUserModal();
                         createUserForm.reset();
                         document.getElementById('newUserRole').value = 'Cashier';
@@ -792,7 +769,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(data => {
                     hideLoading();
                     if (data.success) {
-                        showNotification(data.message, 'success');
                         hideEditCurrentUserModal();
                         const fullNameElement = document.getElementById('currentUserFullName');
                         if (fullNameElement) {

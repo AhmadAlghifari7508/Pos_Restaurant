@@ -174,17 +174,7 @@
 
             <div class="bg-white rounded-lg shadow-md">
                 <div class="p-6" id="stockHistoryContainer">
-                    @if (Model.StockHistories != null)
-                    {
-                        @await Html.PartialAsync("_StockHistoryPartial", Model.StockHistories)
-                    }
-                    else
-                    {
-                        <div class="text-center py-8 text-gray-500">
-                            <i class="fas fa-history text-4xl mb-4"></i>
-                            <p>Riwayat stok akan dimuat...</p>
-                        </div>
-                    }
+                   
                 </div>
             </div>
         }

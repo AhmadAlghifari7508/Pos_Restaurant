@@ -34,12 +34,12 @@ namespace POSRestoran01.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetOrderReports(DateTime? startDate, DateTime? endDate, string? status, int page = 1, int pageSize = 10)
+        public async Task<IActionResult> GetOrderReports(DateTime? startDate, DateTime? endDate, string? status, int page = 1, int pageSize = 1000)
         {
             try
             {
                
-                var reports = await _dashboardService.GetOrderReportsAsync(startDate, endDate, status, page, Math.Min(pageSize, 10));
+                var reports = await _dashboardService.GetOrderReportsAsync(startDate, endDate, status, page, Math.Min(pageSize, 1000));
                 return Json(new { success = true, data = reports });
             }
             catch (Exception ex)
@@ -138,7 +138,7 @@ namespace POSRestoran01.Controllers
             try
             {
             
-                var popularMenus = await _dashboardService.GetPopularMenusAsync(startDate, endDate, 10);
+                var popularMenus = await _dashboardService.GetPopularMenusAsync(startDate, endDate, 7);
                 return Json(new { success = true, data = popularMenus });
             }
             catch (Exception ex)
@@ -176,20 +176,6 @@ namespace POSRestoran01.Controllers
             catch (Exception ex)
             {
                 return Json(new { success = false, message = "Terjadi kesalahan saat memuat data dashboard: " + ex.Message });
-            }
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> ExportOrderReport(DateTime? startDate, DateTime? endDate, string? status)
-        {
-            try
-            {
-                
-                return Json(new { success = true, message = "Export berhasil (fitur akan diimplementasi)" });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "Terjadi kesalahan saat export laporan: " + ex.Message });
             }
         }
     }
