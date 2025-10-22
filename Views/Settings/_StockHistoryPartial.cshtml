@@ -6,9 +6,7 @@
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
                 <tr>
-                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                        <i class="fas fa-hashtag mr-2 text-gray-500"></i>ID
-                    </th>
+                    
                     <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                         <i class="fas fa-user mr-2 text-gray-500"></i>Kasir
                     </th>
@@ -39,11 +37,6 @@
                 @foreach (var history in Model)
                 {
                     <tr class="hover:bg-blue-50 transition-all duration-200 hover:shadow-sm hover:-translate-y-0.5">
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-700">
-                                #@history.StockHistoryId.ToString("000")
-                            </span>
-                        </td>
                         <td class="px-4 py-3">
                             <div>
                                 <div class="text-xs font-medium text-gray-900">@(history.User?.FullName ?? "Tidak Diketahui")</div>
