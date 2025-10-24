@@ -16,182 +16,208 @@
 
         body {
             font-family: 'Courier New', Courier, monospace;
-            font-size: 9px;
-            line-height: 1.3;
-            width: 46mm;
+            font-size: 11px;
+            line-height: 1.5;
+            width: 48mm;
             margin: 0;
-            padding: 1mm;
+            padding: 0;
+            padding-left: 2mm;
+            padding-right: 2mm;
+            padding-top: 2mm;
+            padding-bottom: 2mm;
             background: white;
             color: #000;
+            max-width: 48mm;
+            overflow: hidden;
         }
 
         .center {
             text-align: center;
         }
 
-        .left {
-            text-align: left;
-        }
-
-        .right {
-            text-align: right;
-        }
-
         .bold {
             font-weight: bold;
         }
 
-
-        .div {
-            border-top: 1px dashed #000;
-            margin: 2px 0;
-        }
-
-        .div-solid {
-            border-top: 1px solid #000;
-            margin: 2px 0;
-        }
-
-
         .hdr {
             text-align: center;
-            margin-bottom: 4px;
-            padding-bottom: 2px;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
             border-bottom: 1px dashed #000;
         }
 
             .hdr .nm {
-                font-size: 11px;
+                font-size: 16px;
                 font-weight: bold;
-                margin-bottom: 1px;
+                margin-bottom: 3px;
+                letter-spacing: 0px;
+                word-wrap: break-word;
             }
 
             .hdr .inf {
-                font-size: 7px;
-                line-height: 1.2;
+                font-size: 11px;
+                line-height: 1.4;
+                word-wrap: break-word;
             }
 
-
-        .row {
-            width: 100%;
-            margin: 1px 0;
-            font-size: 8px;
+        .info {
+            margin: 6px 0;
+            font-size: 11px;
         }
 
-            .row::after {
-                content: "";
-                display: table;
-                clear: both;
-            }
+        .info-row {
+            display: flex;
+            margin-bottom: 2px;
+            max-width: 100%;
+        }
 
-            .row .l {
-                float: left;
-                width: 35%;
-            }
+        .info-label {
+            width: 55px;
+            flex-shrink: 0;
+        }
 
-            .row .r {
-                float: right;
-                width: 65%;
-                text-align: right;
-            }
+        .info-colon {
+            width: 8px;
+            flex-shrink: 0;
+        }
 
+        .info-value {
+            flex: 1;
+            font-weight: bold;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .div {
+            border-top: 1px dashed #000;
+            margin: 4px 0;
+        }
+
+        .div-solid {
+            border-top: 1px solid #000;
+            margin: 4px 0;
+        }
+
+        .items-hdr {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            margin-bottom: 4px;
+            font-size: 11px;
+        }
 
         .itm {
-            margin: 2px 0;
-            font-size: 8px;
+            margin-bottom: 5px;
+            font-size: 11px;
         }
 
         .itm-nm {
             font-weight: bold;
-            margin-bottom: 1px;
+            margin-bottom: 2px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .itm-ln {
-            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            gap: 4px;
         }
 
-            .itm-ln::after {
-                content: "";
-                display: table;
-                clear: both;
-            }
-
-        .itm-q {
-            float: left;
-            width: 55%;
-            font-size: 7px;
+        .itm-ln-left {
+            flex: 1;
+            min-width: 0;
         }
 
-        .itm-p {
-            float: right;
-            width: 45%;
+        .itm-ln-right {
+            flex-shrink: 0;
             text-align: right;
-            font-size: 7px;
+            min-width: 50px;
+            max-width: 50px;
         }
 
         .itm-nt {
-            font-size: 7px;
+            font-size: 11px;
             font-style: italic;
-            margin-top: 1px;
+            margin-top: 2px;
+            color: #333;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
         }
 
         .tot {
-            width: 100%;
-            margin: 1px 0;
-            font-size: 8px;
+            display: flex;
+            justify-content: space-between;
+            margin: 2px 0;
+            font-size: 11px;
+            gap: 4px;
         }
 
-            .tot::after {
-                content: "";
-                display: table;
-                clear: both;
-            }
+        .tot-lbl {
+            text-align: left;
+            flex: 1;
+            min-width: 0;
+        }
 
-            .tot .lbl {
-                float: left;
-                width: 50%;
-            }
-
-            .tot .val {
-                float: right;
-                width: 50%;
-                text-align: right;
-            }
+        .tot-val {
+            text-align: right;
+            flex-shrink: 0;
+            min-width: 50px;
+            max-width: 50px;
+        }
 
         .grt {
             font-weight: bold;
-            font-size: 10px;
-            margin-top: 2px;
-            padding-top: 2px;
+            font-size: 12px;
+            margin-top: 4px;
+            padding-top: 4px;
             border-top: 1px solid #000;
         }
 
         .pmt {
-            margin-top: 4px;
-            padding-top: 2px;
+            margin-top: 6px;
+            padding-top: 4px;
             border-top: 1px dashed #000;
         }
-
 
         .sav {
             text-align: center;
             font-weight: bold;
-            margin: 4px 0;
-            padding: 2px 0;
+            margin: 6px 0;
+            padding: 4px 0;
             border-top: 1px dashed #000;
             border-bottom: 1px dashed #000;
-            font-size: 9px;
+            font-size: 11px;
+            word-wrap: break-word;
         }
 
+        .sav-lbl {
+            display: inline;
+            margin-right: 4px;
+        }
 
+        .sav-val {
+            display: inline;
+        }
+
+  
         .ftr {
             text-align: center;
-            margin-top: 4px;
-            padding-top: 2px;
+            margin-top: 6px;
+            padding-top: 4px;
             border-top: 1px dashed #000;
-            font-size: 7px;
+            font-size: 11px;
         }
 
+        .ftr-msg {
+            font-weight: bold;
+            margin-bottom: 2px;
+            word-wrap: break-word;
+        }
+
+        /* Print Settings */
         @@page {
             size: 58mm auto;
             margin: 0;
@@ -199,62 +225,78 @@
 
         @@media print {
             body {
-                width: 46mm;
+                width: 48mm;
+                max-width: 48mm;
                 margin: 0;
-                padding: 1mm;
+                padding-left: 2mm;
+                padding-right: 2mm;
+                padding-top: 2mm;
+                padding-bottom: 2mm;
             }
         }
     </style>
 </head>
 <body>
- 
+
     <div class="hdr">
         <div class="nm">@Model.RestaurantName</div>
         <div class="inf">@Model.RestaurantAddress</div>
         <div class="inf">Telp: @Model.RestaurantPhone</div>
     </div>
 
-
-    <div class="row">
-        <div class="l">No Order</div>
-        <div class="r bold">@Model.OrderNumber</div>
-    </div>
-    <div class="row">
-        <div class="l">Tanggal</div>
-        <div class="r">@Model.OrderDate.ToString("dd/MM/yy") @(Model.OrderTime.Hours.ToString("00")):@(Model.OrderTime.Minutes.ToString("00"))</div>
-    </div>
-    <div class="row">
-        <div class="l">Kasir</div>
-        <div class="r">@Model.CashierName</div>
-    </div>
-    @if (!string.IsNullOrEmpty(Model.CustomerName))
-    {
-        <div class="row">
-            <div class="l">Customer</div>
-            <div class="r">@Model.CustomerName</div>
+    <div class="info">
+        <div class="info-row">
+            <div class="info-label">No Order</div>
+            <div class="info-colon">:</div>
+            <div class="info-value">@Model.OrderNumber</div>
         </div>
-    }
-    <div class="row">
-        <div class="l">Tipe</div>
-        <div class="r">@Model.OrderType @(Model.TableNo.HasValue ? $"- Meja {Model.TableNo}" : "")</div>
+        <div class="info-row">
+            <div class="info-label">Tanggal</div>
+            <div class="info-colon">:</div>
+            <div class="info-value">@Model.OrderDate.ToString("dd/MM/yyyy") @(Model.OrderTime.Hours.ToString("00")):@(Model.OrderTime.Minutes.ToString("00"))</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Kasir</div>
+            <div class="info-colon">:</div>
+            <div class="info-value">@Model.CashierName</div>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.CustomerName))
+        {
+            <div class="info-row">
+                <div class="info-label">Customer</div>
+                <div class="info-colon">:</div>
+                <div class="info-value">@Model.CustomerName</div>
+            </div>
+        }
+        <div class="info-row">
+            <div class="info-label">Tipe</div>
+            <div class="info-colon">:</div>
+            <div class="info-value">@Model.OrderType @(Model.TableNo.HasValue ? $"- Meja {Model.TableNo}" : "")</div>
+        </div>
     </div>
 
     <div class="div"></div>
 
+    <div class="items-hdr">
+        <div>Item</div>
+        <div>Subtotal</div>
+    </div>
+
+    <div class="div"></div>
 
     @foreach (var item in Model.Items)
     {
         <div class="itm">
             <div class="itm-nm">@item.ItemName</div>
             <div class="itm-ln">
-                <div class="itm-q">@item.Quantity x @item.UnitPrice.ToString("N0")</div>
-                <div class="itm-p">@item.Subtotal.ToString("N0")</div>
+                <div class="itm-ln-left">@item.Quantity x @item.UnitPrice.ToString("N0")</div>
+                <div class="itm-ln-right bold">@item.Subtotal.ToString("N0")</div>
             </div>
             @if (item.HasDiscount)
             {
                 <div class="itm-ln">
-                    <div class="itm-q">Diskon @item.FormattedDiscountPercentage</div>
-                    <div class="itm-p">-@item.TotalSavingsPerItem.ToString("N0")</div>
+                    <div class="itm-ln-left">Diskon @item.FormattedDiscountPercentage</div>
+                    <div class="itm-ln-right">-@item.TotalSavingsPerItem.ToString("N0")</div>
                 </div>
             }
             @if (!string.IsNullOrEmpty(item.OrderNote))
@@ -266,68 +308,66 @@
 
     <div class="div"></div>
 
-
-    <div class="tot">
-        <div class="lbl">Subtotal</div>
-        <div class="val">@Model.Subtotal.ToString("N0")</div>
-    </div>
-
     @if (Model.MenuDiscountTotal > 0)
     {
         <div class="tot">
-            <div class="lbl">Disk Menu</div>
-            <div class="val">-@Model.MenuDiscountTotal.ToString("N0")</div>
+            <div class="tot-lbl">Diskon Menu</div>
+            <div class="tot-val">-@Model.MenuDiscountTotal.ToString("N0")</div>
         </div>
     }
+
+    <div class="tot">
+        <div class="tot-lbl">Subtotal</div>
+        <div class="tot-val">@Model.Subtotal.ToString("N0")</div>
+    </div>
 
     @if (Model.OrderDiscount > 0)
     {
         <div class="tot">
-            <div class="lbl">Disk Order</div>
-            <div class="val">-@Model.OrderDiscount.ToString("N0")</div>
+            <div class="tot-lbl">Diskon Order</div>
+            <div class="tot-val">-@Model.OrderDiscount.ToString("N0")</div>
         </div>
     }
 
     <div class="tot">
-        <div class="lbl">PPN 11%</div>
-        <div class="val">@Model.PPN.ToString("N0")</div>
+        <div class="tot-lbl">PPN (11%)</div>
+        <div class="tot-val">@Model.PPN.ToString("N0")</div>
     </div>
 
     <div class="tot grt">
-        <div class="lbl">TOTAL</div>
-        <div class="val">Rp @Model.Total.ToString("N0")</div>
+        <div class="tot-lbl">TOTAL</div>
+        <div class="tot-val">@Model.Total.ToString("N0")</div>
     </div>
-
 
     <div class="pmt">
         <div class="tot">
-            <div class="lbl">Bayar (@Model.PaymentMethod)</div>
-            <div class="val">@Model.AmountPaid.ToString("N0")</div>
+            <div class="tot-lbl">Tunai</div>
+            <div class="tot-val">@Model.AmountPaid.ToString("N0")</div>
         </div>
-        <div class="tot">
-            <div class="lbl bold">Kembalian</div>
-            <div class="val bold">Rp @Model.ChangeAmount.ToString("N0")</div>
+        <div class="tot bold">
+            <div class="tot-lbl">Kembalian</div>
+            <div class="tot-val">@Model.ChangeAmount.ToString("N0")</div>
         </div>
     </div>
-
 
     @if (Model.TotalSavings > 0)
     {
         <div class="sav">
-            HEMAT: Rp @Model.TotalSavings.ToString("N0")
+            <span class="sav-lbl">Total Hemat</span>
+            <span class="sav-val">@Model.TotalSavings.ToString("N0")</span>
         </div>
     }
 
     <div class="ftr">
-        <div style="font-weight: bold; margin-bottom: 1px; font-size: 7px;">@Model.ReceiptFooter</div>
-        <div>@Model.PrintedAt.ToString("dd/MM/yy HH:mm")</div>
+        <div class="ftr-msg">@Model.ReceiptFooter</div>
+        <div>@Model.PrintedAt.ToString("dd/MM/yyyy HH:mm")</div>
     </div>
 
     <script>
-        window.onload = function() {
-            setTimeout(function() {
+        window.onload = function () {
+            setTimeout(function () {
                 window.print();
-                setTimeout(function() {
+                setTimeout(function () {
                     window.close();
                 }, 1000);
             }, 500);

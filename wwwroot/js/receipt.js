@@ -1,6 +1,6 @@
 ﻿/**
  * Show receipt preview in new window/tab
- * @param {number} orderId - Order ID to generate receipt
+ * @param {number} orderId
  */
 function showReceiptPreview(orderId) {
     if (!orderId || orderId <= 0) {
@@ -14,7 +14,7 @@ function showReceiptPreview(orderId) {
 
 /**
  * Print receipt directly (opens print dialog immediately)
- * @param {number} orderId - Order ID to print receipt
+ * @param {number} orderId 
  */
 function printReceiptDirect(orderId) {
     if (!orderId || orderId <= 0) {
@@ -38,8 +38,8 @@ function printReceiptDirect(orderId) {
 
 /**
  * Get receipt data via AJAX
- * @param {number} orderId - Order ID
- * @returns {Promise} Promise with receipt data
+ * @param {number} orderId 
+ * @returns {Promise}
  */
 async function getReceiptData(orderId) {
     try {
@@ -60,8 +60,8 @@ async function getReceiptData(orderId) {
 
 /**
  * Print receipt with preview option
- * @param {number} orderId - Order ID
- * @param {boolean} showPreview - Show preview before print (default: true)
+ * @param {number} orderId
+ * @param {boolean} showPreview
  */
 function printReceipt(orderId, showPreview = true) {
     if (!orderId || orderId <= 0) {
@@ -79,7 +79,7 @@ function printReceipt(orderId, showPreview = true) {
 /**
  * Auto print receipt after payment success
  * Called from payment success callback
- * @param {number} orderId - Order ID from successful payment
+ * @param {number} orderId
  */
 function autoPrintReceiptAfterPayment(orderId) {
     if (!orderId || orderId <= 0) {
@@ -87,7 +87,6 @@ function autoPrintReceiptAfterPayment(orderId) {
         return;
     }
 
-    // Show confirmation dialog
     if (confirm('Pembayaran berhasil! Cetak struk sekarang?')) {
         showReceiptPreview(orderId);
     } else {
@@ -97,8 +96,8 @@ function autoPrintReceiptAfterPayment(orderId) {
 
 /**
  * Format currency for receipt display
- * @param {number} amount - Amount to format
- * @returns {string} Formatted currency string
+ * @param {number} amount
+ * @returns {string}
  */
 function formatReceiptCurrency(amount) {
     return new Intl.NumberFormat('id-ID', {
@@ -111,8 +110,8 @@ function formatReceiptCurrency(amount) {
 
 /**
  * Validate if receipt can be printed for order
- * @param {number} orderId - Order ID
- * @returns {Promise<boolean>} True if receipt can be printed
+ * @param {number} orderId
+ * @returns {Promise<boolean>}
  */
 async function canPrintReceipt(orderId) {
     try {
@@ -127,7 +126,7 @@ async function canPrintReceipt(orderId) {
 
 /**
  * Print multiple receipts (batch print)
- * @param {Array<number>} orderIds - Array of order IDs
+ * @param {Array<number>} orderIds
  */
 function printMultipleReceipts(orderIds) {
     if (!orderIds || orderIds.length === 0) {
@@ -144,7 +143,7 @@ function printMultipleReceipts(orderIds) {
     orderIds.forEach((orderId, index) => {
         setTimeout(() => {
             printReceiptDirect(orderId);
-        }, index * 1000); // Delay 1 second between prints
+        }, index * 1000); 
     });
 
     showNotification(`Mencetak ${orderIds.length} struk...`, 'info', 3000);
@@ -152,7 +151,7 @@ function printMultipleReceipts(orderIds) {
 
 /**
  * Download receipt as text file (for backup/email)
- * @param {number} orderId - Order ID
+ * @param {number} orderId 
  */
 async function downloadReceiptAsText(orderId) {
     try {
